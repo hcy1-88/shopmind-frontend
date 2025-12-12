@@ -29,6 +29,9 @@ coverage
 
 .eslintcache
 
+.gitattributes
+.editorconfig
+
 # Cypress
 /cypress/videos/
 /cypress/screenshots/
