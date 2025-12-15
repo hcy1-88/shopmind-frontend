@@ -1,101 +1,18 @@
 import { userService } from '@/utils/request'
-import type {
-  User,
-  LoginForm,
-  RegisterForm,
-  UserPreferences,
-  SmsLoginForm,
-  SetPasswordForm,
-  SendSmsCodeRequest,
-  SendSmsCodeResponse,
-  WeChatLoginResponse,
-  WeChatLoginStatusResponse,
-  Address,
-  UpdateProfileForm,
-  CaptchaResponse,
-  VerifyCaptchaRequest,
-} from '@/types'
+import type { User, UserPreferences, Address, UpdateProfileForm } from '@/types'
 
 /**
  * 用户服务 API
  * 对应后端 user-service 微服务
- * 包含：用户认证、个人信息、购物车、地址管理
+ * 包含：人信息、购物车、地址管理
  */
 export const userApi = {
-  // ========== 用户认证 ==========
-
-  /**
-   * 用户登录
-   */
-  login: (form: LoginForm): Promise<{ token: string; user: User }> =>
-    userService.post<{ token: string; user: User }>('/auth/login', form) as unknown as Promise<{
-      token: string
-      user: User
-    }>,
-
-  /**
-   * 用户注册
-   */
-  register: (form: RegisterForm): Promise<{ token: string; user: User }> =>
-    userService.post<{ token: string; user: User }>('/auth/register', form) as unknown as Promise<{
-      token: string
-      user: User
-    }>,
-
-  /**
-   * 短信验证码登录/注册
-   */
-  smsLogin: (form: SmsLoginForm): Promise<{ token: string; user: User }> =>
-    userService.post<{ token: string; user: User }>('/auth/sms-login', form) as unknown as Promise<{
-      token: string
-      user: User
-    }>,
-
-  /**
-   * 发送短信验证码
-   */
-  sendSmsCode: (request: SendSmsCodeRequest): Promise<SendSmsCodeResponse> =>
-    userService.post<SendSmsCodeResponse>('/auth/send-sms-code', request) as unknown as Promise<SendSmsCodeResponse>,
-
-  /**
-   * 获取图片滑块验证码
-   */
-  getCaptcha: (params?: { canvasWidth?: number; canvasHeight?: number }): Promise<CaptchaResponse> =>
-    userService.post<CaptchaResponse>('/captcha', params || {}) as unknown as Promise<CaptchaResponse>,
-
-  /**
-   * 验证图片滑块验证码
-   */
-  verifyCaptcha: (data: VerifyCaptchaRequest): Promise<string> =>
-    userService.post<string>('/captcha/verify', data) as unknown as Promise<string>,
-
-  /**
-   * 设置密码（首次登录后）
-   */
-  setPassword: (form: SetPasswordForm): Promise<{ success: boolean }> =>
-    userService.post<{ success: boolean }>('/auth/set-password', form) as unknown as Promise<{
-      success: boolean
-    }>,
-
-  /**
-   * 获取微信登录二维码
-   */
-  getWeChatQRCode: (): Promise<WeChatLoginResponse> =>
-    userService.post<WeChatLoginResponse>('/auth/wechat/qrcode') as unknown as Promise<WeChatLoginResponse>,
-
-  /**
-   * 轮询微信登录状态
-   */
-  checkWeChatLoginStatus: (ticket: string): Promise<WeChatLoginStatusResponse> =>
-    userService.get<WeChatLoginStatusResponse>(`/auth/wechat/status/${ticket}`) as unknown as Promise<WeChatLoginStatusResponse>,
-
   // ========== 用户信息 ==========
 
   /**
    * 获取当前用户信息
    */
-  getUserInfo: (): Promise<User> =>
-    userService.get<User>('/users/me') as unknown as Promise<User>,
+  getUserInfo: (): Promise<User> => userService.get<User>('/users/me') as unknown as Promise<User>,
 
   /**
    * 更新用户偏好设置
@@ -129,13 +46,23 @@ export const userApi = {
    * 创建新地址
    */
   createAddress: (userId: string, addressData: Omit<Address, 'id'>): Promise<Address> =>
-    userService.post<Address>(`/users/${userId}/addresses`, addressData) as unknown as Promise<Address>,
+    userService.post<Address>(
+      `/users/${userId}/addresses`,
+      addressData,
+    ) as unknown as Promise<Address>,
 
   /**
    * 更新地址
    */
-  updateAddress: (userId: string, addressId: string, addressData: Omit<Address, 'id'>): Promise<Address> =>
-    userService.put<Address>(`/users/${userId}/addresses/${addressId}`, addressData) as unknown as Promise<Address>,
+  updateAddress: (
+    userId: string,
+    addressId: string,
+    addressData: Omit<Address, 'id'>,
+  ): Promise<Address> =>
+    userService.put<Address>(
+      `/users/${userId}/addresses/${addressId}`,
+      addressData,
+    ) as unknown as Promise<Address>,
 
   /**
    * 删除地址

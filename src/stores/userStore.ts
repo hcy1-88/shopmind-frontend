@@ -12,6 +12,7 @@ import type {
   AddressFormData,
   UpdateProfileForm,
 } from '@/types'
+import { authApi } from '@/api/auth-api'
 import { userApi } from '@/api/user-api'
 
 export const useUserStore = defineStore('user', () => {
@@ -26,7 +27,7 @@ export const useUserStore = defineStore('user', () => {
    */
   const login = async (form: LoginForm) => {
     try {
-      const data = await userApi.login(form)
+      const data = await authApi.login(form)
       localStorage.setItem('token', data.token)
       user.value = data.user
       isLoggedIn.value = true
@@ -42,7 +43,7 @@ export const useUserStore = defineStore('user', () => {
    */
   const register = async (form: RegisterForm) => {
     try {
-      const data = await userApi.register(form)
+      const data = await authApi.register(form)
       localStorage.setItem('token', data.token)
       user.value = data.user
       isLoggedIn.value = true
@@ -67,7 +68,7 @@ export const useUserStore = defineStore('user', () => {
    */
   const smsLogin = async (form: SmsLoginForm) => {
     try {
-      const data = await userApi.smsLogin(form)
+      const data = await authApi.smsLogin(form)
       localStorage.setItem('token', data.token)
       user.value = data.user
       isLoggedIn.value = true
@@ -83,7 +84,7 @@ export const useUserStore = defineStore('user', () => {
    */
   const sendSmsCode = async (request: SendSmsCodeRequest) => {
     try {
-      const data = await userApi.sendSmsCode(request)
+      const data = await authApi.sendSmsCode(request)
       return data
     } catch (error) {
       console.error('发送验证码失败:', error)
@@ -96,7 +97,7 @@ export const useUserStore = defineStore('user', () => {
    */
   const setPassword = async (form: SetPasswordForm) => {
     try {
-      const data = await userApi.setPassword(form)
+      const data = await authApi.setPassword(form)
       return data
     } catch (error) {
       console.error('设置密码失败:', error)
@@ -109,7 +110,7 @@ export const useUserStore = defineStore('user', () => {
    */
   const getWeChatQRCode = async () => {
     try {
-      const data = await userApi.getWeChatQRCode()
+      const data = await authApi.getWeChatQRCode()
       return data
     } catch (error) {
       console.error('获取微信二维码失败:', error)
@@ -122,7 +123,7 @@ export const useUserStore = defineStore('user', () => {
    */
   const checkWeChatLoginStatus = async (ticket: string) => {
     try {
-      const data = await userApi.checkWeChatLoginStatus(ticket)
+      const data = await authApi.checkWeChatLoginStatus(ticket)
       if (data.status === 'confirmed' && data.token && data.user) {
         localStorage.setItem('token', data.token)
         user.value = data.user

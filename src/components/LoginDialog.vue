@@ -106,12 +106,7 @@
               </el-form-item>
 
               <el-form-item prop="code">
-                <el-input
-                  v-model="smsForm.code"
-                  placeholder="请输入验证码"
-                  maxlength="6"
-                  clearable
-                >
+                <el-input v-model="smsForm.code" placeholder="请输入验证码" maxlength="6" clearable>
                   <template #prefix>
                     <el-icon><Message /></el-icon>
                   </template>
@@ -140,8 +135,14 @@
           <div class="social-login">
             <el-button circle size="large" @click="handleWeChatLogin">
               <svg class="wechat-icon" viewBox="0 0 1024 1024" width="24" height="24">
-                <path d="M664.250054 368.541681c10.015098 0 19.892049 0.732687 29.67281 1.795902-26.647917-122.810047-159.358451-214.077703-310.826188-214.077703-169.353083 0-308.085774 114.232694-308.085774 259.274068 0 83.708494 45.641968 152.460344 122.166958 205.78483l-30.580521 91.194893 105.958212-52.864503c38.281393 7.54026 68.862634 15.080521 107.087524 15.080521 9.633788 0 19.135388-0.47292 28.57259-1.225921-5.975053-20.366939-9.36702-41.723264-9.36702-63.862584C398.897641 476.230428 518.224861 368.541681 664.250054 368.541681zM498.62897 285.87389c23.200398 0 38.4192 14.849831 38.4192 37.426364 0 22.6528-15.218802 37.877184-38.4192 37.877184-23.058029 0-46.202301-15.224378-46.202301-37.877184C452.426669 300.723721 475.570942 285.87389 498.62897 285.87389zM283.016307 361.177438c-23.195287 0-46.431165-15.224378-46.431165-37.877184 0-22.576533 23.235877-37.426364 46.431165-37.426364 23.057283 0 38.420247 14.849831 38.420247 37.426364C321.436554 345.953061 306.073589 361.177438 283.016307 361.177438z" fill="#00C800" />
-                <path d="M945.448458 606.151333c0-121.888808-122.165454-220.992279-259.272812-220.992279-146.027941 0-259.442402 99.103472-259.442402 220.992279 0 122.183338 113.414461 221.065763 259.442402 221.065763 30.4271 0 61.050854-7.617536 91.476588-15.158798l83.623793 45.551306-22.998691-76.17694C899.806488 735.277553 945.448458 674.90216 945.448458 606.151333zM598.803483 567.994292c-15.244819 0-30.618564-14.960495-30.618564-30.440759 0-15.289598 15.373745-30.563322 30.618564-30.563322 23.27226 0 38.4192 15.273724 38.4192 30.563322C637.222683 553.033797 622.075743 567.994292 598.803483 567.994292zM768.225943 567.994292c-15.030985 0-30.415759-14.960495-30.415759-30.440759 0-15.289598 15.384774-30.563322 30.415759-30.563322 23.233371 0 38.655659 15.273724 38.655659 30.563322C806.881602 553.033797 791.459315 567.994292 768.225943 567.994292z" fill="#00C800" />
+                <path
+                  d="M664.250054 368.541681c10.015098 0 19.892049 0.732687 29.67281 1.795902-26.647917-122.810047-159.358451-214.077703-310.826188-214.077703-169.353083 0-308.085774 114.232694-308.085774 259.274068 0 83.708494 45.641968 152.460344 122.166958 205.78483l-30.580521 91.194893 105.958212-52.864503c38.281393 7.54026 68.862634 15.080521 107.087524 15.080521 9.633788 0 19.135388-0.47292 28.57259-1.225921-5.975053-20.366939-9.36702-41.723264-9.36702-63.862584C398.897641 476.230428 518.224861 368.541681 664.250054 368.541681zM498.62897 285.87389c23.200398 0 38.4192 14.849831 38.4192 37.426364 0 22.6528-15.218802 37.877184-38.4192 37.877184-23.058029 0-46.202301-15.224378-46.202301-37.877184C452.426669 300.723721 475.570942 285.87389 498.62897 285.87389zM283.016307 361.177438c-23.195287 0-46.431165-15.224378-46.431165-37.877184 0-22.576533 23.235877-37.426364 46.431165-37.426364 23.057283 0 38.420247 14.849831 38.420247 37.426364C321.436554 345.953061 306.073589 361.177438 283.016307 361.177438z"
+                  fill="#00C800"
+                />
+                <path
+                  d="M945.448458 606.151333c0-121.888808-122.165454-220.992279-259.272812-220.992279-146.027941 0-259.442402 99.103472-259.442402 220.992279 0 122.183338 113.414461 221.065763 259.442402 221.065763 30.4271 0 61.050854-7.617536 91.476588-15.158798l83.623793 45.551306-22.998691-76.17694C899.806488 735.277553 945.448458 674.90216 945.448458 606.151333zM598.803483 567.994292c-15.244819 0-30.618564-14.960495-30.618564-30.440759 0-15.289598 15.373745-30.563322 30.618564-30.563322 23.27226 0 38.4192 15.273724 38.4192 30.563322C637.222683 553.033797 622.075743 567.994292 598.803483 567.994292zM768.225943 567.994292c-15.030985 0-30.415759-14.960495-30.415759-30.440759 0-15.289598 15.384774-30.563322 30.415759-30.563322 23.233371 0 38.655659 15.273724 38.655659 30.563322C806.881602 553.033797 791.459315 567.994292 768.225943 567.994292z"
+                  fill="#00C800"
+                />
               </svg>
             </el-button>
           </div>
@@ -157,7 +158,11 @@
       append-to-body
       :close-on-click-modal="false"
     >
-      <SliderImageVerify ref="sliderCaptchaRef" @success="handleCaptchaSuccess" @fail="handleCaptchaFail" />
+      <SliderImageVerify
+        ref="sliderCaptchaRef"
+        @success="handleCaptchaSuccess"
+        @fail="handleCaptchaFail"
+      />
     </el-dialog>
 
     <!-- 设置密码弹窗 -->
@@ -176,10 +181,20 @@
         size="large"
       >
         <el-form-item label="新密码" prop="password">
-          <el-input v-model="setPasswordForm.password" type="password" placeholder="请输入密码" show-password />
+          <el-input
+            v-model="setPasswordForm.password"
+            type="password"
+            placeholder="请输入密码"
+            show-password
+          />
         </el-form-item>
         <el-form-item label="确认密码" prop="confirmPassword">
-          <el-input v-model="setPasswordForm.confirmPassword" type="password" placeholder="请再次输入密码" show-password />
+          <el-input
+            v-model="setPasswordForm.confirmPassword"
+            type="password"
+            placeholder="请再次输入密码"
+            show-password
+          />
         </el-form-item>
         <el-form-item>
           <el-button type="primary" :loading="loading" @click="handleSetPassword">确定</el-button>
@@ -194,7 +209,7 @@ import { ref, reactive, computed, watch } from 'vue'
 import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
 import { Iphone, Lock, Message, Loading } from '@element-plus/icons-vue'
 import { useUserStore } from '@/stores/userStore'
-import SliderImageVerify from './SliderImageVerify.vue'
+import SliderImageVerify from '@/components/SliderCaptcha.vue'
 import type { LoginForm, SmsLoginForm, SetPasswordForm } from '@/types'
 
 const userStore = useUserStore()
@@ -221,17 +236,17 @@ const sliderCaptchaRef = ref<InstanceType<typeof SliderImageVerify>>()
 
 const passwordForm = reactive<LoginForm>({
   phone: '',
-  password: ''
+  password: '',
 })
 
 const smsForm = reactive<SmsLoginForm>({
   phone: '',
-  code: ''
+  code: '',
 })
 
 const setPasswordForm = reactive<SetPasswordForm>({
   password: '',
-  confirmPassword: ''
+  confirmPassword: '',
 })
 
 const dialogTitle = computed(() => {
@@ -266,24 +281,24 @@ const passwordRules: FormRules = {
   phone: [{ validator: validatePhone, trigger: 'blur' }],
   password: [
     { required: true, message: '请输入密码', trigger: 'blur' },
-    { min: 6, message: '密码至少6位', trigger: 'blur' }
-  ]
+    { min: 6, message: '密码至少6位', trigger: 'blur' },
+  ],
 }
 
 const smsRules: FormRules = {
   phone: [{ validator: validatePhone, trigger: 'blur' }],
   code: [
     { required: true, message: '请输入验证码', trigger: 'blur' },
-    { len: 6, message: '验证码为6位数字', trigger: 'blur' }
-  ]
+    { len: 6, message: '验证码为6位数字', trigger: 'blur' },
+  ],
 }
 
 const setPasswordRules: FormRules = {
   password: [
     { required: true, message: '请输入密码', trigger: 'blur' },
-    { min: 6, message: '密码至少6位', trigger: 'blur' }
+    { min: 6, message: '密码至少6位', trigger: 'blur' },
   ],
-  confirmPassword: [{ validator: validateConfirmPassword, trigger: 'blur' }]
+  confirmPassword: [{ validator: validateConfirmPassword, trigger: 'blur' }],
 }
 
 // Tab 切换
@@ -349,7 +364,7 @@ const handleCaptchaSuccess = async (captchaData: { nonceStr: string; value: numb
     sendingCode.value = true
     await userStore.sendSmsCode({
       phone: smsForm.phone,
-      captchaToken: captchaData.nonceStr // 使用验证码的唯一标识作为token
+      captchaToken: captchaData.nonceStr, // 使用验证码的唯一标识作为token
     })
     ElMessage.success('验证码已发送')
 

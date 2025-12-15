@@ -42,7 +42,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount } from 'vue'
-import { userApi } from '@/api'
+import { authApi } from '@/api'
 
 interface Props {
   blockLength?: number
@@ -101,7 +101,7 @@ const square = (x: number) => x * x
 // 获取验证码
 const getCaptcha = async () => {
   try {
-    const response = await userApi.getCaptcha({})
+    const response = await authApi.getCaptcha({})
     nonceStr.value = response.nonceStr
     if (blockRef.value && canvasRef.value) {
       blockRef.value.src = response.blockSrc
@@ -208,10 +208,10 @@ const endEvent = (x: number) => {
     emit('again')
   } else {
     // 后端校验
-    userApi
+    authApi
       .verifyCaptcha({
         imageKey: nonceStr.value,
-        imageCode: String(moveLength),
+        blockX: String(moveLength),
       })
       .then(() => {
         verifySuccessEvent()

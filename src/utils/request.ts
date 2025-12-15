@@ -102,6 +102,7 @@ export function createService(basePath: string): AxiosInstance {
 // 👇 创建各微服务专用实例（统一管理）
 export const productService = createService('/product-service')
 export const userService = createService('/user-service')
+export const authService = createService('/auth-service')
 export const merchantService = createService('/merchant-service')
 export const aiService = createService('/ai-service')
 export const orderService = createService('/order-service')
