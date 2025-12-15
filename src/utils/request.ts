@@ -2,6 +2,13 @@ import axios, { type AxiosInstance, type AxiosRequestConfig, type AxiosResponse 
 import { ElMessage } from 'element-plus'
 import type { ApiResponse } from '@/types'
 
+// 生成唯一的 Trace ID
+const generateTraceId = (): string => {
+  const timestamp = Date.now().toString(36)
+  const randomStr = Math.random().toString(36).substring(2, 15)
+  return `${timestamp}-${randomStr}`
+}
+
 // 创建 axios 实例
 const service: AxiosInstance = axios.create({
   baseURL: '/api',
@@ -14,6 +21,10 @@ const service: AxiosInstance = axios.create({
 // 请求拦截器
 service.interceptors.request.use(
   (config) => {
+    // 生成并插入 Trace ID
+    const traceId = generateTraceId()
+    config.headers['X-Trace-ID'] = traceId
+
     // 从 localStorage 获取 token
     const token = localStorage.getItem('token')
     if (token) {
