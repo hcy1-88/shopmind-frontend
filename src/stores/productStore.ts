@@ -1,32 +1,27 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import type {
-  Product,
-  Order,
-  OrderStatus,
-  ProductFormData,
-  TitleCheckRequest,
-  TitleCheckResponse,
-  ImageCheckRequest,
-  ImageCheckResponse,
-  DescriptionGenerateRequest,
-  DescriptionGenerateResponse
-} from '@/types'
-import { get, post, put, del } from '@/utils/request'
+import type { Product, Order, OrderStatus, ProductFormData } from '@/types'
+import { productApi } from '@/api/product-api'
+import { merchantApi } from '@/api/merchant-api'
+import { orderApi } from '@/api/order-api'
 
 export const useProductStore = defineStore('product', () => {
   const currentProduct = ref<Product | null>(null)
   const recommendedProducts = ref<Product[]>([])
   const searchResults = ref<Product[]>([])
   const orders = ref<Order[]>([])
-  const merchantProducts = ref<Product[]>([])  // 商家的商品列表
+  const merchantProducts = ref<Product[]>([]) // 商家的商品列表
   const isLoading = ref(false)
 
-  // 获取商品列表
+  // ========== 商品相关（product-service）==========
+
+  /**
+   * 获取商品列表
+   */
   const fetchProducts = async (params?: { query?: string; limit?: number }) => {
     try {
       isLoading.value = true
-      const data = await get<Product[]>('/products', { params })
+      const data = await productApi.getProducts(params)
       return data
     } catch (error) {
       console.error('获取商品失败:', error)
@@ -36,11 +31,13 @@ export const useProductStore = defineStore('product', () => {
     }
   }
 
-  // 搜索商品
+  /**
+   * 搜索商品
+   */
   const searchProducts = async (query: string) => {
     try {
       isLoading.value = true
-      const data = await get<Product[]>('/products', { params: { query } })
+      const data = await productApi.getProducts({ query })
       searchResults.value = data
       return data
     } catch (error) {
@@ -51,11 +48,13 @@ export const useProductStore = defineStore('product', () => {
     }
   }
 
-  // 获取商品详情
+  /**
+   * 获取商品详情
+   */
   const fetchProductDetail = async (id: string) => {
     try {
       isLoading.value = true
-      const data = await get<Product>(`/products/${id}`)
+      const data = await productApi.getProductById(id)
       currentProduct.value = data
       return data
     } catch (error) {
@@ -66,12 +65,12 @@ export const useProductStore = defineStore('product', () => {
     }
   }
 
-  // 获取推荐商品
+  /**
+   * 获取推荐商品
+   */
   const fetchRecommendations = async (productId?: string) => {
     try {
-      const data = await get<Product[]>('/products/recommendations', {
-        params: { productId },
-      })
+      const data = await productApi.getRecommendations(productId)
       recommendedProducts.value = data
       return data
     } catch (error) {
@@ -80,27 +79,15 @@ export const useProductStore = defineStore('product', () => {
     }
   }
 
-  // 加入购物车
-  const addToCart = async (productId: string, skuId?: string, quantity = 1) => {
-    try {
-      await post('/cart/add', {
-        productId,
-        skuId,
-        quantity,
-      })
-    } catch (error) {
-      console.error('加入购物车:', error)
-      throw error
-    }
-  }
+  // ========== 订单相关（order-service）==========
 
-  // 获取订单
+  /**
+   * 获取订单列表
+   */
   const fetchOrders = async (status?: OrderStatus) => {
     try {
       isLoading.value = true
-      const data = await get<Order[]>('/orders', {
-        params: { status },
-      })
+      const data = await orderApi.getOrders(status)
       orders.value = data
       return data
     } catch (error) {
@@ -111,10 +98,12 @@ export const useProductStore = defineStore('product', () => {
     }
   }
 
-  // 获取订单详情
+  /**
+   * 获取订单详情
+   */
   const fetchOrderDetail = async (orderId: string) => {
     try {
-      const data = await get<Order>(`/orders/${orderId}`)
+      const data = await orderApi.getOrderById(orderId)
       return data
     } catch (error) {
       console.error('获取订单详情:', error)
@@ -122,13 +111,15 @@ export const useProductStore = defineStore('product', () => {
     }
   }
 
-  // ========== 商家功能 ==========
+  // ========== 商家功能（merchant-service）==========
 
-  // 获取商家的商品列表
+  /**
+   * 获取商家的商品列表
+   */
   const fetchMerchantProducts = async () => {
     try {
       isLoading.value = true
-      const data = await get<Product[]>('/merchant/products')
+      const data = await merchantApi.getMerchantProducts()
       merchantProducts.value = data
       return data
     } catch (error) {
@@ -139,11 +130,13 @@ export const useProductStore = defineStore('product', () => {
     }
   }
 
-  // 创建商品
+  /**
+   * 创建商品
+   */
   const createProduct = async (formData: ProductFormData) => {
     try {
       isLoading.value = true
-      const data = await post<Product>('/products', formData)
+      const data = await merchantApi.createProduct(formData)
       merchantProducts.value.unshift(data)
       return data
     } catch (error) {
@@ -154,12 +147,14 @@ export const useProductStore = defineStore('product', () => {
     }
   }
 
-  // 更新商品
+  /**
+   * 更新商品
+   */
   const updateProduct = async (id: string, formData: Partial<ProductFormData>) => {
     try {
       isLoading.value = true
-      const data = await put<Product>(`/products/${id}`, formData)
-      const index = merchantProducts.value.findIndex(p => p.id === id)
+      const data = await merchantApi.updateProduct(id, formData)
+      const index = merchantProducts.value.findIndex((p) => p.id === id)
       if (index !== -1) {
         merchantProducts.value[index] = data
       }
@@ -172,12 +167,14 @@ export const useProductStore = defineStore('product', () => {
     }
   }
 
-  // 删除商品
+  /**
+   * 删除商品
+   */
   const deleteProduct = async (id: string) => {
     try {
       isLoading.value = true
-      await del(`/products/${id}`)
-      merchantProducts.value = merchantProducts.value.filter(p => p.id !== id)
+      await merchantApi.deleteProduct(id)
+      merchantProducts.value = merchantProducts.value.filter((p) => p.id !== id)
     } catch (error) {
       console.error('删除商品失败:', error)
       throw error
@@ -186,61 +183,29 @@ export const useProductStore = defineStore('product', () => {
     }
   }
 
-  // ========== AI 辅助功能 ==========
-
-  // 检查标题合规性
-  const checkTitle = async (title: string) => {
-    try {
-      const data = await post<TitleCheckResponse>('/ai/title-check', { title } as TitleCheckRequest)
-      return data
-    } catch (error) {
-      console.error('标题检查失败:', error)
-      throw error
-    }
-  }
-
-  // 检查图片合规性
-  const checkImage = async (imageUrl: string) => {
-    try {
-      const data = await post<ImageCheckResponse>('/ai/image-check', { imageUrl } as ImageCheckRequest)
-      return data
-    } catch (error) {
-      console.error('图片检查失败:', error)
-      throw error
-    }
-  }
-
-  // 生成商品描述
-  const generateDescription = async (params: DescriptionGenerateRequest) => {
-    try {
-      const data = await post<DescriptionGenerateResponse>('/ai/description-generate', params)
-      return data
-    } catch (error) {
-      console.error('生成描述失败:', error)
-      throw error
-    }
-  }
-
   return {
+    // 状态
     currentProduct,
     recommendedProducts,
     searchResults,
     orders,
     merchantProducts,
     isLoading,
+
+    // 商品方法
     fetchProducts,
     searchProducts,
     fetchProductDetail,
     fetchRecommendations,
-    addToCart,
+
+    // 订单方法
     fetchOrders,
     fetchOrderDetail,
+
+    // 商家方法
     fetchMerchantProducts,
     createProduct,
     updateProduct,
     deleteProduct,
-    checkTitle,
-    checkImage,
-    generateDescription,
   }
 })

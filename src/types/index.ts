@@ -255,9 +255,42 @@ export interface AIAskResponse {
   recommendations?: Product[]
 }
 
-// API 响应类型
+/**
+ * 后端统一响应类型（对应 Java ResultContext）
+ */
 export interface ApiResponse<T = unknown> {
-  code: number
-  message: string
+  /**
+   * 返回数据
+   */
   data: T
+
+  /**
+   * 是否成功
+   */
+  success: boolean
+
+  /**
+   * 状态码（"0" 表示成功）
+   */
+  code: string
+
+  /**
+   * 消息，给前端展示用
+   */
+  message: string
+
+  /**
+   * 链路追踪ID
+   */
+  traceId?: string
 }
+
+/**
+ * 响应状态码常量
+ */
+export const ResponseCode = {
+  /** 成功 */
+  SUCCESS: '0',
+  /** 系统异常 */
+  SYSTEM_ERROR: 'SYS9999',
+} as const

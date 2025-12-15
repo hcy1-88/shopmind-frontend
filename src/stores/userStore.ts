@@ -8,23 +8,25 @@ import type {
   SmsLoginForm,
   SetPasswordForm,
   SendSmsCodeRequest,
-  SendSmsCodeResponse,
-  WeChatLoginResponse,
-  WeChatLoginStatusResponse,
   Address,
   AddressFormData,
-  UpdateProfileForm
+  UpdateProfileForm,
 } from '@/types'
-import { post, get, put, del } from '@/utils/request'
+import { userApi } from '@/api/user-api'
 
 export const useUserStore = defineStore('user', () => {
   const user = ref<User | null>(null)
   const isLoggedIn = ref(false)
+  const addresses = ref<Address[]>([])
 
-  // 登录
+  // ========== 用户认证 ==========
+
+  /**
+   * 用户登录
+   */
   const login = async (form: LoginForm) => {
     try {
-      const data = await post<{ token: string; user: User }>('/auth/login', form)
+      const data = await userApi.login(form)
       localStorage.setItem('token', data.token)
       user.value = data.user
       isLoggedIn.value = true
@@ -35,10 +37,12 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
-  // 注册
+  /**
+   * 用户注册
+   */
   const register = async (form: RegisterForm) => {
     try {
-      const data = await post<{ token: string; user: User }>('/auth/register', form)
+      const data = await userApi.register(form)
       localStorage.setItem('token', data.token)
       user.value = data.user
       isLoggedIn.value = true
@@ -49,17 +53,96 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
-  // 退出登录
+  /**
+   * 退出登录
+   */
   const logout = () => {
     localStorage.removeItem('token')
     user.value = null
     isLoggedIn.value = false
   }
 
-  // 获取用户信息
+  /**
+   * 短信验证码登录/注册
+   */
+  const smsLogin = async (form: SmsLoginForm) => {
+    try {
+      const data = await userApi.smsLogin(form)
+      localStorage.setItem('token', data.token)
+      user.value = data.user
+      isLoggedIn.value = true
+      return data
+    } catch (error) {
+      console.error('短信登录失败:', error)
+      throw error
+    }
+  }
+
+  /**
+   * 发送短信验证码
+   */
+  const sendSmsCode = async (request: SendSmsCodeRequest) => {
+    try {
+      const data = await userApi.sendSmsCode(request)
+      return data
+    } catch (error) {
+      console.error('发送验证码失败:', error)
+      throw error
+    }
+  }
+
+  /**
+   * 设置密码（首次登录后）
+   */
+  const setPassword = async (form: SetPasswordForm) => {
+    try {
+      const data = await userApi.setPassword(form)
+      return data
+    } catch (error) {
+      console.error('设置密码失败:', error)
+      throw error
+    }
+  }
+
+  /**
+   * 获取微信登录二维码
+   */
+  const getWeChatQRCode = async () => {
+    try {
+      const data = await userApi.getWeChatQRCode()
+      return data
+    } catch (error) {
+      console.error('获取微信二维码失败:', error)
+      throw error
+    }
+  }
+
+  /**
+   * 轮询微信登录状态
+   */
+  const checkWeChatLoginStatus = async (ticket: string) => {
+    try {
+      const data = await userApi.checkWeChatLoginStatus(ticket)
+      if (data.status === 'confirmed' && data.token && data.user) {
+        localStorage.setItem('token', data.token)
+        user.value = data.user
+        isLoggedIn.value = true
+      }
+      return data
+    } catch (error) {
+      console.error('检查微信登录状态失败:', error)
+      throw error
+    }
+  }
+
+  // ========== 用户信息 ==========
+
+  /**
+   * 获取用户信息
+   */
   const fetchUserInfo = async () => {
     try {
-      const data = await get<User>('/users/me')
+      const data = await userApi.getUserInfo()
       user.value = data
       isLoggedIn.value = true
       return data
@@ -70,10 +153,12 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
-  // 更新用户偏好
+  /**
+   * 更新用户偏好
+   */
   const updatePreferences = async (preferences: UserPreferences) => {
     try {
-      const data = await put<User>('/users/me/preferences', preferences)
+      const data = await userApi.updatePreferences(preferences)
       if (user.value) {
         user.value.preferences = data.preferences
       }
@@ -84,10 +169,12 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
-  // 更新用户资料
+  /**
+   * 更新用户资料
+   */
   const updateProfile = async (profile: UpdateProfileForm) => {
     try {
-      const data = await put<User>('/users/me/profile', profile)
+      const data = await userApi.updateProfile(profile)
       if (user.value) {
         user.value.nickname = data.nickname
         user.value.avatar = data.avatar
@@ -101,7 +188,9 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
-  // 初始化用户
+  /**
+   * 初始化用户
+   */
   const init = async () => {
     const token = localStorage.getItem('token')
     if (token) {
@@ -114,82 +203,17 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
-  // ========== 新增登录方式 ==========
-
-  // 短信验证码登录/注册
-  const smsLogin = async (form: SmsLoginForm) => {
-    try {
-      const data = await post<{ token: string; user: User }>('/auth/sms-login', form)
-      localStorage.setItem('token', data.token)
-      user.value = data.user
-      isLoggedIn.value = true
-      return data
-    } catch (error) {
-      console.error('短信登录失败:', error)
-      throw error
-    }
-  }
-
-  // 发送短信验证码
-  const sendSmsCode = async (request: SendSmsCodeRequest) => {
-    try {
-      const data = await post<SendSmsCodeResponse>('/auth/send-sms-code', request)
-      return data
-    } catch (error) {
-      console.error('发送验证码失败:', error)
-      throw error
-    }
-  }
-
-  // 设置密码（首次登录后）
-  const setPassword = async (form: SetPasswordForm) => {
-    try {
-      const data = await post<{ success: boolean }>('/auth/set-password', form)
-      return data
-    } catch (error) {
-      console.error('设置密码失败:', error)
-      throw error
-    }
-  }
-
-  // 获取微信登录二维码
-  const getWeChatQRCode = async () => {
-    try {
-      const data = await post<WeChatLoginResponse>('/auth/wechat/qrcode')
-      return data
-    } catch (error) {
-      console.error('获取微信二维码失败:', error)
-      throw error
-    }
-  }
-
-  // 轮询微信登录状态
-  const checkWeChatLoginStatus = async (ticket: string) => {
-    try {
-      const data = await get<WeChatLoginStatusResponse>(`/auth/wechat/status/${ticket}`)
-      if (data.status === 'confirmed' && data.token && data.user) {
-        localStorage.setItem('token', data.token)
-        user.value = data.user
-        isLoggedIn.value = true
-      }
-      return data
-    } catch (error) {
-      console.error('检查微信登录状态失败:', error)
-      throw error
-    }
-  }
-
   // ========== 地址管理 ==========
 
-  const addresses = ref<Address[]>([])
-
-  // 获取用户地址列表
+  /**
+   * 获取用户地址列表
+   */
   const fetchAddresses = async () => {
     try {
       if (!user.value?.id) {
         throw new Error('用户未登录')
       }
-      const data = await get<Address[]>(`/users/${user.value.id}/addresses`)
+      const data = await userApi.getAddresses(user.value.id)
       addresses.value = data
       return data
     } catch (error) {
@@ -198,7 +222,9 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
-  // 创建新地址
+  /**
+   * 创建新地址
+   */
   const createAddress = async (formData: AddressFormData) => {
     try {
       if (!user.value?.id) {
@@ -220,7 +246,7 @@ export const useUserStore = defineStore('user', () => {
         contactPhone: formData.contactPhone,
       }
 
-      const data = await post<Address>(`/users/${user.value.id}/addresses`, addressData)
+      const data = await userApi.createAddress(user.value.id, addressData)
 
       // 如果设为默认地址，则取消其他地址的默认状态
       if (formData.isDefault) {
@@ -237,7 +263,9 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
-  // 更新地址
+  /**
+   * 更新地址
+   */
   const updateAddress = async (addressId: string, formData: AddressFormData) => {
     try {
       if (!user.value?.id) {
@@ -259,10 +287,7 @@ export const useUserStore = defineStore('user', () => {
         contactPhone: formData.contactPhone,
       }
 
-      const data = await put<Address>(
-        `/users/${user.value.id}/addresses/${addressId}`,
-        addressData
-      )
+      const data = await userApi.updateAddress(user.value.id, addressId, addressData)
 
       // 如果设为默认地址，则取消其他地址的默认状态
       if (formData.isDefault) {
@@ -285,14 +310,16 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
-  // 删除地址
+  /**
+   * 删除地址
+   */
   const deleteAddress = async (addressId: string) => {
     try {
       if (!user.value?.id) {
         throw new Error('用户未登录')
       }
 
-      await del(`/users/${user.value.id}/addresses/${addressId}`)
+      await userApi.deleteAddress(user.value.id, addressId)
 
       const index = addresses.value.findIndex((addr) => addr.id === addressId)
       if (index !== -1) {
@@ -304,14 +331,16 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
-  // 设置默认地址
+  /**
+   * 设置默认地址
+   */
   const setDefaultAddress = async (addressId: string) => {
     try {
       if (!user.value?.id) {
         throw new Error('用户未登录')
       }
 
-      await put(`/users/${user.value.id}/addresses/${addressId}/default`)
+      await userApi.setDefaultAddress(user.value.id, addressId)
 
       // 更新本地状态
       addresses.value.forEach((addr) => {
@@ -324,23 +353,28 @@ export const useUserStore = defineStore('user', () => {
   }
 
   return {
+    // 状态
     user,
     isLoggedIn,
+    addresses,
+
+    // 认证方法
     login,
     register,
     logout,
-    fetchUserInfo,
-    updatePreferences,
-    updateProfile,
-    init,
-    // 新增登录方法
     smsLogin,
     sendSmsCode,
     setPassword,
     getWeChatQRCode,
     checkWeChatLoginStatus,
+
+    // 用户信息方法
+    fetchUserInfo,
+    updatePreferences,
+    updateProfile,
+    init,
+
     // 地址管理方法
-    addresses,
     fetchAddresses,
     createAddress,
     updateAddress,
