@@ -12,6 +12,8 @@ import type {
   WeChatLoginStatusResponse,
   Address,
   UpdateProfileForm,
+  CaptchaResponse,
+  VerifyCaptchaRequest,
 } from '@/types'
 
 /**
@@ -54,6 +56,18 @@ export const userApi = {
    */
   sendSmsCode: (request: SendSmsCodeRequest): Promise<SendSmsCodeResponse> =>
     userService.post<SendSmsCodeResponse>('/auth/send-sms-code', request) as unknown as Promise<SendSmsCodeResponse>,
+
+  /**
+   * 获取图片滑块验证码
+   */
+  getCaptcha: (params?: { canvasWidth?: number; canvasHeight?: number }): Promise<CaptchaResponse> =>
+    userService.post<CaptchaResponse>('/captcha', params || {}) as unknown as Promise<CaptchaResponse>,
+
+  /**
+   * 验证图片滑块验证码
+   */
+  verifyCaptcha: (data: VerifyCaptchaRequest): Promise<string> =>
+    userService.post<string>('/captcha/verify', data) as unknown as Promise<string>,
 
   /**
    * 设置密码（首次登录后）

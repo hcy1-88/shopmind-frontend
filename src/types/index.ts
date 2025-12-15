@@ -45,7 +45,7 @@ export interface RegisterForm {
 // 验证码相关
 export interface SendSmsCodeRequest {
   phone: string
-  captchaToken: string  // 滑块验证通过的 token
+  captchaToken: string // 滑块验证通过的 token
 }
 
 export interface SendSmsCodeResponse {
@@ -53,10 +53,65 @@ export interface SendSmsCodeResponse {
   message?: string
 }
 
+// 图片滑块验证码相关
+export interface CaptchaResponse {
+  /**
+   * 随机字符串（验证码唯一标识）
+   */
+  nonceStr: string
+  /**
+   * 生成的画布的base64
+   */
+  canvasSrc: string
+  /**
+   * 生成的阻塞块（抠图）的base64
+   */
+  blockSrc: string
+  /**
+   * 阻塞块的横轴坐标（用于后端校验）
+   */
+  blockX: number
+  /**
+   * 阻塞块的纵轴坐标
+   */
+  blockY: number
+  /**
+   * 画布宽度
+   */
+  canvasWidth?: number
+  /**
+   * 画布高度
+   */
+  canvasHeight?: number
+  /**
+   * 阻塞块宽度
+   */
+  blockWidth?: number
+  /**
+   * 阻塞块高度
+   */
+  blockHeight?: number
+  /**
+   * 阻塞块凸凹半径
+   */
+  blockRadius?: number
+}
+
+export interface VerifyCaptchaRequest {
+  /**
+   * 验证码唯一标识（nonceStr）
+   */
+  imageKey: string
+  /**
+   * 用户滑动的距离（X坐标）
+   */
+  blockX: string
+}
+
 // 微信登录相关
 export interface WeChatLoginResponse {
   qrCodeUrl: string
-  ticket: string  // 用于轮询登录状态
+  ticket: string // 用于轮询登录状态
 }
 
 export interface WeChatLoginStatusResponse {

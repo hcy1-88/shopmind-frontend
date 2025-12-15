@@ -153,11 +153,11 @@
     <el-dialog
       v-model="captchaVisible"
       title="安全验证"
-      width="360px"
+      width="380px"
       append-to-body
       :close-on-click-modal="false"
     >
-      <SliderCaptcha ref="sliderCaptchaRef" @success="handleCaptchaSuccess" @fail="handleCaptchaFail" />
+      <SliderImageVerify ref="sliderCaptchaRef" @success="handleCaptchaSuccess" @fail="handleCaptchaFail" />
     </el-dialog>
 
     <!-- 设置密码弹窗 -->
@@ -194,7 +194,7 @@ import { ref, reactive, computed, watch } from 'vue'
 import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
 import { Iphone, Lock, Message, Loading } from '@element-plus/icons-vue'
 import { useUserStore } from '@/stores/userStore'
-import SliderCaptcha from './SliderCaptcha.vue'
+import SliderImageVerify from './SliderImageVerify.vue'
 import type { LoginForm, SmsLoginForm, SetPasswordForm } from '@/types'
 
 const userStore = useUserStore()
@@ -217,7 +217,7 @@ let wechatPollingTimer: number | null = null
 const passwordFormRef = ref<FormInstance>()
 const smsFormRef = ref<FormInstance>()
 const setPasswordFormRef = ref<FormInstance>()
-const sliderCaptchaRef = ref<InstanceType<typeof SliderCaptcha>>()
+const sliderCaptchaRef = ref<InstanceType<typeof SliderImageVerify>>()
 
 const passwordForm = reactive<LoginForm>({
   phone: '',
@@ -338,18 +338,18 @@ const handleSendCode = async () => {
   }
 
   captchaVisible.value = true
-  sliderCaptchaRef.value?.reset()
+  sliderCaptchaRef.value?.refresh()
 }
 
 // 滑块验证成功
-const handleCaptchaSuccess = async (token: string) => {
+const handleCaptchaSuccess = async (captchaData: { nonceStr: string; value: number }) => {
   captchaVisible.value = false
 
   try {
     sendingCode.value = true
     await userStore.sendSmsCode({
       phone: smsForm.phone,
-      captchaToken: token
+      captchaToken: captchaData.nonceStr // 使用验证码的唯一标识作为token
     })
     ElMessage.success('验证码已发送')
 
@@ -369,8 +369,8 @@ const handleCaptchaSuccess = async (token: string) => {
 }
 
 // 滑块验证失败
-const handleCaptchaFail = () => {
-  ElMessage.warning('请将滑块拖到最右边')
+const handleCaptchaFail = (msg?: string) => {
+  ElMessage.warning(msg || '验证失败，请重试')
 }
 
 // 短信登录/注册
