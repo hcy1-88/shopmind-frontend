@@ -44,8 +44,6 @@ export function createService(basePath: string): AxiosInstance {
 
       // 检查业务状态码（后端 ResultContext.success 或 code）
       if (!res.success || res.code !== ResponseCode.SUCCESS) {
-        ElMessage.error(res.message || '请求失败')
-
         // 401: 未授权，跳转登录页
         if (res.code === '401') {
           localStorage.removeItem('token')
