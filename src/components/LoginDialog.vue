@@ -220,6 +220,7 @@ const activeTab = ref('password')
 const loading = ref(false)
 const sendingCode = ref(false)
 const countdown = ref(0)
+const smsToken = ref('') // 短信验证码 token
 const captchaVisible = ref(false)
 const setPasswordVisible = ref(false)
 const showWeChatQR = ref(false)
@@ -362,10 +363,10 @@ const handleCaptchaSuccess = async (captchaData: { nonceStr: string; value: numb
 
   try {
     sendingCode.value = true
-    await userStore.sendSmsCode({
+    const response = await userStore.sendSmsCode({
       phone: smsForm.phone,
-      captchaToken: captchaData.nonceStr, // 使用验证码的唯一标识作为token
     })
+    // smsToken.value = response.data
     ElMessage.success('验证码已发送')
 
     countdown.value = 60

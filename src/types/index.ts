@@ -45,7 +45,6 @@ export interface RegisterForm {
 // 验证码相关
 export interface SendSmsCodeRequest {
   phone: string
-  captchaToken: string // 滑块验证通过的 token
 }
 
 export interface SendSmsCodeResponse {
