@@ -29,6 +29,7 @@ export interface LoginForm {
 export interface SmsLoginForm {
   phone: string
   code: string
+  token?: string // 发送短信时后端返回的 token
 }
 
 export interface SetPasswordForm {
@@ -44,16 +45,20 @@ export interface RegisterForm {
 
 // 验证码相关
 export interface SendSmsCodeRequest {
-  phone: string
+  phoneNumber: string
 }
 
-export interface SendSmsCodeResponse {
-  success: boolean
-  message?: string
+/**
+ * 发送短信验证码响应数据（ResultContext.data）
+ */
+export interface SmsCodeData {
+  token: string // 短信验证凭证，用于后续登录验证
 }
 
-// 图片滑块验证码相关
-export interface CaptchaResponse {
+/**
+ * 图片滑块验证码响应数据（ResultContext.data）
+ */
+export interface CaptchaData {
   /**
    * 随机字符串（验证码唯一标识）
    */
@@ -67,9 +72,9 @@ export interface CaptchaResponse {
    */
   blockSrc: string
   /**
-   * 阻塞块的横轴坐标（用于后端校验）
+   * 阻塞块的横轴坐标（用于后端校验，后端不会返回此字段）
    */
-  blockX: number
+  blockX?: number
   /**
    * 阻塞块的纵轴坐标
    */
@@ -107,16 +112,36 @@ export interface VerifyCaptchaRequest {
   blockX: string
 }
 
-// 微信登录相关
-export interface WeChatLoginResponse {
+/**
+ * 微信登录二维码响应数据（ResultContext.data）
+ */
+export interface WeChatQRCodeData {
   qrCodeUrl: string
   ticket: string // 用于轮询登录状态
 }
 
-export interface WeChatLoginStatusResponse {
+/**
+ * 微信登录状态响应数据（ResultContext.data）
+ */
+export interface WeChatLoginStatusData {
   status: 'pending' | 'scanned' | 'confirmed' | 'expired'
   token?: string
   user?: User
+}
+
+/**
+ * 登录/注册响应数据（ResultContext.data）
+ */
+export interface AuthData {
+  token: string
+  user: User
+}
+
+/**
+ * 设置密码响应数据（ResultContext.data）
+ */
+export interface SetPasswordData {
+  success: boolean
 }
 
 // 地址相关类型

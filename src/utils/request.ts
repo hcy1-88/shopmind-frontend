@@ -40,6 +40,7 @@ export function createService(basePath: string): AxiosInstance {
   // 响应拦截器（复用逻辑）
   instance.interceptors.response.use(
     <T = unknown>(response: AxiosResponse<ApiResponse<T>>): T => {
+      // res 对应后端 ResultContext 对象
       const res = response.data
 
       // 检查业务状态码（后端 ResultContext.success 或 code）

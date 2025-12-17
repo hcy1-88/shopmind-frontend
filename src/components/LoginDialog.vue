@@ -357,16 +357,19 @@ const handleSendCode = async () => {
   sliderCaptchaRef.value?.refresh()
 }
 
-// 滑块验证成功
-const handleCaptchaSuccess = async (captchaData: { nonceStr: string; value: number }) => {
+// 滑块验证成功, 发送验证码
+const handleCaptchaSuccess = async () => {
   captchaVisible.value = false
 
   try {
     sendingCode.value = true
-    const response = await userStore.sendSmsCode({
-      phone: smsForm.phone,
+    const data = await userStore.sendSmsCode({
+      phoneNumber: smsForm.phone,
     })
-    // smsToken.value = response.data
+
+    // 保存 token，用于后续登录验证
+    smsToken.value = data.token
+
     ElMessage.success('验证码已发送')
 
     countdown.value = 60
@@ -398,7 +401,11 @@ const handleSmsLogin = async () => {
 
     try {
       loading.value = true
-      await userStore.smsLogin(smsForm)
+      // 提交手机号、验证码和 token 给后端
+      await userStore.smsLogin({
+        ...smsForm,
+        token: smsToken.value,
+      })
       ElMessage.success('登录成功')
       dialogVisible.value = false
       resetForms()
@@ -496,8 +503,10 @@ const resetForms = () => {
   passwordForm.password = ''
   smsForm.phone = ''
   smsForm.code = ''
+  smsToken.value = '' // 清空短信验证 token
   setPasswordForm.password = ''
   setPasswordForm.confirmPassword = ''
+  countdown.value = 0 // 重置倒计时
   passwordFormRef.value?.clearValidate()
   smsFormRef.value?.clearValidate()
   setPasswordFormRef.value?.clearValidate()
