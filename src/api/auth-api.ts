@@ -2,7 +2,6 @@ import { authService } from '@/utils/request'
 import type {
   User,
   LoginForm,
-  RegisterForm,
   SmsLoginForm,
   SetPasswordForm,
   SendSmsCodeRequest,
@@ -17,19 +16,13 @@ export const authApi = {
   // ========== 用户认证 ==========
 
   /**
-   * 用户登录
+   * 用户 手机号 + 密码 登录
    */
   login: (form: LoginForm): Promise<{ token: string; user: User }> =>
-    authService.post<{ token: string; user: User }>('/auth/login', form) as unknown as Promise<{
-      token: string
-      user: User
-    }>,
-
-  /**
-   * 用户注册
-   */
-  register: (form: RegisterForm): Promise<{ token: string; user: User }> =>
-    authService.post<{ token: string; user: User }>('/auth/register', form) as unknown as Promise<{
+    authService.post<{ token: string; user: User }>(
+      '/authorization/login',
+      form,
+    ) as unknown as Promise<{
       token: string
       user: User
     }>,
@@ -38,7 +31,10 @@ export const authApi = {
    * 短信验证码登录/注册
    */
   smsLogin: (form: SmsLoginForm): Promise<{ token: string; user: User }> =>
-    authService.post<{ token: string; user: User }>('/auth/sms-login', form) as unknown as Promise<{
+    authService.post<{ token: string; user: User }>(
+      '/authorization/sms-login',
+      form,
+    ) as unknown as Promise<{
       token: string
       user: User
     }>,
@@ -48,7 +44,7 @@ export const authApi = {
    */
   sendSmsCode: (request: SendSmsCodeRequest): Promise<SendSmsCodeResponse> =>
     authService.post<SendSmsCodeResponse>(
-      '/auth/send-sms-code',
+      '/authorization/send-sms-code',
       request,
     ) as unknown as Promise<SendSmsCodeResponse>,
 
@@ -74,7 +70,10 @@ export const authApi = {
    * 设置密码（首次登录后）
    */
   setPassword: (form: SetPasswordForm): Promise<{ success: boolean }> =>
-    authService.post<{ success: boolean }>('/auth/set-password', form) as unknown as Promise<{
+    authService.post<{ success: boolean }>(
+      '/authorization/set-password',
+      form,
+    ) as unknown as Promise<{
       success: boolean
     }>,
 
@@ -83,7 +82,7 @@ export const authApi = {
    */
   getWeChatQRCode: (): Promise<WeChatLoginResponse> =>
     authService.post<WeChatLoginResponse>(
-      '/auth/wechat/qrcode',
+      '/authorization/wechat/qrcode',
     ) as unknown as Promise<WeChatLoginResponse>,
 
   /**
@@ -91,6 +90,6 @@ export const authApi = {
    */
   checkWeChatLoginStatus: (ticket: string): Promise<WeChatLoginStatusResponse> =>
     authService.get<WeChatLoginStatusResponse>(
-      `/auth/wechat/status/${ticket}`,
+      `/authorization/wechat/status/${ticket}`,
     ) as unknown as Promise<WeChatLoginStatusResponse>,
 }

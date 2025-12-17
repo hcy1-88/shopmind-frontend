@@ -3,7 +3,6 @@ import { ref } from 'vue'
 import type {
   User,
   LoginForm,
-  RegisterForm,
   UserPreferences,
   SmsLoginForm,
   SetPasswordForm,
@@ -23,7 +22,7 @@ export const useUserStore = defineStore('user', () => {
   // ========== 用户认证 ==========
 
   /**
-   * 用户登录
+   * 用户 手机号 + 密码 登录
    */
   const login = async (form: LoginForm) => {
     try {
@@ -34,22 +33,6 @@ export const useUserStore = defineStore('user', () => {
       return data
     } catch (error) {
       console.error('登录失败:', error)
-      throw error
-    }
-  }
-
-  /**
-   * 用户注册
-   */
-  const register = async (form: RegisterForm) => {
-    try {
-      const data = await authApi.register(form)
-      localStorage.setItem('token', data.token)
-      user.value = data.user
-      isLoggedIn.value = true
-      return data
-    } catch (error) {
-      console.error('注册失败:', error)
       throw error
     }
   }
@@ -361,7 +344,6 @@ export const useUserStore = defineStore('user', () => {
 
     // 认证方法
     login,
-    register,
     logout,
     smsLogin,
     sendSmsCode,
