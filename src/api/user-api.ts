@@ -10,11 +10,6 @@ export const userApi = {
   // ========== 用户信息 ==========
 
   /**
-   * 获取当前用户信息
-   */
-  getUserInfo: (): Promise<User> => userService.get<User>('/users/me') as unknown as Promise<User>,
-
-  /**
    * 更新用户偏好设置
    */
   updatePreferences: (preferences: UserPreferences): Promise<User> =>

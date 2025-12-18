@@ -11,6 +11,7 @@ import type {
   VerifyCaptchaRequest,
   AuthData,
   SetPasswordData,
+  User,
 } from '@/types'
 
 export const authApi = {
@@ -61,6 +62,12 @@ export const authApi = {
       '/authorization/set-password',
       form,
     ) as unknown as Promise<SetPasswordData>,
+
+  /**
+   * 获取当前用户信息
+   */
+  getUserInfo: (): Promise<User> =>
+    authService.post<User>('/authorization/me') as unknown as Promise<User>,
 
   /**
    * 获取微信登录二维码

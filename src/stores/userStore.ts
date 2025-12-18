@@ -126,7 +126,7 @@ export const useUserStore = defineStore('user', () => {
    */
   const fetchUserInfo = async () => {
     try {
-      const data = await userApi.getUserInfo()
+      const data = await authApi.getUserInfo()
       user.value = data
       isLoggedIn.value = true
       return data

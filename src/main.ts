@@ -6,6 +6,7 @@ import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 
 import App from './App.vue'
 import router from './router'
+import { useUserStore } from './stores/userStore'
 
 const app = createApp(App)
 
@@ -14,8 +15,13 @@ for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
   app.component(key, component)
 }
 
-app.use(createPinia())
+const pinia = createPinia()
+app.use(pinia)
 app.use(router)
 app.use(ElementPlus)
 
-app.mount('#app')
+// 初始化用户状态以恢复登录（对应 userStore 的 user 和 isLoggedIn）
+const userStore = useUserStore()
+userStore.init().then(() => {
+  app.mount('#app')
+})

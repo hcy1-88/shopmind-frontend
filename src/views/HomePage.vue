@@ -13,7 +13,10 @@
           </el-link>
           <template v-else>
             <el-dropdown @command="handleCommand">
-              <el-avatar :icon="User" />
+              <span class="user-info">
+                <el-avatar :src="userStore.user?.avatar" :icon="User" />
+                <span class="user-nickname">{{ userStore.user?.nickname || '用户' }}</span>
+              </span>
               <template #dropdown>
                 <el-dropdown-menu>
                   <el-dropdown-item command="profile">个人中心</el-dropdown-item>
@@ -208,6 +211,23 @@ const handleCommand = (command: string) => {
   display: flex;
   align-items: center;
   gap: 16px;
+}
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 20px;
+  transition: background-color 0.3s;
+}
+.user-info:hover {
+  background-color: #f5f5f5;
+}
+.user-nickname {
+  font-size: 14px;
+  color: #333;
+  font-weight: 500;
 }
 .main-content {
   max-width: 1200px;
