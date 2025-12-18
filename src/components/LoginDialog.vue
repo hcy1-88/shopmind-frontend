@@ -37,7 +37,7 @@
               size="large"
             >
               <el-form-item prop="phone">
-                <el-input v-model="passwordForm.phone" placeholder="请输入手机号" clearable>
+                <el-input v-model="passwordForm.phoneNumber" placeholder="请输入手机号" clearable>
                   <template #prefix>
                     <el-icon><Iphone /></el-icon>
                   </template>
@@ -89,7 +89,7 @@
               size="large"
             >
               <el-form-item prop="phone">
-                <el-input v-model="smsForm.phone" placeholder="请输入手机号" clearable>
+                <el-input v-model="smsForm.phoneNumber" placeholder="请输入手机号" clearable>
                   <template #prefix>
                     <el-icon><Iphone /></el-icon>
                   </template>
@@ -236,12 +236,12 @@ const setPasswordFormRef = ref<FormInstance>()
 const sliderCaptchaRef = ref<InstanceType<typeof SliderImageVerify>>()
 
 const passwordForm = reactive<LoginForm>({
-  phone: '',
+  phoneNumber: '',
   password: '',
 })
 
 const smsForm = reactive<SmsLoginForm>({
-  phone: '',
+  phoneNumber: '',
   code: '',
 })
 
@@ -343,12 +343,12 @@ const handlePasswordLogin = async () => {
 
 // 发送验证码
 const handleSendCode = async () => {
-  if (!smsForm.phone) {
+  if (!smsForm.phoneNumber) {
     ElMessage.error('请输入手机号')
     return
   }
 
-  if (!/^1[3-9]\d{9}$/.test(smsForm.phone)) {
+  if (!/^1[3-9]\d{9}$/.test(smsForm.phoneNumber)) {
     ElMessage.error('请输入正确的手机号')
     return
   }
@@ -364,7 +364,7 @@ const handleCaptchaSuccess = async () => {
   try {
     sendingCode.value = true
     const data = await userStore.sendSmsCode({
-      phoneNumber: smsForm.phone,
+      phoneNumber: smsForm.phoneNumber,
     })
 
     // 保存 token，用于后续登录验证
@@ -499,9 +499,9 @@ const stopWeChatPolling = () => {
 
 // 重置表单
 const resetForms = () => {
-  passwordForm.phone = ''
+  passwordForm.phoneNumber = ''
   passwordForm.password = ''
-  smsForm.phone = ''
+  smsForm.phoneNumber = ''
   smsForm.code = ''
   smsToken.value = '' // 清空短信验证 token
   setPasswordForm.password = ''

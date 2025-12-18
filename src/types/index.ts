@@ -1,7 +1,7 @@
 // 用户相关类型
 export interface User {
   id: string
-  phone?: string
+  phoneNumber?: string
   nickname?: string
   avatar?: string
   gender?: 'male' | 'female' | 'other'
@@ -22,12 +22,12 @@ export interface UserPreferences {
 }
 
 export interface LoginForm {
-  phone: string
+  phoneNumber: string
   password: string
 }
 
 export interface SmsLoginForm {
-  phone: string
+  phoneNumber: string
   code: string
   token?: string // 发送短信时后端返回的 token
 }
@@ -38,7 +38,7 @@ export interface SetPasswordForm {
 }
 
 export interface RegisterForm {
-  phone: string
+  phoneNumber: string
   password: string
   confirmPassword: string
 }
