@@ -4,7 +4,7 @@ export interface User {
   phoneNumber?: string
   nickname?: string
   avatar?: string
-  gender?: 'male' | 'female' | 'other'
+  gender?: 'male' | 'female' | 'other' | 'secret'
   age?: number
   preferences?: UserPreferences
 }
@@ -12,7 +12,7 @@ export interface User {
 export interface UpdateProfileForm {
   nickname?: string
   avatar?: string
-  gender?: 'male' | 'female' | 'other'
+  gender?: 'male' | 'female' | 'other' | 'secret'
   age?: number
 }
 

@@ -36,7 +36,7 @@
               label-width="0"
               size="large"
             >
-              <el-form-item prop="phone">
+              <el-form-item prop="phoneNumber">
                 <el-input v-model="passwordForm.phoneNumber" placeholder="请输入手机号" clearable>
                   <template #prefix>
                     <el-icon><Iphone /></el-icon>
@@ -88,7 +88,7 @@
               label-width="0"
               size="large"
             >
-              <el-form-item prop="phone">
+              <el-form-item prop="phoneNumber">
                 <el-input v-model="smsForm.phoneNumber" placeholder="请输入手机号" clearable>
                   <template #prefix>
                     <el-icon><Iphone /></el-icon>
@@ -279,7 +279,7 @@ const validateConfirmPassword = (_rule: any, value: any, callback: any) => {
 }
 
 const passwordRules: FormRules = {
-  phone: [{ validator: validatePhone, trigger: 'blur' }],
+  phoneNumber: [{ validator: validatePhone, trigger: 'blur' }],
   password: [
     { required: true, message: '请输入密码', trigger: 'blur' },
     { min: 6, message: '密码至少6位', trigger: 'blur' },
@@ -287,7 +287,7 @@ const passwordRules: FormRules = {
 }
 
 const smsRules: FormRules = {
-  phone: [{ validator: validatePhone, trigger: 'blur' }],
+  phoneNumber: [{ validator: validatePhone, trigger: 'blur' }],
   code: [
     { required: true, message: '请输入验证码', trigger: 'blur' },
     { len: 6, message: '验证码为6位数字', trigger: 'blur' },
@@ -352,6 +352,9 @@ const handleSendCode = async () => {
     ElMessage.error('请输入正确的手机号')
     return
   }
+
+  // 清除手机号字段的验证错误
+  smsFormRef.value?.clearValidate('phoneNumber')
 
   captchaVisible.value = true
   sliderCaptchaRef.value?.refresh()
