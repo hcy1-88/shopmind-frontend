@@ -13,13 +13,18 @@ export const userApi = {
    * 获取用户偏好设置
    */
   getPreferences: (): Promise<UserPreferences> =>
-    userService.get<UserPreferences>('/users/me/preferences') as unknown as Promise<UserPreferences>,
+    userService.get<UserPreferences>(
+      '/users/me/preferences',
+    ) as unknown as Promise<UserPreferences>,
 
   /**
    * 更新用户偏好设置
    */
   updatePreferences: (preferences: UserPreferences): Promise<UserPreferences> =>
-    userService.put<UserPreferences>('/users/me/preferences', preferences) as unknown as Promise<UserPreferences>,
+    userService.put<UserPreferences>(
+      '/users/me/preferences',
+      preferences,
+    ) as unknown as Promise<UserPreferences>,
 
   /**
    * 更新用户资料
@@ -41,14 +46,14 @@ export const userApi = {
    * 获取用户地址列表
    */
   getAddresses: (userId: string): Promise<Address[]> =>
-    userService.get<Address[]>(`/users/${userId}/addresses`) as unknown as Promise<Address[]>,
+    userService.get<Address[]>(`/address/user/${userId}`) as unknown as Promise<Address[]>,
 
   /**
    * 创建新地址
    */
   createAddress: (userId: string, addressData: Omit<Address, 'id'>): Promise<Address> =>
     userService.post<Address>(
-      `/users/${userId}/addresses`,
+      `/address/user/${userId}`,
       addressData,
     ) as unknown as Promise<Address>,
 
@@ -60,8 +65,8 @@ export const userApi = {
     addressId: string,
     addressData: Omit<Address, 'id'>,
   ): Promise<Address> =>
-    userService.put<Address>(
-      `/users/${userId}/addresses/${addressId}`,
+    userService.post<Address>(
+      `/address/${addressId}/user/${userId}`,
       addressData,
     ) as unknown as Promise<Address>,
 
@@ -69,11 +74,11 @@ export const userApi = {
    * 删除地址
    */
   deleteAddress: (userId: string, addressId: string): Promise<void> =>
-    userService.delete(`/users/${userId}/addresses/${addressId}`) as unknown as Promise<void>,
+    userService.delete(`/address/${addressId}/user/${userId}`) as unknown as Promise<void>,
 
   /**
    * 设置默认地址
    */
   setDefaultAddress: (userId: string, addressId: string): Promise<void> =>
-    userService.put(`/users/${userId}/addresses/${addressId}/default`) as unknown as Promise<void>,
+    userService.post(`/address/${addressId}/default/user/${userId}`) as unknown as Promise<void>,
 }
