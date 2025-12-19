@@ -33,14 +33,11 @@ export interface SmsLoginForm {
 }
 
 export interface SetPasswordForm {
-  password: string
-  confirmPassword: string
-}
-
-export interface RegisterForm {
   phoneNumber: string
   password: string
   confirmPassword: string
+  code?: string // 未登录时需要验证码
+  token?: string // 未登录时需要短信验证 token
 }
 
 // 验证码相关

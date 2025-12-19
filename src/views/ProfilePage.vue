@@ -10,8 +10,8 @@
         <div class="user-info">
           <el-avatar :size="80" :src="userStore.user?.avatar" :icon="User" />
           <div class="user-details">
-            <h3>{{ userStore.user?.nickname || userStore.user?.phone || '未设置昵称' }}</h3>
-            <p v-if="userStore.user?.phone">{{ userStore.user?.phone }}</p>
+            <h3>{{ userStore.user?.nickname || userStore.user?.phoneNumber || '未设置昵称' }}</h3>
+            <p v-if="userStore.user?.phoneNumber">{{ userStore.user?.phoneNumber }}</p>
             <div class="user-meta">
               <span v-if="userStore.user?.gender">{{ getGenderText(userStore.user.gender) }}</span>
               <span v-if="userStore.user?.age">{{ userStore.user.age }}岁</span>
@@ -83,7 +83,9 @@
           <div v-for="address in userStore.addresses" :key="address.id" class="address-item">
             <div class="address-content">
               <div class="address-header">
-                <el-tag :type="getLabelType(address.label)" size="small">{{ address.label }}</el-tag>
+                <el-tag :type="getLabelType(address.label)" size="small">{{
+                  address.label
+                }}</el-tag>
                 <el-tag v-if="address.isDefault" type="success" size="small">默认</el-tag>
               </div>
               <div class="address-detail">
@@ -306,12 +308,7 @@
       width="600px"
       @close="handleCloseAddressDialog"
     >
-      <el-form
-        ref="addressFormRef"
-        :model="addressForm"
-        :rules="addressRules"
-        label-width="100px"
-      >
+      <el-form ref="addressFormRef" :model="addressForm" :rules="addressRules" label-width="100px">
         <el-form-item label="地址标签" prop="label">
           <el-radio-group v-model="addressForm.label">
             <el-radio label="家庭">家庭</el-radio>
@@ -345,7 +342,12 @@
     </el-dialog>
 
     <!-- 编辑资料弹窗 -->
-    <el-dialog v-model="showProfileDialog" title="编辑资料" width="600px" @close="handleCloseProfileDialog">
+    <el-dialog
+      v-model="showProfileDialog"
+      title="编辑资料"
+      width="600px"
+      @close="handleCloseProfileDialog"
+    >
       <el-form ref="profileFormRef" :model="profileForm" :rules="profileRules" label-width="100px">
         <el-form-item label="头像">
           <el-upload
@@ -369,6 +371,7 @@
             <el-radio label="male">男</el-radio>
             <el-radio label="female">女</el-radio>
             <el-radio label="other">其他</el-radio>
+            <el-radio label="other">保密</el-radio>
           </el-radio-group>
         </el-form-item>
 
@@ -390,12 +393,27 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { ArrowLeft, User, Setting, Document, ChatDotRound, Location, Edit } from '@element-plus/icons-vue'
+import {
+  ArrowLeft,
+  User,
+  Setting,
+  Document,
+  ChatDotRound,
+  Location,
+  Edit,
+} from '@element-plus/icons-vue'
 import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
 import { useUserStore } from '@/stores/userStore'
 import { useProductStore } from '@/stores/productStore'
 import AddressSelector from '@/components/AddressSelector.vue'
-import type { UserPreferences, Order, OrderStatus, Address, AddressFormData, UpdateProfileForm } from '@/types'
+import type {
+  UserPreferences,
+  Order,
+  OrderStatus,
+  Address,
+  AddressFormData,
+  UpdateProfileForm,
+} from '@/types'
 
 const router = useRouter()
 const userStore = useUserStore()

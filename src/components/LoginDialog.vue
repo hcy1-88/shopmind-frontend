@@ -173,6 +173,13 @@
       append-to-body
       :close-on-click-modal="false"
     >
+      <el-alert
+        v-if="!userStore.isLoggedIn"
+        title="首次设置密码需要验证手机号"
+        type="info"
+        :closable="false"
+        style="margin-bottom: 20px"
+      />
       <el-form
         ref="setPasswordFormRef"
         :model="setPasswordForm"
@@ -180,11 +187,31 @@
         label-width="80px"
         size="large"
       >
+        <!-- 未登录时需要验证手机号 -->
+        <template v-if="!userStore.isLoggedIn">
+          <el-form-item label="手机号" prop="phoneNumber">
+            <el-input v-model="setPasswordForm.phoneNumber" placeholder="请输入手机号" disabled />
+          </el-form-item>
+          <el-form-item label="验证码" prop="code">
+            <el-input v-model="setPasswordForm.code" placeholder="请输入验证码" maxlength="6">
+              <template #append>
+                <el-button
+                  :disabled="setPasswordCountdown > 0"
+                  :loading="sendingSetPasswordCode"
+                  @click="handleSendSetPasswordCode"
+                >
+                  {{ setPasswordCountdown > 0 ? `${setPasswordCountdown}秒后重试` : '获取验证码' }}
+                </el-button>
+              </template>
+            </el-input>
+          </el-form-item>
+        </template>
+
         <el-form-item label="新密码" prop="password">
           <el-input
             v-model="setPasswordForm.password"
             type="password"
-            placeholder="请输入密码"
+            placeholder="请输入密码（至少6位）"
             show-password
           />
         </el-form-item>
@@ -223,6 +250,9 @@ const countdown = ref(0)
 const smsToken = ref('') // 短信验证码 token
 const captchaVisible = ref(false)
 const setPasswordVisible = ref(false)
+const sendingSetPasswordCode = ref(false)
+const setPasswordCountdown = ref(0)
+const setPasswordToken = ref('') // 设置密码时的短信验证 token
 const showWeChatQR = ref(false)
 const wechatQRLoading = ref(false)
 const wechatQRUrl = ref('')
@@ -246,8 +276,11 @@ const smsForm = reactive<SmsLoginForm>({
 })
 
 const setPasswordForm = reactive<SetPasswordForm>({
+  phoneNumber: '',
   password: '',
   confirmPassword: '',
+  code: '',
+  token: '',
 })
 
 const dialogTitle = computed(() => {
@@ -294,13 +327,27 @@ const smsRules: FormRules = {
   ],
 }
 
-const setPasswordRules: FormRules = {
-  password: [
-    { required: true, message: '请输入密码', trigger: 'blur' },
-    { min: 6, message: '密码至少6位', trigger: 'blur' },
-  ],
-  confirmPassword: [{ validator: validateConfirmPassword, trigger: 'blur' }],
-}
+// 动态生成 setPasswordRules，根据是否登录决定是否需要验证码
+const setPasswordRules = computed<FormRules>(() => {
+  const rules: FormRules = {
+    password: [
+      { required: true, message: '请输入密码', trigger: 'blur' },
+      { min: 6, message: '密码至少6位', trigger: 'blur' },
+    ],
+    confirmPassword: [{ validator: validateConfirmPassword, trigger: 'blur' }],
+  }
+
+  // 未登录时需要验证手机号和验证码
+  if (!userStore.isLoggedIn) {
+    rules.phoneNumber = [{ validator: validatePhone, trigger: 'blur' }]
+    rules.code = [
+      { required: true, message: '请输入验证码', trigger: 'blur' },
+      { len: 6, message: '验证码为6位数字', trigger: 'blur' },
+    ]
+  }
+
+  return rules
+})
 
 // Tab 切换
 const handleTabChange = () => {
@@ -330,9 +377,11 @@ const handlePasswordLogin = async () => {
     } catch (error: unknown) {
       if (error instanceof Error && error.message.includes('NO_PASSWORD_SET')) {
         ElMessage.warning('您还未设置密码，请先设置密码')
+        // 将手机号填充到设置密码表单
+        setPasswordForm.phoneNumber = passwordForm.phoneNumber
         setPasswordVisible.value = true
       } else {
-        const message = error instanceof Error ? error.message : '登录失败'
+        const message = error instanceof Error ? error.message : '手机号或密码错误'
         ElMessage.error(message)
       }
     } finally {
@@ -421,6 +470,45 @@ const handleSmsLogin = async () => {
   })
 }
 
+// 发送设置密码的验证码
+const handleSendSetPasswordCode = async () => {
+  if (!setPasswordForm.phoneNumber) {
+    ElMessage.error('请输入手机号')
+    return
+  }
+
+  if (!/^1[3-9]\d{9}$/.test(setPasswordForm.phoneNumber)) {
+    ElMessage.error('请输入正确的手机号')
+    return
+  }
+
+  try {
+    sendingSetPasswordCode.value = true
+    const data = await userStore.sendSmsCode({
+      phoneNumber: setPasswordForm.phoneNumber,
+    })
+
+    // 保存 token，用于后续设置密码验证
+    setPasswordToken.value = data.token
+    setPasswordForm.token = data.token
+
+    ElMessage.success('验证码已发送')
+
+    setPasswordCountdown.value = 60
+    const timer = setInterval(() => {
+      setPasswordCountdown.value--
+      if (setPasswordCountdown.value <= 0) {
+        clearInterval(timer)
+      }
+    }, 1000)
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : '发送失败'
+    ElMessage.error(message)
+  } finally {
+    sendingSetPasswordCode.value = false
+  }
+}
+
 // 设置密码
 const handleSetPassword = async () => {
   if (!setPasswordFormRef.value) return
@@ -430,12 +518,37 @@ const handleSetPassword = async () => {
 
     try {
       loading.value = true
-      await userStore.setPassword(setPasswordForm)
+
+      // 根据是否登录决定传递的参数
+      let params: SetPasswordForm
+
+      if (!userStore.isLoggedIn) {
+        // 未登录时需要传递手机号、验证码和 token
+        params = {
+          phoneNumber: setPasswordForm.phoneNumber,
+          password: setPasswordForm.password,
+          confirmPassword: setPasswordForm.confirmPassword,
+          code: setPasswordForm.code,
+          token: setPasswordForm.token,
+        }
+      } else {
+        // 已登录时只需要传递密码，后端通过 token 识别用户
+        params = {
+          phoneNumber: '', // 后端不需要此字段
+          password: setPasswordForm.password,
+          confirmPassword: setPasswordForm.confirmPassword,
+        }
+      }
+
+      await userStore.setPassword(params)
       ElMessage.success('密码设置成功')
       setPasswordVisible.value = false
 
-      passwordForm.password = setPasswordForm.password
-      await handlePasswordLogin()
+      // 如果是未登录状态设置密码，设置完成后自动登录
+      if (!userStore.isLoggedIn) {
+        passwordForm.password = setPasswordForm.password
+        await handlePasswordLogin()
+      }
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : '设置失败'
       ElMessage.error(message)
@@ -507,9 +620,14 @@ const resetForms = () => {
   smsForm.phoneNumber = ''
   smsForm.code = ''
   smsToken.value = '' // 清空短信验证 token
+  setPasswordForm.phoneNumber = ''
   setPasswordForm.password = ''
   setPasswordForm.confirmPassword = ''
+  setPasswordForm.code = ''
+  setPasswordForm.token = ''
+  setPasswordToken.value = ''
   countdown.value = 0 // 重置倒计时
+  setPasswordCountdown.value = 0 // 重置设置密码倒计时
   passwordFormRef.value?.clearValidate()
   smsFormRef.value?.clearValidate()
   setPasswordFormRef.value?.clearValidate()
