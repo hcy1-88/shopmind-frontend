@@ -138,13 +138,29 @@ export const useUserStore = defineStore('user', () => {
   }
 
   /**
+   * 获取用户偏好
+   */
+  const fetchPreferences = async () => {
+    try {
+      const data = await userApi.getPreferences()
+      if (user.value) {
+        user.value.preferences = data
+      }
+      return data
+    } catch (error) {
+      console.error('获取用户偏好失败:', error)
+      throw error
+    }
+  }
+
+  /**
    * 更新用户偏好
    */
   const updatePreferences = async (preferences: UserPreferences) => {
     try {
       const data = await userApi.updatePreferences(preferences)
       if (user.value) {
-        user.value.preferences = data.preferences
+        user.value.preferences = data
       }
       return data
     } catch (error) {
@@ -353,6 +369,7 @@ export const useUserStore = defineStore('user', () => {
 
     // 用户信息方法
     fetchUserInfo,
+    fetchPreferences,
     updatePreferences,
     updateProfile,
     init,

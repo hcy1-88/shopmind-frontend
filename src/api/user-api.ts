@@ -10,10 +10,16 @@ export const userApi = {
   // ========== 用户信息 ==========
 
   /**
+   * 获取用户偏好设置
+   */
+  getPreferences: (): Promise<UserPreferences> =>
+    userService.get<UserPreferences>('/users/me/preferences') as unknown as Promise<UserPreferences>,
+
+  /**
    * 更新用户偏好设置
    */
-  updatePreferences: (preferences: UserPreferences): Promise<User> =>
-    userService.put<User>('/users/me/preferences', preferences) as unknown as Promise<User>,
+  updatePreferences: (preferences: UserPreferences): Promise<UserPreferences> =>
+    userService.put<UserPreferences>('/users/me/preferences', preferences) as unknown as Promise<UserPreferences>,
 
   /**
    * 更新用户资料

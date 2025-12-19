@@ -475,13 +475,21 @@ const profileRules: FormRules = {
 }
 
 onMounted(async () => {
-  if (userStore.user?.preferences) {
-    preferences.interests = userStore.user.preferences.interests || []
-    preferences.language = userStore.user.preferences.language || 'zh'
-  }
+  // 获取用户偏好（独立接口）
+  await loadPreferences()
   await loadOrders()
   await loadAddresses()
 })
+
+const loadPreferences = async () => {
+  try {
+    const data = await userStore.fetchPreferences()
+    preferences.interests = data.interests || []
+    preferences.language = data.language || 'zh'
+  } catch (error) {
+    console.error('获取用户偏好失败:', error)
+  }
+}
 
 const loadAddresses = async () => {
   try {
