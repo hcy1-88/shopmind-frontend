@@ -12,6 +12,10 @@
             登录
           </el-link>
           <template v-else>
+            <el-link type="primary" @click="goToMerchant">
+              <el-icon><Shop /></el-icon>
+              商家中心
+            </el-link>
             <el-dropdown @command="handleCommand">
               <span class="user-info">
                 <el-avatar :src="userStore.user?.avatar" :icon="User" />
@@ -112,7 +116,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { User, ChatDotRound, Search, Picture, MagicStick } from '@element-plus/icons-vue'
+import { User, ChatDotRound, Search, Picture, MagicStick, Shop } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { useUserStore } from '@/stores/userStore'
 import { useProductStore } from '@/stores/productStore'
@@ -164,6 +168,10 @@ const goToProduct = (productId: string) => {
   router.push({ name: 'product', params: { id: productId } })
 }
 
+const goToMerchant = () => {
+  router.push({ name: 'merchant-portal' })
+}
+
 const handleCommand = (command: string) => {
   if (command === 'profile') {
     router.push({ name: 'profile' })
@@ -211,6 +219,12 @@ const handleCommand = (command: string) => {
   display: flex;
   align-items: center;
   gap: 16px;
+}
+.header-actions .el-link {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 14px;
 }
 .user-info {
   display: flex;
