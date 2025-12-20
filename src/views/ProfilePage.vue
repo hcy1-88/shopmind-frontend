@@ -371,7 +371,7 @@
             <el-radio label="male">男</el-radio>
             <el-radio label="female">女</el-radio>
             <el-radio label="other">其他</el-radio>
-            <el-radio label="other">保密</el-radio>
+            <el-radio label="secret">保密</el-radio>
           </el-radio-group>
         </el-form-item>
 

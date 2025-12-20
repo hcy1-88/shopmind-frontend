@@ -30,7 +30,7 @@ export const userApi = {
    * 更新用户资料
    */
   updateProfile: (profile: UpdateProfileForm): Promise<User> =>
-    userService.put<User>('/users/me/profile', profile) as unknown as Promise<User>,
+    userService.post<User>('/user/me/profile', profile) as unknown as Promise<User>,
 
   // ========== 购物车管理 ==========
 
