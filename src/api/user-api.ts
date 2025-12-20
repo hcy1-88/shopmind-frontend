@@ -13,16 +13,14 @@ export const userApi = {
    * 获取用户偏好设置
    */
   getPreferences: (): Promise<UserPreferences> =>
-    userService.get<UserPreferences>(
-      '/users/me/preferences',
-    ) as unknown as Promise<UserPreferences>,
+    userService.get<UserPreferences>('/user/me/preferences') as unknown as Promise<UserPreferences>,
 
   /**
    * 更新用户偏好设置
    */
   updatePreferences: (preferences: UserPreferences): Promise<UserPreferences> =>
     userService.put<UserPreferences>(
-      '/users/me/preferences',
+      '/user/me/preferences',
       preferences,
     ) as unknown as Promise<UserPreferences>,
 
