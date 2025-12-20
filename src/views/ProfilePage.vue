@@ -655,6 +655,9 @@ const handleSaveAddress = async () => {
       isDefault: addressForm.isDefault,
       contactName: addressForm.contactName,
       contactPhone: addressForm.contactPhone,
+      provinceName: addressData.value.provinceName,
+      cityName: addressData.value.cityName,
+      districtName: addressData.value.districtName,
     }
 
     if (editingAddress.value) {

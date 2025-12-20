@@ -165,6 +165,10 @@ export interface AddressFormData {
   isDefault: boolean
   contactName?: string
   contactPhone?: string
+  // 地区名称（可选，如果提供则使用，否则后端可根据 code 查询）
+  provinceName?: string
+  cityName?: string
+  districtName?: string
 }
 
 // 商品相关类型
