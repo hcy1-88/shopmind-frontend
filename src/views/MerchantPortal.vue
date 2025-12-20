@@ -9,14 +9,15 @@
         </div>
         <div class="header-actions">
           <el-button :icon="HomeFilled" @click="goHome">返回首页</el-button>
-          <el-dropdown v-if="userStore.user">
+          <el-dropdown v-if="userStore.user" @command="handleCommand">
             <span class="user-info">
               <el-avatar :size="32" :src="userStore.user.avatar" />
-              <span>{{ userStore.user.nickname || userStore.user.phone }}</span>
+              <span>{{ userStore.user.nickname || userStore.user.phoneNumber }}</span>
             </span>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item @click="userStore.logout">退出登录</el-dropdown-item>
+                <el-dropdown-item command="profile">个人中心</el-dropdown-item>
+                <el-dropdown-item command="logout">退出登录</el-dropdown-item>
               </el-dropdown-menu>
             </template>
           </el-dropdown>
@@ -196,6 +197,15 @@ const handleTabChange = (index: string) => {
 // 返回首页
 const goHome = () => {
   router.push('/')
+}
+
+// 处理下拉菜单命令
+const handleCommand = (command: string) => {
+  if (command === 'profile') {
+    router.push('/profile')
+  } else if (command === 'logout') {
+    userStore.logout()
+  }
 }
 
 // 查看商品

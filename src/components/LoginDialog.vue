@@ -62,7 +62,7 @@
                 <el-button
                   type="primary"
                   style="width: 48%"
-                  :loading="loading"
+                  :loading="registerLoading"
                   @click="handlePasswordRegister"
                 >
                   注册
@@ -70,7 +70,7 @@
                 <el-button
                   type="primary"
                   style="width: 48%; margin-left: 4%"
-                  :loading="loading"
+                  :loading="loginLoading"
                   @click="handlePasswordLogin"
                 >
                   登录
@@ -245,6 +245,8 @@ const dialogVisible = defineModel<boolean>('visible', { required: true })
 
 const activeTab = ref('password')
 const loading = ref(false)
+const loginLoading = ref(false)
+const registerLoading = ref(false)
 const sendingCode = ref(false)
 const countdown = ref(0)
 const smsToken = ref('') // 短信验证码 token
@@ -369,7 +371,7 @@ const handlePasswordLogin = async () => {
     if (!valid) return
 
     try {
-      loading.value = true
+      loginLoading.value = true
       await userStore.login(passwordForm)
       ElMessage.success('登录成功')
       dialogVisible.value = false
@@ -385,7 +387,7 @@ const handlePasswordLogin = async () => {
         ElMessage.error(message)
       }
     } finally {
-      loading.value = false
+      loginLoading.value = false
     }
   })
 }
