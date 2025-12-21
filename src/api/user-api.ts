@@ -44,14 +44,14 @@ export const userApi = {
    * 获取用户地址列表
    */
   getAddresses: (userId: string): Promise<Address[]> =>
-    userService.get<Address[]>(`/address/user/${userId}`) as unknown as Promise<Address[]>,
+    userService.get<Address[]>(`/user/${userId}/address`) as unknown as Promise<Address[]>,
 
   /**
    * 创建新地址
    */
   createAddress: (userId: string, addressData: Omit<Address, 'id'>): Promise<Address> =>
     userService.post<Address>(
-      `/address/user/${userId}`,
+      `/user/${userId}/address`,
       addressData,
     ) as unknown as Promise<Address>,
 
@@ -64,7 +64,7 @@ export const userApi = {
     addressData: Omit<Address, 'id'>,
   ): Promise<Address> =>
     userService.post<Address>(
-      `/address/${addressId}/user/${userId}`,
+      `/user/${userId}/address/${addressId}`,
       addressData,
     ) as unknown as Promise<Address>,
 
@@ -72,11 +72,11 @@ export const userApi = {
    * 删除地址
    */
   deleteAddress: (userId: string, addressId: string): Promise<void> =>
-    userService.delete(`/address/${addressId}/user/${userId}`) as unknown as Promise<void>,
+    userService.delete(`/user/${userId}/address/${addressId}`) as unknown as Promise<void>,
 
   /**
    * 设置默认地址
    */
   setDefaultAddress: (userId: string, addressId: string): Promise<void> =>
-    userService.post(`/address/${addressId}/default/user/${userId}`) as unknown as Promise<void>,
+    userService.post(`/user/${userId}/address/default/${addressId}`) as unknown as Promise<void>,
 }
