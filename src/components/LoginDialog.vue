@@ -7,8 +7,9 @@
     @close="handleClose"
   >
     <div class="login-container">
+      <!-- TODO: 微信登录功能暂时不做，待后续实现 -->
       <!-- 微信二维码（左侧显示） -->
-      <div v-if="showWeChatQR" class="wechat-qr-section">
+      <!-- <div v-if="showWeChatQR" class="wechat-qr-section">
         <div class="qr-code-box">
           <h3>微信扫码登录</h3>
           <div v-if="wechatQRLoading" class="qr-loading">
@@ -21,10 +22,10 @@
           </div>
           <el-button text @click="showWeChatQR = false">返回</el-button>
         </div>
-      </div>
+      </div> -->
 
       <!-- 主登录表单区域 -->
-      <div v-show="!showWeChatQR" class="main-login-section">
+      <div class="main-login-section">
         <!-- Tab 切换 -->
         <el-tabs v-model="activeTab" @tab-change="handleTabChange">
           <!-- 密码登录 -->
@@ -127,8 +128,9 @@
           </el-tab-pane>
         </el-tabs>
 
+        <!-- TODO: 微信登录功能暂时不做，待后续实现 -->
         <!-- 其他登录方式 -->
-        <div class="other-login">
+        <!-- <div class="other-login">
           <div class="divider">
             <span>其他登录方式</span>
           </div>
@@ -146,7 +148,7 @@
               </svg>
             </el-button>
           </div>
-        </div>
+        </div> -->
       </div>
     </div>
 
@@ -234,7 +236,9 @@
 <script setup lang="ts">
 import { ref, reactive, computed, watch } from 'vue'
 import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
-import { Iphone, Lock, Message, Loading } from '@element-plus/icons-vue'
+import { Iphone, Lock, Message } from '@element-plus/icons-vue'
+// TODO: 微信登录功能暂时不做，待后续实现
+// import { Loading } from '@element-plus/icons-vue'
 import { useUserStore } from '@/stores/userStore'
 import SliderImageVerify from '@/components/SliderCaptcha.vue'
 import type { LoginForm, SmsLoginForm, SetPasswordForm } from '@/types'
@@ -255,12 +259,13 @@ const setPasswordVisible = ref(false)
 const sendingSetPasswordCode = ref(false)
 const setPasswordCountdown = ref(0)
 const setPasswordToken = ref('') // 设置密码时的短信验证 token
-const showWeChatQR = ref(false)
-const wechatQRLoading = ref(false)
-const wechatQRUrl = ref('')
-const wechatTicket = ref('')
-const wechatStatusText = ref('请使用微信扫描二维码')
-let wechatPollingTimer: number | null = null
+// TODO: 微信登录功能暂时不做，待后续实现
+// const showWeChatQR = ref(false)
+// const wechatQRLoading = ref(false)
+// const wechatQRUrl = ref('')
+// const wechatTicket = ref('')
+// const wechatStatusText = ref('请使用微信扫描二维码')
+// let wechatPollingTimer: number | null = null
 
 const passwordFormRef = ref<FormInstance>()
 const smsFormRef = ref<FormInstance>()
@@ -286,7 +291,8 @@ const setPasswordForm = reactive<SetPasswordForm>({
 })
 
 const dialogTitle = computed(() => {
-  if (showWeChatQR.value) return '微信登录'
+  // TODO: 微信登录功能暂时不做，待后续实现
+  // if (showWeChatQR.value) return '微信登录'
   return activeTab.value === 'password' ? '密码登录' : '短信登录'
 })
 
@@ -560,60 +566,61 @@ const handleSetPassword = async () => {
   })
 }
 
+// TODO: 微信登录功能暂时不做，待后续实现
 // 微信登录
-const handleWeChatLogin = async () => {
-  try {
-    showWeChatQR.value = true
-    wechatQRLoading.value = true
-
-    const response = await userStore.getWeChatQRCode()
-    wechatQRUrl.value = response.qrCodeUrl
-    wechatTicket.value = response.ticket
-    wechatStatusText.value = '请使用微信扫描二维码'
-
-    startWeChatPolling()
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : '获取二维码失败'
-    ElMessage.error(message)
-    showWeChatQR.value = false
-  } finally {
-    wechatQRLoading.value = false
-  }
-}
-
-// 轮询微信登录状态
-const startWeChatPolling = () => {
-  stopWeChatPolling()
-
-  wechatPollingTimer = window.setInterval(async () => {
-    try {
-      const status = await userStore.checkWeChatLoginStatus(wechatTicket.value)
-
-      if (status.status === 'scanned') {
-        wechatStatusText.value = '已扫描，请在手机上确认'
-      } else if (status.status === 'confirmed') {
-        wechatStatusText.value = '登录成功'
-        ElMessage.success('登录成功')
-        stopWeChatPolling()
-        dialogVisible.value = false
-        resetForms()
-      } else if (status.status === 'expired') {
-        wechatStatusText.value = '二维码已过期，请重新获取'
-        stopWeChatPolling()
-      }
-    } catch (error) {
-      console.error('轮询微信登录状态失败:', error)
-    }
-  }, 2000)
-}
-
-// 停止轮询
-const stopWeChatPolling = () => {
-  if (wechatPollingTimer) {
-    clearInterval(wechatPollingTimer)
-    wechatPollingTimer = null
-  }
-}
+// const handleWeChatLogin = async () => {
+//   try {
+//     showWeChatQR.value = true
+//     wechatQRLoading.value = true
+//
+//     const response = await userStore.getWeChatQRCode()
+//     wechatQRUrl.value = response.qrCodeUrl
+//     wechatTicket.value = response.ticket
+//     wechatStatusText.value = '请使用微信扫描二维码'
+//
+//     startWeChatPolling()
+//   } catch (error: unknown) {
+//     const message = error instanceof Error ? error.message : '获取二维码失败'
+//     ElMessage.error(message)
+//     showWeChatQR.value = false
+//   } finally {
+//     wechatQRLoading.value = false
+//   }
+// }
+//
+// // 轮询微信登录状态
+// const startWeChatPolling = () => {
+//   stopWeChatPolling()
+//
+//   wechatPollingTimer = window.setInterval(async () => {
+//     try {
+//       const status = await userStore.checkWeChatLoginStatus(wechatTicket.value)
+//
+//       if (status.status === 'scanned') {
+//         wechatStatusText.value = '已扫描，请在手机上确认'
+//       } else if (status.status === 'confirmed') {
+//         wechatStatusText.value = '登录成功'
+//         ElMessage.success('登录成功')
+//         stopWeChatPolling()
+//         dialogVisible.value = false
+//         resetForms()
+//       } else if (status.status === 'expired') {
+//         wechatStatusText.value = '二维码已过期，请重新获取'
+//         stopWeChatPolling()
+//       }
+//     } catch (error) {
+//       console.error('轮询微信登录状态失败:', error)
+//     }
+//   }, 2000)
+// }
+//
+// // 停止轮询
+// const stopWeChatPolling = () => {
+//   if (wechatPollingTimer) {
+//     clearInterval(wechatPollingTimer)
+//     wechatPollingTimer = null
+//   }
+// }
 
 // 重置表单
 const resetForms = () => {
@@ -638,8 +645,9 @@ const resetForms = () => {
 // 对话框关闭
 const handleClose = () => {
   resetForms()
-  stopWeChatPolling()
-  showWeChatQR.value = false
+  // TODO: 微信登录功能暂时不做，待后续实现
+  // stopWeChatPolling()
+  // showWeChatQR.value = false
 }
 
 // 监听对话框关闭
@@ -656,7 +664,8 @@ watch(dialogVisible, (val) => {
   min-height: 300px;
 }
 
-.wechat-qr-section {
+/* TODO: 微信登录功能暂时不做，待后续实现 */
+/* .wechat-qr-section {
   flex: 1;
   display: flex;
   justify-content: center;
@@ -706,14 +715,15 @@ watch(dialogVisible, (val) => {
   margin: 12px 0;
   font-size: 14px;
   color: #606266;
-}
+} */
 
 .main-login-section {
   flex: 1;
   padding: 0 20px;
 }
 
-.other-login {
+/* TODO: 微信登录功能暂时不做，待后续实现 */
+/* .other-login {
   margin-top: 30px;
 }
 
@@ -746,5 +756,5 @@ watch(dialogVisible, (val) => {
 .wechat-icon {
   width: 24px;
   height: 24px;
-}
+} */
 </style>
