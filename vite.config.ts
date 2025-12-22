@@ -6,7 +6,7 @@ import vueDevTools from 'vite-plugin-vue-devtools'
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [vue(), vueDevTools({ launchEditor: 'D:/cursor-2.0.34/cursor/Cursor.exe' })],
+  plugins: [vue(), vueDevTools({ launchEditor: 'cursor' })],
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
