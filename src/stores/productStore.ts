@@ -1,8 +1,16 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import type { Product, ProductFormData } from '@/types'
+import type {
+  Product,
+  ProductFormData,
+  TitleCheckResponse,
+  ImageCheckResponse,
+  DescriptionGenerateRequest,
+  DescriptionGenerateResponse,
+} from '@/types'
 import { productApi } from '@/api/product-api'
 import { merchantApi } from '@/api/merchant-api'
+import { aiApi } from '@/api/ai-api'
 
 export const useProductStore = defineStore('product', () => {
   const currentProduct = ref<Product | null>(null)
@@ -149,6 +157,49 @@ export const useProductStore = defineStore('product', () => {
     }
   }
 
+  // ========== AI 功能（ai-service）==========
+
+  /**
+   * 检查标题合规性
+   */
+  const checkTitle = async (title: string): Promise<TitleCheckResponse> => {
+    try {
+      const result = await aiApi.checkTitle({ title })
+      return result
+    } catch (error) {
+      console.error('标题检查失败:', error)
+      throw error
+    }
+  }
+
+  /**
+   * 检查图片合规性
+   */
+  const checkImage = async (imageUrl: string): Promise<ImageCheckResponse> => {
+    try {
+      const result = await aiApi.checkImage({ imageUrl })
+      return result
+    } catch (error) {
+      console.error('图片检查失败:', error)
+      throw error
+    }
+  }
+
+  /**
+   * 生成商品描述
+   */
+  const generateDescription = async (
+    request: DescriptionGenerateRequest,
+  ): Promise<DescriptionGenerateResponse> => {
+    try {
+      const result = await aiApi.generateDescription(request)
+      return result
+    } catch (error) {
+      console.error('生成描述失败:', error)
+      throw error
+    }
+  }
+
   return {
     // 状态
     currentProduct,
@@ -168,5 +219,10 @@ export const useProductStore = defineStore('product', () => {
     createProduct,
     updateProduct,
     deleteProduct,
+
+    // AI 方法
+    checkTitle,
+    checkImage,
+    generateDescription,
   }
 })
