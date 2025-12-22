@@ -7,16 +7,33 @@
 
     <div v-if="order" class="order-info-card">
       <div class="order-summary">
+        <!-- 显示第一个商品的图片（如果有商品） -->
         <el-image
-          :src="order.productImage"
+          v-if="order.items && order.items.length > 0 && order.items[0]"
+          :src="order.items[0]?.productImage"
           fit="cover"
           style="width: 60px; height: 60px; border-radius: 4px"
         />
+        <div v-else class="no-image-placeholder">
+          <el-icon :size="30"><Document /></el-icon>
+        </div>
         <div class="order-details">
-          <div class="product-name">{{ order.productName }}</div>
+          <div class="order-title">
+            <span v-if="order.items && order.items.length > 0 && order.items[0]">
+              {{
+                order.items.length === 1
+                  ? order.items[0]?.productName
+                  : `${order.items[0]?.productName} 等${order.items.length}件商品`
+              }}
+            </span>
+            <span v-else>订单详情</span>
+          </div>
           <div class="order-meta">
             <span>订单号：{{ order.orderNo }}</span>
-            <el-tag type="warning" size="small">{{ getStatusText(order.status) }}</el-tag>
+            <el-tag :type="getStatusTagType(order.status)" size="small">
+              {{ getStatusText(order.status) }}
+            </el-tag>
+            <span class="order-amount">¥{{ order.totalAmount }}</span>
           </div>
         </div>
       </div>
@@ -87,7 +104,7 @@
 <script setup lang="ts">
 import { ref, computed, nextTick, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ArrowLeft, Service, User, Promotion, Loading } from '@element-plus/icons-vue'
+import { ArrowLeft, Service, User, Promotion, Loading, Document } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { useChatStore } from '@/stores/chatStore'
 import { useUserStore } from '@/stores/userStore'
@@ -172,6 +189,17 @@ const getStatusText = (status: OrderStatus) => {
   return statusMap[status] || status
 }
 
+const getStatusTagType = (status: OrderStatus) => {
+  const typeMap: { [key: string]: 'success' | 'info' | 'warning' | 'danger' } = {
+    pending_payment: 'warning',
+    pending_shipment: 'warning',
+    pending_receipt: 'warning',
+    pending_review: 'info',
+    refund: 'danger',
+  }
+  return typeMap[status] || 'info'
+}
+
 const goBack = () => {
   router.back()
 }
@@ -212,7 +240,7 @@ const goBack = () => {
 .order-details {
   flex: 1;
 }
-.product-name {
+.order-title {
   font-size: 14px;
   font-weight: 500;
   color: #333;
@@ -224,6 +252,21 @@ const goBack = () => {
   gap: 12px;
   font-size: 12px;
   color: #999;
+}
+.order-amount {
+  color: #f56c6c;
+  font-weight: 600;
+  margin-left: auto;
+}
+.no-image-placeholder {
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f5f7fa;
+  border-radius: 4px;
+  color: #909399;
 }
 .chat-container {
   flex: 1;
