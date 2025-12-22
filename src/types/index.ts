@@ -325,16 +325,120 @@ export interface Review {
 }
 
 // 订单相关类型
-export interface Order {
+
+/**
+ * 订单明细，对应订单中一个购买的商品
+ */
+export interface OrderItem {
+  /**
+   * 订单明细 id
+   */
   id: string
+
+  /**
+   * 商品 id
+   */
   productId: string
+
+  /**
+   * 商品 sku id
+   */
+  skuId?: string
+
+  /**
+   * 商品名
+   */
   productName: string
+
+  /**
+   * 商品图片
+   */
   productImage: string
-  price: number
+
+  /**
+   * 付款时商品的金额快照
+   */
+  price: string
+
+  /**
+   * 付款时商品的购买数量
+   */
   quantity: number
-  status: OrderStatus
-  createdAt: string
+
+  /**
+   * 此商品明细的实际付款
+   */
+  subtotal: string
+}
+
+/**
+ * 订单对象
+ */
+export interface Order {
+  // ===== 订单主信息 =====
+  /**
+   * 订单 id
+   */
+  id: string
+
+  /**
+   * 订单流水号
+   */
   orderNo: string
+
+  /**
+   * 用户 id
+   */
+  userId?: string
+
+  /**
+   * 订单状态：pending_payment、pending_shipment、pending_receipt、pending_review、refund
+   */
+  status: OrderStatus
+
+  /**
+   * 订单总付款金额
+   */
+  totalAmount: string
+
+  /**
+   * 订单创建时间
+   */
+  createdAt: string
+
+  // ===== 收货信息（即用户下单时的收货地址信息）=====
+  /**
+   * 收货联系人
+   */
+  shippingContact?: string
+
+  /**
+   * 收货联系电话
+   */
+  shippingPhone?: string
+
+  /**
+   * 收货省名
+   */
+  shippingProvince?: string
+
+  /**
+   * 收货城市名
+   */
+  shippingCity?: string
+
+  /**
+   * 收货地区名
+   */
+  shippingDistrict?: string
+
+  /**
+   * 收货详细地址
+   */
+  shippingDetail?: string
+
+  // ===== 订单明细列表（关键！）=====
+  items: OrderItem[]
 }
 
 // 待付款、待发货、待收货、待评价、退款/售后

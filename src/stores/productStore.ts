@@ -1,15 +1,13 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import type { Product, Order, OrderStatus, ProductFormData } from '@/types'
+import type { Product, ProductFormData } from '@/types'
 import { productApi } from '@/api/product-api'
 import { merchantApi } from '@/api/merchant-api'
-import { orderApi } from '@/api/order-api'
 
 export const useProductStore = defineStore('product', () => {
   const currentProduct = ref<Product | null>(null)
   const recommendedProducts = ref<Product[]>([])
   const searchResults = ref<Product[]>([])
-  const orders = ref<Order[]>([])
   const merchantProducts = ref<Product[]>([]) // 商家的商品列表
   const isLoading = ref(false)
 
@@ -75,38 +73,6 @@ export const useProductStore = defineStore('product', () => {
       return data
     } catch (error) {
       console.error('获取推荐商品失败:', error)
-      throw error
-    }
-  }
-
-  // ========== 订单相关（order-service）==========
-
-  /**
-   * 获取订单列表
-   */
-  const fetchOrders = async (status?: OrderStatus) => {
-    try {
-      isLoading.value = true
-      const data = await orderApi.getOrders(status)
-      orders.value = data
-      return data
-    } catch (error) {
-      console.error('获取订单失败:', error)
-      throw error
-    } finally {
-      isLoading.value = false
-    }
-  }
-
-  /**
-   * 获取订单详情
-   */
-  const fetchOrderDetail = async (orderId: string) => {
-    try {
-      const data = await orderApi.getOrderById(orderId)
-      return data
-    } catch (error) {
-      console.error('获取订单详情:', error)
       throw error
     }
   }
@@ -188,7 +154,6 @@ export const useProductStore = defineStore('product', () => {
     currentProduct,
     recommendedProducts,
     searchResults,
-    orders,
     merchantProducts,
     isLoading,
 
@@ -197,10 +162,6 @@ export const useProductStore = defineStore('product', () => {
     searchProducts,
     fetchProductDetail,
     fetchRecommendations,
-
-    // 订单方法
-    fetchOrders,
-    fetchOrderDetail,
 
     // 商家方法
     fetchMerchantProducts,

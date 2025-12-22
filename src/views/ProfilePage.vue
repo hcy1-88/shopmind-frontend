@@ -141,167 +141,245 @@
         <el-tabs v-model="activeTab" @tab-change="handleTabChange">
           <el-tab-pane label="待付款" name="pending_payment">
             <div class="order-list">
-              <el-empty v-if="orders.length === 0" description="暂无订单" />
-              <div v-for="order in orders" :key="order.id" class="order-item">
-                <div class="order-header">
-                  <span class="order-no">订单号：{{ order.orderNo }}</span>
-                  <el-tag type="warning">{{ getStatusText(order.status) }}</el-tag>
-                </div>
-                <div class="order-body">
-                  <el-image
-                    :src="order.productImage"
-                    fit="cover"
-                    style="width: 80px; height: 80px; border-radius: 4px"
-                  />
-                  <div class="order-info">
-                    <div class="product-name">{{ order.productName }}</div>
-                    <div class="order-meta">
-                      <span>¥{{ order.price }}</span>
-                      <span>x{{ order.quantity }}</span>
+              <el-empty v-if="!orderLoading && orders.length === 0" description="暂无订单" />
+              <div v-loading="orderLoading">
+                <div v-for="order in orders" :key="order.id" class="order-item">
+                  <div class="order-header">
+                    <span class="order-no">订单号：{{ order.orderNo }}</span>
+                    <el-tag type="warning">{{ getStatusText(order.status) }}</el-tag>
+                  </div>
+                  <div class="order-body">
+                    <div class="order-main-info">
+                      <div class="order-info-item">
+                        <span class="label">订单金额：</span>
+                        <span class="value amount">¥{{ order.totalAmount }}</span>
+                      </div>
+                      <div class="order-info-item">
+                        <span class="label">商品数量：</span>
+                        <span class="value">{{ order.items?.length || 0 }} 件</span>
+                      </div>
+                      <div class="order-info-item">
+                        <span class="label">创建时间：</span>
+                        <span class="value">{{ order.createdAt }}</span>
+                      </div>
+                      <div v-if="order.shippingContact" class="order-info-item">
+                        <span class="label">收货人：</span>
+                        <span class="value">{{ order.shippingContact }}</span>
+                      </div>
+                      <div v-if="order.shippingPhone" class="order-info-item">
+                        <span class="label">联系电话：</span>
+                        <span class="value">{{ order.shippingPhone }}</span>
+                      </div>
                     </div>
-                    <div class="order-time">{{ order.createdAt }}</div>
+                  </div>
+                  <div class="order-actions">
+                    <el-button size="small" @click="goToDetail(order)">查看详情</el-button>
+                    <el-button size="small" type="primary" @click="handleConsult(order.id)">
+                      <el-icon><ChatDotRound /></el-icon>
+                      咨询订单
+                    </el-button>
                   </div>
                 </div>
-                <div class="order-actions">
-                  <el-button size="small" @click="goToDetail(order.productId)">查看详情</el-button>
-                  <el-button size="small" type="primary" @click="handleConsult(order.id)">
-                    <el-icon><ChatDotRound /></el-icon>
-                    咨询订单
-                  </el-button>
-                </div>
               </div>
+              <el-pagination
+                v-if="orderTotal > 0"
+                v-model:current-page="orderPageNumber"
+                v-model:page-size="orderPageSize"
+                :total="orderTotal"
+                :page-sizes="[10, 20, 50]"
+                layout="total, sizes, prev, pager, next, jumper"
+                @size-change="loadOrders()"
+                @current-change="loadOrders()"
+                style="margin-top: 20px; justify-content: center"
+              />
             </div>
           </el-tab-pane>
           <el-tab-pane label="待发货" name="pending_shipment">
             <div class="order-list">
-              <el-empty v-if="orders.length === 0" description="暂无订单" />
-              <div v-for="order in orders" :key="order.id" class="order-item">
-                <div class="order-header">
-                  <span class="order-no">订单号：{{ order.orderNo }}</span>
-                  <el-tag type="warning">{{ getStatusText(order.status) }}</el-tag>
-                </div>
-                <div class="order-body">
-                  <el-image
-                    :src="order.productImage"
-                    fit="cover"
-                    style="width: 80px; height: 80px; border-radius: 4px"
-                  />
-                  <div class="order-info">
-                    <div class="product-name">{{ order.productName }}</div>
-                    <div class="order-meta">
-                      <span>¥{{ order.price }}</span>
-                      <span>x{{ order.quantity }}</span>
+              <el-empty v-if="!orderLoading && orders.length === 0" description="暂无订单" />
+              <div v-loading="orderLoading">
+                <div v-for="order in orders" :key="order.id" class="order-item">
+                  <div class="order-header">
+                    <span class="order-no">订单号：{{ order.orderNo }}</span>
+                    <el-tag type="warning">{{ getStatusText(order.status) }}</el-tag>
+                  </div>
+                  <div class="order-body">
+                    <div class="order-main-info">
+                      <div class="order-info-item">
+                        <span class="label">订单金额：</span>
+                        <span class="value amount">¥{{ order.totalAmount }}</span>
+                      </div>
+                      <div class="order-info-item">
+                        <span class="label">商品数量：</span>
+                        <span class="value">{{ order.items?.length || 0 }} 件</span>
+                      </div>
+                      <div class="order-info-item">
+                        <span class="label">创建时间：</span>
+                        <span class="value">{{ order.createdAt }}</span>
+                      </div>
                     </div>
-                    <div class="order-time">{{ order.createdAt }}</div>
+                  </div>
+                  <div class="order-actions">
+                    <el-button size="small" @click="goToDetail(order)">查看详情</el-button>
+                    <el-button size="small" type="primary" @click="handleConsult(order.id)">
+                      <el-icon><ChatDotRound /></el-icon>
+                      咨询订单
+                    </el-button>
                   </div>
                 </div>
-                <div class="order-actions">
-                  <el-button size="small" @click="goToDetail(order.productId)">查看详情</el-button>
-                  <el-button size="small" type="primary" @click="handleConsult(order.id)">
-                    <el-icon><ChatDotRound /></el-icon>
-                    咨询订单
-                  </el-button>
-                </div>
               </div>
+              <el-pagination
+                v-if="orderTotal > 0"
+                v-model:current-page="orderPageNumber"
+                v-model:page-size="orderPageSize"
+                :total="orderTotal"
+                :page-sizes="[10, 20, 50]"
+                layout="total, sizes, prev, pager, next, jumper"
+                @size-change="loadOrders()"
+                @current-change="loadOrders()"
+                style="margin-top: 20px; justify-content: center"
+              />
             </div>
           </el-tab-pane>
           <el-tab-pane label="待收货" name="pending_receipt">
             <div class="order-list">
-              <el-empty v-if="orders.length === 0" description="暂无订单" />
-              <div v-for="order in orders" :key="order.id" class="order-item">
-                <div class="order-header">
-                  <span class="order-no">订单号：{{ order.orderNo }}</span>
-                  <el-tag type="warning">{{ getStatusText(order.status) }}</el-tag>
-                </div>
-                <div class="order-body">
-                  <el-image
-                    :src="order.productImage"
-                    fit="cover"
-                    style="width: 80px; height: 80px; border-radius: 4px"
-                  />
-                  <div class="order-info">
-                    <div class="product-name">{{ order.productName }}</div>
-                    <div class="order-meta">
-                      <span>¥{{ order.price }}</span>
-                      <span>x{{ order.quantity }}</span>
+              <el-empty v-if="!orderLoading && orders.length === 0" description="暂无订单" />
+              <div v-loading="orderLoading">
+                <div v-for="order in orders" :key="order.id" class="order-item">
+                  <div class="order-header">
+                    <span class="order-no">订单号：{{ order.orderNo }}</span>
+                    <el-tag type="warning">{{ getStatusText(order.status) }}</el-tag>
+                  </div>
+                  <div class="order-body">
+                    <div class="order-main-info">
+                      <div class="order-info-item">
+                        <span class="label">订单金额：</span>
+                        <span class="value amount">¥{{ order.totalAmount }}</span>
+                      </div>
+                      <div class="order-info-item">
+                        <span class="label">商品数量：</span>
+                        <span class="value">{{ order.items?.length || 0 }} 件</span>
+                      </div>
+                      <div class="order-info-item">
+                        <span class="label">创建时间：</span>
+                        <span class="value">{{ order.createdAt }}</span>
+                      </div>
                     </div>
-                    <div class="order-time">{{ order.createdAt }}</div>
+                  </div>
+                  <div class="order-actions">
+                    <el-button size="small" @click="goToDetail(order)">查看详情</el-button>
+                    <el-button size="small" type="primary" @click="handleConsult(order.id)">
+                      <el-icon><ChatDotRound /></el-icon>
+                      咨询订单
+                    </el-button>
                   </div>
                 </div>
-                <div class="order-actions">
-                  <el-button size="small" @click="goToDetail(order.productId)">查看详情</el-button>
-                  <el-button size="small" type="primary" @click="handleConsult(order.id)">
-                    <el-icon><ChatDotRound /></el-icon>
-                    咨询订单
-                  </el-button>
-                </div>
               </div>
+              <el-pagination
+                v-if="orderTotal > 0"
+                v-model:current-page="orderPageNumber"
+                v-model:page-size="orderPageSize"
+                :total="orderTotal"
+                :page-sizes="[10, 20, 50]"
+                layout="total, sizes, prev, pager, next, jumper"
+                @size-change="loadOrders()"
+                @current-change="loadOrders()"
+                style="margin-top: 20px; justify-content: center"
+              />
             </div>
           </el-tab-pane>
           <el-tab-pane label="待评价" name="pending_review">
             <div class="order-list">
-              <el-empty v-if="orders.length === 0" description="暂无订单" />
-              <div v-for="order in orders" :key="order.id" class="order-item">
-                <div class="order-header">
-                  <span class="order-no">订单号：{{ order.orderNo }}</span>
-                  <el-tag type="warning">{{ getStatusText(order.status) }}</el-tag>
-                </div>
-                <div class="order-body">
-                  <el-image
-                    :src="order.productImage"
-                    fit="cover"
-                    style="width: 80px; height: 80px; border-radius: 4px"
-                  />
-                  <div class="order-info">
-                    <div class="product-name">{{ order.productName }}</div>
-                    <div class="order-meta">
-                      <span>¥{{ order.price }}</span>
-                      <span>x{{ order.quantity }}</span>
+              <el-empty v-if="!orderLoading && orders.length === 0" description="暂无订单" />
+              <div v-loading="orderLoading">
+                <div v-for="order in orders" :key="order.id" class="order-item">
+                  <div class="order-header">
+                    <span class="order-no">订单号：{{ order.orderNo }}</span>
+                    <el-tag type="warning">{{ getStatusText(order.status) }}</el-tag>
+                  </div>
+                  <div class="order-body">
+                    <div class="order-main-info">
+                      <div class="order-info-item">
+                        <span class="label">订单金额：</span>
+                        <span class="value amount">¥{{ order.totalAmount }}</span>
+                      </div>
+                      <div class="order-info-item">
+                        <span class="label">商品数量：</span>
+                        <span class="value">{{ order.items?.length || 0 }} 件</span>
+                      </div>
+                      <div class="order-info-item">
+                        <span class="label">创建时间：</span>
+                        <span class="value">{{ order.createdAt }}</span>
+                      </div>
                     </div>
-                    <div class="order-time">{{ order.createdAt }}</div>
+                  </div>
+                  <div class="order-actions">
+                    <el-button size="small" @click="goToDetail(order)">查看详情</el-button>
+                    <el-button size="small" type="primary" @click="handleConsult(order.id)">
+                      <el-icon><ChatDotRound /></el-icon>
+                      咨询订单
+                    </el-button>
                   </div>
                 </div>
-                <div class="order-actions">
-                  <el-button size="small" @click="goToDetail(order.productId)">查看详情</el-button>
-                  <el-button size="small" type="primary" @click="handleConsult(order.id)">
-                    <el-icon><ChatDotRound /></el-icon>
-                    咨询订单
-                  </el-button>
-                </div>
               </div>
+              <el-pagination
+                v-if="orderTotal > 0"
+                v-model:current-page="orderPageNumber"
+                v-model:page-size="orderPageSize"
+                :total="orderTotal"
+                :page-sizes="[10, 20, 50]"
+                layout="total, sizes, prev, pager, next, jumper"
+                @size-change="loadOrders()"
+                @current-change="loadOrders()"
+                style="margin-top: 20px; justify-content: center"
+              />
             </div>
           </el-tab-pane>
           <el-tab-pane label="退款/售后" name="refund">
             <div class="order-list">
-              <el-empty v-if="orders.length === 0" description="暂无订单" />
-              <div v-for="order in orders" :key="order.id" class="order-item">
-                <div class="order-header">
-                  <span class="order-no">订单号：{{ order.orderNo }}</span>
-                  <el-tag type="danger">{{ getStatusText(order.status) }}</el-tag>
-                </div>
-                <div class="order-body">
-                  <el-image
-                    :src="order.productImage"
-                    fit="cover"
-                    style="width: 80px; height: 80px; border-radius: 4px"
-                  />
-                  <div class="order-info">
-                    <div class="product-name">{{ order.productName }}</div>
-                    <div class="order-meta">
-                      <span>¥{{ order.price }}</span>
-                      <span>x{{ order.quantity }}</span>
+              <el-empty v-if="!orderLoading && orders.length === 0" description="暂无订单" />
+              <div v-loading="orderLoading">
+                <div v-for="order in orders" :key="order.id" class="order-item">
+                  <div class="order-header">
+                    <span class="order-no">订单号：{{ order.orderNo }}</span>
+                    <el-tag type="danger">{{ getStatusText(order.status) }}</el-tag>
+                  </div>
+                  <div class="order-body">
+                    <div class="order-main-info">
+                      <div class="order-info-item">
+                        <span class="label">订单金额：</span>
+                        <span class="value amount">¥{{ order.totalAmount }}</span>
+                      </div>
+                      <div class="order-info-item">
+                        <span class="label">商品数量：</span>
+                        <span class="value">{{ order.items?.length || 0 }} 件</span>
+                      </div>
+                      <div class="order-info-item">
+                        <span class="label">创建时间：</span>
+                        <span class="value">{{ order.createdAt }}</span>
+                      </div>
                     </div>
-                    <div class="order-time">{{ order.createdAt }}</div>
+                  </div>
+                  <div class="order-actions">
+                    <el-button size="small" @click="goToDetail(order)">查看详情</el-button>
+                    <el-button size="small" type="primary" @click="handleConsult(order.id)">
+                      <el-icon><ChatDotRound /></el-icon>
+                      咨询订单
+                    </el-button>
                   </div>
                 </div>
-                <div class="order-actions">
-                  <el-button size="small" @click="goToDetail(order.productId)">查看详情</el-button>
-                  <el-button size="small" type="primary" @click="handleConsult(order.id)">
-                    <el-icon><ChatDotRound /></el-icon>
-                    咨询订单
-                  </el-button>
-                </div>
               </div>
+              <el-pagination
+                v-if="orderTotal > 0"
+                v-model:current-page="orderPageNumber"
+                v-model:page-size="orderPageSize"
+                :total="orderTotal"
+                :page-sizes="[10, 20, 50]"
+                layout="total, sizes, prev, pager, next, jumper"
+                @size-change="loadOrders()"
+                @current-change="loadOrders()"
+                style="margin-top: 20px; justify-content: center"
+              />
             </div>
           </el-tab-pane>
         </el-tabs>
@@ -394,12 +472,82 @@
         </el-button>
       </template>
     </el-dialog>
+
+    <!-- 订单详情对话框 -->
+    <el-dialog
+      v-model="showOrderDetailDialog"
+      title="订单详情"
+      width="800px"
+      @close="viewingOrder = null"
+    >
+      <div v-if="viewingOrder" class="order-detail-dialog">
+        <!-- 订单主信息 -->
+        <el-descriptions :column="2" border title="订单信息">
+          <el-descriptions-item label="订单号">{{ viewingOrder.orderNo }}</el-descriptions-item>
+          <el-descriptions-item label="订单状态">
+            <el-tag :type="getStatusTagType(viewingOrder.status)">
+              {{ getStatusText(viewingOrder.status) }}
+            </el-tag>
+          </el-descriptions-item>
+          <el-descriptions-item label="订单金额">
+            <span class="amount">¥{{ viewingOrder.totalAmount }}</span>
+          </el-descriptions-item>
+          <el-descriptions-item label="创建时间">{{ viewingOrder.createdAt }}</el-descriptions-item>
+        </el-descriptions>
+
+        <!-- 收货信息 -->
+        <el-descriptions
+          v-if="viewingOrder.shippingContact"
+          :column="2"
+          border
+          title="收货信息"
+          style="margin-top: 20px"
+        >
+          <el-descriptions-item label="收货人">{{
+            viewingOrder.shippingContact
+          }}</el-descriptions-item>
+          <el-descriptions-item label="联系电话">{{
+            viewingOrder.shippingPhone
+          }}</el-descriptions-item>
+          <el-descriptions-item label="收货地址" :span="2">
+            {{ viewingOrder.shippingProvince }} {{ viewingOrder.shippingCity }}
+            {{ viewingOrder.shippingDistrict }} {{ viewingOrder.shippingDetail }}
+          </el-descriptions-item>
+        </el-descriptions>
+
+        <!-- 订单明细 -->
+        <div class="order-items-section" style="margin-top: 20px">
+          <h4>订单明细</h4>
+          <el-table :data="viewingOrder.items" border style="width: 100%">
+            <el-table-column label="商品图片" width="100">
+              <template #default="{ row }">
+                <el-image :src="row.productImage" fit="cover" style="width: 60px; height: 60px" />
+              </template>
+            </el-table-column>
+            <el-table-column label="商品名称" prop="productName" />
+            <el-table-column label="单价" width="120">
+              <template #default="{ row }">¥{{ row.price }}</template>
+            </el-table-column>
+            <el-table-column label="数量" width="80" prop="quantity" />
+            <el-table-column label="小计" width="120">
+              <template #default="{ row }">
+                <span class="amount">¥{{ row.subtotal }}</span>
+              </template>
+            </el-table-column>
+          </el-table>
+        </div>
+      </div>
+
+      <template #footer>
+        <el-button type="primary" @click="showOrderDetailDialog = false">确定</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted, watch, nextTick } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import {
   ArrowLeft,
   User,
@@ -411,7 +559,6 @@ import {
 } from '@element-plus/icons-vue'
 import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
 import { useUserStore } from '@/stores/userStore'
-import { useProductStore } from '@/stores/productStore'
 import AddressSelector from '@/components/AddressSelector.vue'
 import { userApi } from '@/api/user-api'
 import type {
@@ -425,12 +572,22 @@ import type {
 } from '@/types'
 
 const router = useRouter()
+const route = useRoute()
 const userStore = useUserStore()
-const productStore = useProductStore()
 
 const activeTab = ref<OrderStatus>('pending_payment')
 const orders = ref<Order[]>([])
 const saving = ref(false)
+
+// 订单分页相关
+const orderPageNumber = ref(1)
+const orderPageSize = ref(10)
+const orderTotal = ref(0)
+const orderLoading = ref(false)
+
+// 订单详情对话框
+const showOrderDetailDialog = ref(false)
+const viewingOrder = ref<Order | null>(null)
 
 const preferences = reactive<UserPreferences>({
   interests: [], // 存储的是兴趣的 code
@@ -502,6 +659,16 @@ onMounted(async () => {
   await loadCommonInterests()
   // 然后加载用户偏好
   await loadPreferences()
+
+  // 从 URL 参数读取分页信息
+  const status = (route.query.status as OrderStatus) || 'pending_payment'
+  const pageNumber = route.query.pageNumber ? Number(route.query.pageNumber) : 1
+  const pageSize = route.query.pageSize ? Number(route.query.pageSize) : 10
+
+  activeTab.value = status
+  orderPageNumber.value = pageNumber
+  orderPageSize.value = pageSize
+
   await loadOrders()
   await loadAddresses()
 })
@@ -568,18 +735,48 @@ const loadAddresses = async () => {
   }
 }
 
-const loadOrders = async () => {
+const loadOrders = async (pageNum?: number) => {
   try {
-    orders.value = await productStore.fetchOrders(activeTab.value)
+    orderLoading.value = true
+    if (pageNum !== undefined) {
+      orderPageNumber.value = pageNum
+    }
+
+    // 更新 URL 参数
+    updateUrlParams()
+
+    const response = await userStore.fetchOrders({
+      status: activeTab.value,
+      pageNumber: orderPageNumber.value,
+      pageSize: orderPageSize.value,
+    })
+
+    orders.value = response.orders // 后端返回的是 orders 字段
+    orderTotal.value = response.total
   } catch (error) {
     console.error('加载订单失败:', error)
     ElMessage.error('加载订单失败')
+  } finally {
+    orderLoading.value = false
   }
 }
 
 const handleTabChange = (tab: string) => {
   activeTab.value = tab as OrderStatus
+  orderPageNumber.value = 1 // 切换 tab 时重置页码
+  // 更新 URL 参数
+  updateUrlParams()
   loadOrders()
+}
+
+// 更新 URL 参数
+const updateUrlParams = () => {
+  const query: Record<string, string | number> = {
+    status: activeTab.value,
+    pageNumber: orderPageNumber.value,
+    pageSize: orderPageSize.value,
+  }
+  router.replace({ query })
 }
 
 const savePreferences = async () => {
@@ -599,8 +796,10 @@ const handleConsult = (orderId: string) => {
   router.push({ name: 'order-chat', params: { orderId } })
 }
 
-const goToDetail = (productId: string) => {
-  router.push({ name: 'product', params: { id: productId } })
+// 查看订单详情
+const goToDetail = (order: Order) => {
+  viewingOrder.value = order
+  showOrderDetailDialog.value = true
 }
 
 const goBack = () => {
@@ -616,6 +815,17 @@ const getStatusText = (status: OrderStatus) => {
     refund: '退款/售后',
   }
   return statusMap[status] || status
+}
+
+const getStatusTagType = (status: OrderStatus) => {
+  const typeMap: { [key: string]: 'success' | 'info' | 'warning' | 'danger' } = {
+    pending_payment: 'warning',
+    pending_shipment: 'warning',
+    pending_receipt: 'warning',
+    pending_review: 'info',
+    refund: 'danger',
+  }
+  return typeMap[status] || 'info'
 }
 
 // 地址管理函数
@@ -766,8 +976,8 @@ const handleCloseProfileDialog = () => {
 
 const handleAvatarUpload = async (file: File) => {
   // 检查文件大小
-  if (file.size > 2 * 1024 * 1024) {
-    ElMessage.error('头像大小不能超过 2MB')
+  if (file.size > 5 * 1024 * 1024) {
+    ElMessage.error('头像大小不能超过 5MB')
     return false
   }
 
@@ -898,9 +1108,30 @@ watch(showProfileDialog, (newVal) => {
   color: #666;
 }
 .order-body {
-  display: flex;
-  gap: 12px;
   margin-bottom: 12px;
+}
+.order-main-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.order-info-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+.order-info-item .label {
+  color: #666;
+  min-width: 80px;
+}
+.order-info-item .value {
+  color: #333;
+}
+.order-info-item .value.amount {
+  color: #f56c6c;
+  font-weight: 600;
+  font-size: 16px;
 }
 .order-info {
   flex: 1;
@@ -1036,5 +1267,27 @@ watch(showProfileDialog, (newVal) => {
 .interest-name {
   font-size: 14px;
   color: #303133;
+}
+
+.order-detail-dialog {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.order-detail-dialog h4 {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  font-weight: 500;
+  color: #303133;
+}
+
+.order-items-section {
+  margin-top: 20px;
+}
+
+.amount {
+  color: #f56c6c;
+  font-weight: 600;
 }
 </style>

@@ -10,14 +10,17 @@ import type {
   Address,
   AddressFormData,
   UpdateProfileForm,
+  Order,
 } from '@/types'
 import { authApi } from '@/api/auth-api'
 import { userApi } from '@/api/user-api'
+import { orderApi, type OrderQueryParams, type OrderPageResponse } from '@/api/order-api'
 
 export const useUserStore = defineStore('user', () => {
   const user = ref<User | null>(null)
   const isLoggedIn = ref(false)
   const addresses = ref<Address[]>([])
+  const orders = ref<Order[]>([]) // 用户订单列表
 
   // ========== 用户认证 ==========
 
@@ -352,11 +355,41 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
+  // ========== 订单管理 ==========
+
+  /**
+   * 获取订单列表（支持分页）
+   */
+  const fetchOrders = async (params?: OrderQueryParams): Promise<OrderPageResponse> => {
+    try {
+      const data = await orderApi.getOrders(params)
+      orders.value = data.orders // 后端返回的是 orders 字段
+      return data
+    } catch (error) {
+      console.error('获取订单失败:', error)
+      throw error
+    }
+  }
+
+  /**
+   * 获取订单详情
+   */
+  const fetchOrderDetail = async (orderId: string) => {
+    try {
+      const data = await orderApi.getOrderById(orderId)
+      return data
+    } catch (error) {
+      console.error('获取订单详情失败:', error)
+      throw error
+    }
+  }
+
   return {
     // 状态
     user,
     isLoggedIn,
     addresses,
+    orders,
 
     // 认证方法
     login,
@@ -380,5 +413,9 @@ export const useUserStore = defineStore('user', () => {
     updateAddress,
     deleteAddress,
     setDefaultAddress,
+
+    // 订单管理方法
+    fetchOrders,
+    fetchOrderDetail,
   }
 })

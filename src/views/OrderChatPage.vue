@@ -90,13 +90,13 @@ import { useRoute, useRouter } from 'vue-router'
 import { ArrowLeft, Service, User, Promotion, Loading } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { useChatStore } from '@/stores/chatStore'
-import { useProductStore } from '@/stores/productStore'
+import { useUserStore } from '@/stores/userStore'
 import type { Order, OrderStatus } from '@/types'
 
 const route = useRoute()
 const router = useRouter()
 const chatStore = useChatStore()
-const productStore = useProductStore()
+const userStore = useUserStore()
 
 const orderId = computed(() => route.params.orderId as string)
 const order = ref<Order | null>(null)
@@ -115,7 +115,7 @@ onMounted(async () => {
 
 const loadOrder = async () => {
   try {
-    order.value = await productStore.fetchOrderDetail(orderId.value)
+    order.value = await userStore.fetchOrderDetail(orderId.value)
   } catch (error) {
     console.error('加载订单信息失败:', error)
     ElMessage.error('加载订单信息失败')
