@@ -33,22 +33,29 @@
 
         <el-form ref="formRef" :model="preferences" label-width="100px" class="preferences-form">
           <el-form-item label="兴趣标签">
-            <el-checkbox-group v-model="preferences.interests">
-              <el-checkbox label="美妆">美妆</el-checkbox>
-              <el-checkbox label="数码">数码</el-checkbox>
-              <el-checkbox label="家居">家居</el-checkbox>
-              <el-checkbox label="运动">运动</el-checkbox>
-              <el-checkbox label="服饰">服饰</el-checkbox>
-              <el-checkbox label="食品">食品</el-checkbox>
+            <div v-if="loadingInterests" class="loading-interests">
+              <el-icon class="is-loading"><Loading /></el-icon>
+              <span>加载中...</span>
+            </div>
+            <el-checkbox-group v-else v-model="preferences.interests" class="interests-group">
+              <div v-for="interest in enabledInterests" :key="interest.code" class="interest-item">
+                <el-checkbox :label="interest.code" :value="interest.code">
+                  <span class="interest-content">
+                    <span class="interest-icon">{{ interest.icon }}</span>
+                    <span class="interest-name">{{ interest.name }}</span>
+                  </span>
+                </el-checkbox>
+              </div>
             </el-checkbox-group>
           </el-form-item>
 
-          <el-form-item label="语言偏好">
+          <!-- TODO: 语言偏好功能暂时不做，国际化有点麻烦，以后再说，可能砍掉 -->
+          <!-- <el-form-item label="语言偏好">
             <el-radio-group v-model="preferences.language">
               <el-radio label="zh">中文</el-radio>
               <el-radio label="en">English</el-radio>
             </el-radio-group>
-          </el-form-item>
+          </el-form-item> -->
 
           <el-form-item>
             <el-button type="primary" @click="savePreferences" :loading="saving"
@@ -391,7 +398,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, watch } from 'vue'
+import { ref, reactive, computed, onMounted, watch, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import {
   ArrowLeft,
@@ -406,6 +413,7 @@ import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
 import { useUserStore } from '@/stores/userStore'
 import { useProductStore } from '@/stores/productStore'
 import AddressSelector from '@/components/AddressSelector.vue'
+import { userApi } from '@/api/user-api'
 import type {
   UserPreferences,
   Order,
@@ -413,6 +421,7 @@ import type {
   Address,
   AddressFormData,
   UpdateProfileForm,
+  InterestDto,
 } from '@/types'
 
 const router = useRouter()
@@ -424,9 +433,13 @@ const orders = ref<Order[]>([])
 const saving = ref(false)
 
 const preferences = reactive<UserPreferences>({
-  interests: [],
+  interests: [], // 存储的是兴趣的 code
   language: 'zh',
 })
+
+// 通用兴趣列表
+const commonInterests = ref<InterestDto[]>([])
+const loadingInterests = ref(false)
 
 // 地址管理
 const showAddressDialog = ref(false)
@@ -474,17 +487,73 @@ const profileRules: FormRules = {
   nickname: [{ max: 50, message: '昵称最多50个字符', trigger: 'blur' }],
 }
 
+// 只显示启用的兴趣，并按 sortOrder 排序
+const enabledInterests = computed(() => {
+  return commonInterests.value
+    .filter((item) => item.enabled)
+    .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0))
+})
+
+// 保存用户偏好的原始数据
+const userPreferencesData = ref<string[]>([])
+
 onMounted(async () => {
-  // 获取用户偏好（独立接口）
+  // 先加载通用兴趣列表
+  await loadCommonInterests()
+  // 然后加载用户偏好
   await loadPreferences()
   await loadOrders()
   await loadAddresses()
 })
 
+// 监听通用兴趣列表加载完成，确保选中状态正确设置
+watch(
+  () => commonInterests.value.length,
+  async (newLength) => {
+    // 当通用兴趣列表加载完成且有数据时，重新设置选中状态
+    if (newLength > 0 && userPreferencesData.value.length > 0) {
+      await nextTick()
+      // 创建新数组以确保响应式更新
+      preferences.interests = [...userPreferencesData.value]
+    }
+  },
+)
+
+// 加载通用兴趣列表
+const loadCommonInterests = async () => {
+  try {
+    loadingInterests.value = true
+    commonInterests.value = await userApi.getCommonInterests()
+    // 通用兴趣加载完成后，如果有用户偏好数据，设置选中状态
+    if (userPreferencesData.value.length > 0) {
+      await nextTick()
+      // 创建新数组以确保响应式更新
+      preferences.interests = [...userPreferencesData.value]
+    }
+  } catch (error) {
+    console.error('获取通用兴趣列表失败:', error)
+    ElMessage.error('获取兴趣列表失败')
+  } finally {
+    loadingInterests.value = false
+  }
+}
+
 const loadPreferences = async () => {
   try {
     const data = await userStore.fetchPreferences()
-    preferences.interests = data.interests || []
+    // interests 存储的是 code
+    if (data.interests && Array.isArray(data.interests)) {
+      userPreferencesData.value = [...data.interests]
+      // 如果通用兴趣已经加载完成，await nextTick() 等待 check box DOM 渲染完成
+      if (commonInterests.value.length > 0) {
+        await nextTick()
+        // 将后端响应数据赋值给 preferences.interests
+        preferences.interests = [...data.interests]
+      }
+    } else {
+      userPreferencesData.value = []
+      preferences.interests = []
+    }
     preferences.language = data.language || 'zh'
   } catch (error) {
     console.error('获取用户偏好失败:', error)
@@ -922,5 +991,50 @@ watch(showProfileDialog, (newVal) => {
 }
 .avatar-uploader:hover .avatar-upload-hint {
   color: #7c3aed;
+}
+
+.loading-interests {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 20px 0;
+  color: #606266;
+}
+
+.loading-interests .el-icon {
+  font-size: 16px;
+}
+
+.interests-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.interest-item {
+  padding: 12px 16px;
+  border: 1px solid #e4e7ed;
+  border-radius: 8px;
+  transition: all 0.3s;
+}
+
+.interest-item:hover {
+  border-color: #7c3aed;
+  background-color: #f5f3ff;
+}
+
+.interest-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.interest-icon {
+  font-size: 18px;
+}
+
+.interest-name {
+  font-size: 14px;
+  color: #303133;
 }
 </style>

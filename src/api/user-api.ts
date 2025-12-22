@@ -1,5 +1,5 @@
 import { userService } from '@/utils/request'
-import type { User, UserPreferences, Address, UpdateProfileForm } from '@/types'
+import type { User, UserPreferences, Address, UpdateProfileForm, InterestDto } from '@/types'
 
 /**
  * 用户服务 API
@@ -8,6 +8,12 @@ import type { User, UserPreferences, Address, UpdateProfileForm } from '@/types'
  */
 export const userApi = {
   // ========== 用户信息 ==========
+
+  /**
+   * 获取通用兴趣列表
+   */
+  getCommonInterests: (): Promise<InterestDto[]> =>
+    userService.get<InterestDto[]>('/user/common/interests') as unknown as Promise<InterestDto[]>,
 
   /**
    * 获取用户偏好设置

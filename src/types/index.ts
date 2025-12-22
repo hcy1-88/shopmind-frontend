@@ -17,8 +17,38 @@ export interface UpdateProfileForm {
 }
 
 export interface UserPreferences {
-  interests: string[]
+  interests: string[] // 存储的是兴趣的 code
   language: 'zh' | 'en'
+}
+
+/**
+ * 兴趣 DTO（后端返回）
+ */
+export interface InterestDto {
+  /**
+   * 兴趣唯一标识（英文小写，如 beauty）
+   */
+  code: string
+
+  /**
+   * 兴趣中文名称（如 美妆），供 LLM 理解语义
+   */
+  name: string
+
+  /**
+   * 前端展示图标（emoji 或 icon class）
+   */
+  icon: string
+
+  /**
+   * 前端展示排序
+   */
+  sortOrder: number
+
+  /**
+   * 是否启用
+   */
+  enabled: boolean
 }
 
 export interface LoginForm {

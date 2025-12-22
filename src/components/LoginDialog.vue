@@ -230,6 +230,9 @@
         </el-form-item>
       </el-form>
     </el-dialog>
+
+    <!-- 兴趣选择对话框 -->
+    <InterestSelectorDialog v-model="showInterestDialog" @save="handleInterestSave" />
   </el-dialog>
 </template>
 
@@ -241,6 +244,7 @@ import { Iphone, Lock, Message } from '@element-plus/icons-vue'
 // import { Loading } from '@element-plus/icons-vue'
 import { useUserStore } from '@/stores/userStore'
 import SliderImageVerify from '@/components/SliderCaptcha.vue'
+import InterestSelectorDialog from '@/components/InterestSelectorDialog.vue'
 import type { LoginForm, SmsLoginForm, SetPasswordForm } from '@/types'
 
 const userStore = useUserStore()
@@ -259,6 +263,7 @@ const setPasswordVisible = ref(false)
 const sendingSetPasswordCode = ref(false)
 const setPasswordCountdown = ref(0)
 const setPasswordToken = ref('') // 设置密码时的短信验证 token
+const showInterestDialog = ref(false) // 兴趣选择对话框
 // TODO: 微信登录功能暂时不做，待后续实现
 // const showWeChatQR = ref(false)
 // const wechatQRLoading = ref(false)
@@ -369,6 +374,41 @@ const handlePasswordRegister = () => {
   ElMessage.info('请使用手机号验证码完成注册')
 }
 
+// 检查用户偏好，如果为空则弹出兴趣选择对话框
+const checkUserPreferences = async () => {
+  try {
+    const preferences = await userStore.fetchPreferences()
+    // 检查 interests 是否为 null 或空数组
+    if (!preferences.interests || preferences.interests.length === 0) {
+      showInterestDialog.value = true
+      return false
+    }
+    return true
+  } catch (error) {
+    console.error('获取用户偏好失败:', error)
+    // 如果获取失败，也弹出对话框让用户选择
+    showInterestDialog.value = true
+    return false
+  }
+}
+
+// 处理兴趣选择保存
+const handleInterestSave = async (interests: string[]) => {
+  try {
+    await userStore.updatePreferences({
+      interests,
+      language: 'zh', // 默认语言
+    })
+    ElMessage.success('偏好设置成功')
+    showInterestDialog.value = false
+    dialogVisible.value = false
+    resetForms()
+  } catch (error) {
+    console.error('保存偏好失败:', error)
+    ElMessage.error('保存偏好失败')
+  }
+}
+
 // 密码登录
 const handlePasswordLogin = async () => {
   if (!passwordFormRef.value) return
@@ -380,8 +420,13 @@ const handlePasswordLogin = async () => {
       loginLoading.value = true
       await userStore.login(passwordForm)
       ElMessage.success('登录成功')
-      dialogVisible.value = false
-      resetForms()
+
+      // 检查用户偏好
+      const hasPreferences = await checkUserPreferences()
+      if (hasPreferences) {
+        dialogVisible.value = false
+        resetForms()
+      }
     } catch (error: unknown) {
       if (error instanceof Error && error.message.includes('NO_PASSWORD_SET')) {
         ElMessage.warning('您还未设置密码，请先设置密码')
@@ -467,8 +512,13 @@ const handleSmsLogin = async () => {
         token: smsToken.value,
       })
       ElMessage.success('登录成功')
-      dialogVisible.value = false
-      resetForms()
+
+      // 检查用户偏好
+      const hasPreferences = await checkUserPreferences()
+      if (hasPreferences) {
+        dialogVisible.value = false
+        resetForms()
+      }
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : '登录失败'
       ElMessage.error(message)
