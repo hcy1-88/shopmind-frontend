@@ -337,6 +337,7 @@ export interface Order {
   orderNo: string
 }
 
+// 待付款、待发货、待收货、待评价、退款/售后
 export type OrderStatus =
   | 'pending_payment'
   | 'pending_shipment'
