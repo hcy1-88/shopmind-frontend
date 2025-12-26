@@ -30,17 +30,28 @@ export const aiApi = {
    * 检查标题合规性
    */
   checkTitle: (request: TitleCheckRequest): Promise<TitleCheckResponse> =>
-    aiService.post<TitleCheckResponse>('/ai/title-check', request) as unknown as Promise<TitleCheckResponse>,
+    aiService.post<TitleCheckResponse>(
+      '/ai/title-check',
+      request,
+    ) as unknown as Promise<TitleCheckResponse>,
 
   /**
    * 检查图片合规性
    */
   checkImage: (request: ImageCheckRequest): Promise<ImageCheckResponse> =>
-    aiService.post<ImageCheckResponse>('/ai/image-check', request) as unknown as Promise<ImageCheckResponse>,
+    aiService.post<ImageCheckResponse>(
+      '/ai/image-check',
+      request,
+    ) as unknown as Promise<ImageCheckResponse>,
 
   /**
    * 生成商品描述
    */
-  generateDescription: (request: DescriptionGenerateRequest): Promise<DescriptionGenerateResponse> =>
-    aiService.post<DescriptionGenerateResponse>('/ai/description-generate', request) as unknown as Promise<DescriptionGenerateResponse>,
+  generateDescription: (
+    request: DescriptionGenerateRequest,
+  ): Promise<DescriptionGenerateResponse> =>
+    aiService.post<DescriptionGenerateResponse>(
+      '/ai/description-generate',
+      request,
+    ) as unknown as Promise<DescriptionGenerateResponse>,
 }

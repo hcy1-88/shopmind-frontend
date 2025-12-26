@@ -1,5 +1,5 @@
 import { productService } from '@/utils/request'
-import type { Product } from '@/types'
+import type { Product, Category } from '@/types'
 
 /**
  * 商品服务 API
@@ -29,4 +29,11 @@ export const productApi = {
     productService.get<Product[]>('/products/recommendations', {
       params: { productId },
     }) as unknown as Promise<Product[]>,
+
+  /**
+   * 获取商品分类列表
+   * @param level 分类层级（1=一级分类）
+   */
+  getCategories: (level: number = 1): Promise<Category[]> =>
+    productService.get<Category[]>(`/category/${level}`) as unknown as Promise<Category[]>,
 }

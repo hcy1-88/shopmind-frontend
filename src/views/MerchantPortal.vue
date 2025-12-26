@@ -102,7 +102,7 @@
               {{ viewingProduct.name }}
             </el-descriptions-item>
             <el-descriptions-item label="分类">
-              <el-tag>{{ viewingProduct.category }}</el-tag>
+              <el-tag>{{ getCategoryName(viewingProduct.category || '') }}</el-tag>
             </el-descriptions-item>
             <el-descriptions-item label="价格">
               <span v-if="viewingProduct.priceRange" class="price">
@@ -163,9 +163,10 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { Shop, HomeFilled, List, Upload, MagicStick } from '@element-plus/icons-vue'
 import { useUserStore } from '@/stores/userStore'
 import { useProductStore } from '@/stores/productStore'
+import { productApi } from '@/api/product-api'
 import ProductList from '@/components/ProductList.vue'
 import ProductUploadForm from '@/components/ProductUploadForm.vue'
-import type { Product, ProductFormData, ProductStatus } from '@/types'
+import type { Product, ProductFormData, ProductStatus, Category } from '@/types'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -175,14 +176,36 @@ const activeTab = ref('list')
 const editingProduct = ref<ProductFormData | null>(null)
 const viewingProduct = ref<Product | null>(null)
 const viewDialogVisible = ref(false)
+const categories = ref<Category[]>([])
+const loadingCategories = ref(false)
 
-// 页面加载时获取商品列表
+// 获取商品分类
+const fetchCategories = async () => {
+  try {
+    loadingCategories.value = true
+    const data = await productApi.getCategories(1)
+    categories.value = data
+  } catch (error) {
+    console.error('获取分类失败:', error)
+  } finally {
+    loadingCategories.value = false
+  }
+}
+
+// 根据分类 ID 获取分类名称
+const getCategoryName = (categoryId: string): string => {
+  if (!categoryId) return ''
+  const category = categories.value.find((c) => c.id.toString() === categoryId)
+  return category?.name || categoryId
+}
+
+// 页面加载时获取商品列表和分类
 onMounted(async () => {
   try {
-    await productStore.fetchMerchantProducts()
+    await Promise.all([productStore.fetchMerchantProducts(), fetchCategories()])
   } catch (error) {
-    console.error('获取商品列表失败:', error)
-    ElMessage.error('获取商品列表失败')
+    console.error('获取数据失败:', error)
+    ElMessage.error('获取数据失败')
   }
 })
 

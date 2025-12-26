@@ -119,9 +119,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { Search, View, Edit, Delete } from '@element-plus/icons-vue'
-import type { Product, ProductStatus, ProductSku } from '@/types'
+import { productApi } from '@/api/product-api'
+import type { Product, ProductStatus, ProductSku, Category } from '@/types'
 
 interface Props {
   products: Product[]
@@ -144,6 +145,7 @@ const searchKeyword = ref('')
 const statusFilter = ref<ProductStatus | ''>('')
 const currentPage = ref(1)
 const pageSize = ref(10)
+const categories = ref<Category[]>([])
 
 // 过滤后的商品列表
 const filteredProducts = computed(() => {
@@ -181,20 +183,27 @@ const total = computed(() => {
   return result.length
 })
 
-// 获取分类名称
-const getCategoryName = (category: string) => {
-  const categoryMap: { [key: string]: string } = {
-    beauty: '美妆护肤',
-    digital: '数码电子',
-    fashion: '服饰鞋包',
-    food: '食品饮料',
-    home: '家居生活',
-    sports: '运动户外',
-    books: '图书文娱',
-    other: '其他',
+// 获取商品分类
+const fetchCategories = async () => {
+  try {
+    const data = await productApi.getCategories(1)
+    categories.value = data
+  } catch (error) {
+    console.error('获取分类失败:', error)
   }
-  return categoryMap[category] || category
 }
+
+// 根据分类 ID 获取分类名称
+const getCategoryName = (categoryId: string): string => {
+  if (!categoryId) return ''
+  const category = categories.value.find((c) => c.id.toString() === categoryId)
+  return category?.name || categoryId
+}
+
+// 组件挂载时获取分类
+onMounted(() => {
+  fetchCategories()
+})
 
 // 获取总库存
 const getTotalStock = (skus: ProductSku[]) => {

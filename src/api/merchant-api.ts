@@ -17,17 +17,20 @@ export const merchantApi = {
    * 创建新商品
    */
   createProduct: (formData: ProductFormData): Promise<Product> =>
-    merchantService.post<Product>('/products', formData) as unknown as Promise<Product>,
+    merchantService.post<Product>('/merchant/products', formData) as unknown as Promise<Product>,
 
   /**
    * 更新商品信息
    */
   updateProduct: (id: string, formData: Partial<ProductFormData>): Promise<Product> =>
-    merchantService.put<Product>(`/products/${id}`, formData) as unknown as Promise<Product>,
+    merchantService.put<Product>(
+      `/merchant/products/${id}`,
+      formData,
+    ) as unknown as Promise<Product>,
 
   /**
    * 删除商品
    */
   deleteProduct: (id: string): Promise<void> =>
-    merchantService.delete(`/products/${id}`) as unknown as Promise<void>,
+    merchantService.delete(`/merchant/products/${id}`) as unknown as Promise<void>,
 }

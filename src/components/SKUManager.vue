@@ -109,22 +109,48 @@
           </template>
         </el-table-column>
 
-        <el-table-column label="SKU 图片" width="150">
+        <el-table-column label="SKU 图片" width="220">
           <template #default="{ row, $index }">
-            <div style="display: flex; align-items: center; gap: 8px">
-              <el-upload
-                :show-file-list="false"
-                :before-upload="(file: File) => handleSkuImageUpload(file, $index)"
-                accept="image/*"
-              >
-                <el-button :icon="Picture" size="small">上传</el-button>
-              </el-upload>
-              <el-image
-                v-if="row.image"
-                :src="row.image"
-                style="width: 40px; height: 40px; border-radius: 4px"
-                fit="cover"
-              />
+            <div style="display: flex; flex-direction: column; gap: 8px">
+              <div style="display: flex; align-items: center; gap: 8px">
+                <el-upload
+                  :show-file-list="false"
+                  :before-upload="(file: File) => handleSkuImageUpload(file, $index)"
+                  accept="image/*"
+                >
+                  <el-button :icon="Picture" size="small">上传</el-button>
+                </el-upload>
+                <el-image
+                  v-if="row.image"
+                  :src="row.image"
+                  :preview-src-list="[row.image]"
+                  style="width: 40px; height: 40px; border-radius: 4px"
+                  fit="cover"
+                />
+                <el-button
+                  v-if="row.image"
+                  :icon="Close"
+                  size="small"
+                  type="danger"
+                  circle
+                  @click="removeSkuImage($index)"
+                />
+              </div>
+              <!-- AI 检测结果 -->
+              <div v-if="skuImageCheckResults.get($index)" style="font-size: 12px">
+                <el-tag
+                  :type="skuImageCheckResults.get($index)!.valid ? 'success' : 'danger'"
+                  size="small"
+                >
+                  {{ skuImageCheckResults.get($index)!.valid ? '合规' : '不合规' }}
+                </el-tag>
+                <span
+                  v-if="!skuImageCheckResults.get($index)!.valid"
+                  style="color: #f56c6c; margin-left: 4px"
+                >
+                  {{ skuImageCheckResults.get($index)!.reason }}
+                </span>
+              </div>
             </div>
           </template>
         </el-table-column>
@@ -143,8 +169,10 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import { Plus, Delete, Picture } from '@element-plus/icons-vue'
-import type { SkuSpec, SkuItem } from '@/types'
+import { Plus, Delete, Picture, Close } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
+import { useProductStore } from '@/stores/productStore'
+import type { SkuSpec, SkuItem, ImageCheckResponse } from '@/types'
 
 interface Props {
   modelValue: {
@@ -160,8 +188,10 @@ interface Emits {
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
+const productStore = useProductStore()
 const specs = ref<SkuSpec[]>(props.modelValue.specs || [])
 const skuItems = ref<SkuItem[]>(props.modelValue.items || [])
+const skuImageCheckResults = ref<Map<number, ImageCheckResponse>>(new Map())
 
 // 添加规格
 const addSpec = () => {
@@ -215,18 +245,46 @@ const handleSpecImageUpload = async (file: File, specIndex: number, valueIndex: 
 
 // SKU 图片上传
 const handleSkuImageUpload = async (file: File, skuIndex: number) => {
+  // 检查文件大小
+  if (file.size > 5 * 1024 * 1024) {
+    ElMessage.error('图片大小不能超过 5MB')
+    return false
+  }
+
   const reader = new FileReader()
-  reader.onload = (e) => {
+  reader.onload = async (e) => {
     if (e.target?.result) {
+      const imageUrl = e.target.result as string
       const sku = skuItems.value[skuIndex]
       if (sku) {
-        sku.image = e.target.result as string
+        sku.image = imageUrl
+
+        // AI 检查图片合规性
+        try {
+          const result = await productStore.checkImage(imageUrl)
+          skuImageCheckResults.value.set(skuIndex, result)
+          if (!result.valid) {
+            ElMessage.warning(`SKU 图片检测失败：${result.reason}`)
+          }
+        } catch (error) {
+          console.error('SKU 图片检查失败:', error)
+        }
       }
     }
     onSkuChange()
   }
   reader.readAsDataURL(file)
   return false
+}
+
+// 删除 SKU 图片
+const removeSkuImage = (skuIndex: number) => {
+  const sku = skuItems.value[skuIndex]
+  if (sku) {
+    sku.image = undefined
+    skuImageCheckResults.value.delete(skuIndex)
+    onSkuChange()
+  }
 }
 
 // 生成 SKU 组合（笛卡尔积）

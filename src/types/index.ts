@@ -312,6 +312,16 @@ export interface DescriptionGenerateResponse {
   description: string
 }
 
+export interface SummaryGenerateRequest {
+  title: string
+  imageUrls: string[]
+  category: string
+}
+
+export interface SummaryGenerateResponse {
+  aiSummary: string
+}
+
 // 评论相关类型
 export interface Review {
   id: string
@@ -509,3 +519,17 @@ export const ResponseCode = {
   /** 系统异常 */
   SYSTEM_ERROR: 'SYS9999',
 } as const
+
+/**
+ * 商品分类
+ */
+export interface Category {
+  id: number
+  code: string
+  name: string
+  parentId?: number
+  level: number
+  sortOrder?: number
+  icon?: string
+  description?: string
+}

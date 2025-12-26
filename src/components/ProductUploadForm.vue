@@ -31,24 +31,36 @@
 
       <!-- 商品封面图 -->
       <el-form-item label="商品封面图" prop="coverImage" required>
-        <el-upload
-          class="cover-uploader"
-          :show-file-list="false"
-          :before-upload="handleCoverUpload"
-          accept="image/*"
-          drag
-        >
-          <el-image
-            v-if="formData.coverImage"
-            :src="formData.coverImage"
-            fit="cover"
-            style="width: 100%; height: 100%"
-          />
-          <div v-else class="upload-placeholder">
-            <el-icon :size="50"><Plus /></el-icon>
-            <div>点击或拖拽上传封面图</div>
+        <div class="cover-image-container">
+          <!-- 上传区域（无图片时显示） -->
+          <el-upload
+            v-if="!formData.coverImage"
+            class="cover-uploader"
+            :show-file-list="false"
+            :before-upload="handleCoverUpload"
+            accept="image/*"
+            drag
+          >
+            <div class="upload-placeholder">
+              <el-icon :size="50"><Plus /></el-icon>
+              <div>点击或拖拽上传封面图</div>
+            </div>
+          </el-upload>
+          <!-- 预览区域（有图片时显示） -->
+          <div v-else class="cover-preview-container">
+            <el-image
+              :src="formData.coverImage"
+              fit="contain"
+              :preview-src-list="[formData.coverImage]"
+              class="cover-preview-image"
+            />
+            <el-upload :show-file-list="false" :before-upload="handleCoverUpload" accept="image/*">
+              <el-button type="primary" :icon="Upload" style="margin-top: 12px">
+                更换封面图
+              </el-button>
+            </el-upload>
           </div>
-        </el-upload>
+        </div>
         <div v-if="coverImageCheckResult" class="ai-check-result">
           <el-alert :type="coverImageCheckResult.valid ? 'success' : 'error'" :closable="false">
             <template #title>
@@ -78,6 +90,28 @@
           <el-icon><Plus /></el-icon>
         </el-upload>
         <div style="color: #909399; font-size: 12px; margin-top: 8px">最多上传 9 张详情图</div>
+        <!-- 详情图 AI 检测结果 -->
+        <div v-if="detailImageCheckResults.size > 0" class="detail-images-check-results">
+          <div
+            v-for="[index, result] in detailImageCheckResults"
+            :key="index"
+            class="ai-check-result"
+            style="margin-top: 8px"
+          >
+            <el-alert :type="result.valid ? 'success' : 'error'" :closable="false">
+              <template #title>
+                <div style="display: flex; align-items: center; gap: 8px">
+                  <el-icon><MagicStick /></el-icon>
+                  <span
+                    >详情图 {{ index + 1 }} AI 检测：{{
+                      result.valid ? '图片合规' : result.reason
+                    }}</span
+                  >
+                </div>
+              </template>
+            </el-alert>
+          </div>
+        </div>
       </el-form-item>
 
       <!-- 价格设置 -->
@@ -134,15 +168,18 @@
 
       <!-- 商品分类 -->
       <el-form-item label="商品分类" prop="category">
-        <el-select v-model="formData.category" placeholder="请选择分类" style="width: 300px">
-          <el-option label="美妆护肤" value="beauty" />
-          <el-option label="数码电子" value="digital" />
-          <el-option label="服饰鞋包" value="fashion" />
-          <el-option label="食品饮料" value="food" />
-          <el-option label="家居生活" value="home" />
-          <el-option label="运动户外" value="sports" />
-          <el-option label="图书文娱" value="books" />
-          <el-option label="其他" value="other" />
+        <el-select
+          v-model="formData.category"
+          placeholder="请选择分类"
+          style="width: 300px"
+          :loading="loadingCategories"
+        >
+          <el-option
+            v-for="category in categories"
+            :key="category.id"
+            :label="category.name"
+            :value="category.id.toString()"
+          />
         </el-select>
       </el-form-item>
 
@@ -183,14 +220,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { ElMessage, type FormInstance, type FormRules, type UploadFile } from 'element-plus'
-import { Plus, MagicStick } from '@element-plus/icons-vue'
+import { Plus, MagicStick, Upload } from '@element-plus/icons-vue'
 import { debounce } from 'lodash-es'
 import { useProductStore } from '@/stores/productStore'
+import { productApi } from '@/api/product-api'
 import SKUManager from './SKUManager.vue'
 import AddressSelector from './AddressSelector.vue'
-import type { ProductFormData, TitleCheckResponse, ImageCheckResponse } from '@/types'
+import type { ProductFormData, TitleCheckResponse, ImageCheckResponse, Category } from '@/types'
 
 interface Props {
   editMode?: boolean
@@ -254,8 +292,11 @@ const addressData = ref({
 
 const titleCheckResult = ref<TitleCheckResponse | null>(null)
 const coverImageCheckResult = ref<ImageCheckResponse | null>(null)
+const detailImageCheckResults = ref<Map<number, ImageCheckResponse>>(new Map())
 const generatingDescription = ref(false)
 const submitting = ref(false)
+const categories = ref<Category[]>([])
+const loadingCategories = ref(false)
 
 // 详情图列表
 const detailImageList = computed(() => {
@@ -338,8 +379,21 @@ const handleDetailImageUpload = async (file: File) => {
   }
 
   const reader = new FileReader()
-  reader.onload = (e) => {
-    formData.detailImages.push(e.target?.result as string)
+  reader.onload = async (e) => {
+    const imageUrl = e.target?.result as string
+    const imageIndex = formData.detailImages.length
+    formData.detailImages.push(imageUrl)
+
+    // AI 检查图片合规性
+    try {
+      const result = await productStore.checkImage(imageUrl)
+      detailImageCheckResults.value.set(imageIndex, result)
+      if (!result.valid) {
+        ElMessage.warning(`详情图 ${imageIndex + 1} 检测失败：${result.reason}`)
+      }
+    } catch (error) {
+      console.error('详情图检查失败:', error)
+    }
   }
   reader.readAsDataURL(file)
 
@@ -351,6 +405,18 @@ const handleDetailImageRemove = (file: UploadFile) => {
   const index = formData.detailImages.findIndex((url) => url === file.url)
   if (index !== -1) {
     formData.detailImages.splice(index, 1)
+    // 同时移除对应的检测结果
+    detailImageCheckResults.value.delete(index)
+    // 重新索引后续图片的检测结果
+    const newResults = new Map<number, ImageCheckResponse>()
+    detailImageCheckResults.value.forEach((result, key) => {
+      if (key < index) {
+        newResults.set(key, result)
+      } else if (key > index) {
+        newResults.set(key - 1, result)
+      }
+    })
+    detailImageCheckResults.value = newResults
   }
 }
 
@@ -447,6 +513,25 @@ const handleSubmit = async () => {
   })
 }
 
+// 获取商品分类
+const fetchCategories = async () => {
+  try {
+    loadingCategories.value = true
+    const data = await productApi.getCategories(1)
+    categories.value = data
+  } catch (error) {
+    console.error('获取分类失败:', error)
+    ElMessage.error('获取商品分类失败')
+  } finally {
+    loadingCategories.value = false
+  }
+}
+
+// 组件挂载时获取分类
+onMounted(() => {
+  fetchCategories()
+})
+
 // 取消
 const handleCancel = () => {
   emit('cancel')
@@ -458,6 +543,11 @@ const handleCancel = () => {
   max-width: 900px;
   margin: 0 auto;
   padding: 20px;
+}
+
+.cover-image-container {
+  display: flex;
+  flex-direction: column;
 }
 
 .cover-uploader {
@@ -474,13 +564,43 @@ const handleCancel = () => {
   border-color: #7c3aed;
 }
 
+.cover-preview-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.cover-preview-image {
+  width: 300px;
+  height: 300px;
+  border: 2px solid #d9d9d9;
+  border-radius: 8px;
+  background-color: #f5f5f5;
+}
+
 .upload-placeholder {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   height: 100%;
+  width: 100%;
   color: #8c939d;
+}
+
+.cover-uploader :deep(.el-upload) {
+  width: 100%;
+  height: 100%;
+}
+
+.cover-uploader :deep(.el-upload-dragger) {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 0;
 }
 
 .ai-check-result {
