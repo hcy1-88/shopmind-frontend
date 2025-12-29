@@ -33,19 +33,19 @@
       <el-form-item label="商品封面图" prop="coverImage" required>
         <div class="cover-image-container">
           <!-- 上传区域（无图片时显示） -->
-          <el-upload
+        <el-upload
             v-if="!formData.coverImage"
-            class="cover-uploader"
-            :show-file-list="false"
-            :before-upload="handleCoverUpload"
-            accept="image/*"
-            drag
-          >
+          class="cover-uploader"
+          :show-file-list="false"
+          :before-upload="handleCoverUpload"
+          accept="image/*"
+          drag
+        >
             <div class="upload-placeholder">
-              <el-icon :size="50"><Plus /></el-icon>
-              <div>点击或拖拽上传封面图</div>
-            </div>
-          </el-upload>
+            <el-icon :size="50"><Plus /></el-icon>
+            <div>点击或拖拽上传封面图</div>
+          </div>
+        </el-upload>
           <!-- 预览区域（有图片时显示） -->
           <div v-else class="cover-preview-container">
             <el-image
@@ -427,11 +427,6 @@ const handleGenerateDescription = async () => {
     return
   }
 
-  if (!formData.category) {
-    ElMessage.warning('请先选择商品分类')
-    return
-  }
-
   const imageUrls = [formData.coverImage, ...formData.detailImages].filter(Boolean)
   if (imageUrls.length === 0) {
     ElMessage.warning('请先上传商品图片')
@@ -443,7 +438,6 @@ const handleGenerateDescription = async () => {
     const result = await productStore.generateDescription({
       title: formData.name,
       imageUrls,
-      category: formData.category,
     })
     formData.description = result.description
     ElMessage.success('描述生成成功')

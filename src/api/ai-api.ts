@@ -31,7 +31,7 @@ export const aiApi = {
    */
   checkTitle: (request: TitleCheckRequest): Promise<TitleCheckResponse> =>
     aiService.post<TitleCheckResponse>(
-      '/ai/title-check',
+      '/ai/product/title-check',
       request,
     ) as unknown as Promise<TitleCheckResponse>,
 
@@ -40,7 +40,7 @@ export const aiApi = {
    */
   checkImage: (request: ImageCheckRequest): Promise<ImageCheckResponse> =>
     aiService.post<ImageCheckResponse>(
-      '/ai/image-check',
+      '/ai/product/image-check',
       request,
     ) as unknown as Promise<ImageCheckResponse>,
 
@@ -51,7 +51,7 @@ export const aiApi = {
     request: DescriptionGenerateRequest,
   ): Promise<DescriptionGenerateResponse> =>
     aiService.post<DescriptionGenerateResponse>(
-      '/ai/description-generate',
+      '/ai/product/description-generate',
       request,
     ) as unknown as Promise<DescriptionGenerateResponse>,
 }

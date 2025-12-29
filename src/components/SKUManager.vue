@@ -112,21 +112,21 @@
         <el-table-column label="SKU 图片" width="220">
           <template #default="{ row, $index }">
             <div style="display: flex; flex-direction: column; gap: 8px">
-              <div style="display: flex; align-items: center; gap: 8px">
-                <el-upload
-                  :show-file-list="false"
-                  :before-upload="(file: File) => handleSkuImageUpload(file, $index)"
-                  accept="image/*"
-                >
-                  <el-button :icon="Picture" size="small">上传</el-button>
-                </el-upload>
-                <el-image
-                  v-if="row.image"
-                  :src="row.image"
+            <div style="display: flex; align-items: center; gap: 8px">
+              <el-upload
+                :show-file-list="false"
+                :before-upload="(file: File) => handleSkuImageUpload(file, $index)"
+                accept="image/*"
+              >
+                <el-button :icon="Picture" size="small">上传</el-button>
+              </el-upload>
+              <el-image
+                v-if="row.image"
+                :src="row.image"
                   :preview-src-list="[row.image]"
-                  style="width: 40px; height: 40px; border-radius: 4px"
-                  fit="cover"
-                />
+                style="width: 40px; height: 40px; border-radius: 4px"
+                fit="cover"
+              />
                 <el-button
                   v-if="row.image"
                   :icon="Close"

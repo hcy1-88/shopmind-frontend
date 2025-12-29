@@ -281,9 +281,47 @@ const handleProductSubmit = async (formData: ProductFormData) => {
       }
     } else {
       // 新建模式
-      await productStore.createProduct(formData)
-      ElMessage.success('发布成功，等待审核')
+      const product = await productStore.createProduct(formData)
+
+      // 根据审核状态显示不同的提示
+      if (product.status === 'approved') {
+        ElMessage.success('发布成功，商品已上架')
+      } else if (product.status === 'rejected') {
+        // 显示拒绝原因和建议
+        const reason = product.rejectReason || '审核未通过'
+        const suggestions = product.suggestions || []
+
+        ElMessageBox.alert(
+          `<div style="text-align: left;">
+            <p style="color: #f56c6c; margin-bottom: 12px; font-weight: bold;">审核未通过</p>
+            <p style="margin-bottom: 12px;"><strong>拒绝原因：</strong>${reason}</p>
+            ${
+              suggestions.length > 0
+                ? `
+              <p style="margin-bottom: 8px;"><strong>修改建议：</strong></p>
+              <ul style="margin-left: 20px; margin-bottom: 0;">
+                ${suggestions.map((s) => `<li style="margin-bottom: 4px;">${s}</li>`).join('')}
+              </ul>
+            `
+                : ''
+            }
+          </div>`,
+          '商品审核结果',
+          {
+            dangerouslyUseHTMLString: true,
+            type: 'error',
+            confirmButtonText: '我知道了',
+          },
+        )
+      } else if (product.status === 'pending_review') {
+        ElMessage.info('商品已提交，等待审核中')
+      } else {
+        ElMessage.success('发布成功，等待审核')
+      }
     }
+
+    // 刷新商品列表
+    await productStore.fetchMerchantProducts()
 
     // 切换到列表页
     activeTab.value = 'list'

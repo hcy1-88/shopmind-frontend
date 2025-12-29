@@ -73,11 +73,22 @@
         </template>
       </el-table-column>
 
-      <el-table-column label="状态" width="120" align="center">
+      <el-table-column label="状态" width="200" align="center">
         <template #default="{ row }">
-          <el-tag :type="getStatusType(row.status)">
-            {{ getStatusText(row.status) }}
-          </el-tag>
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 4px">
+            <el-tag :type="getStatusType(row.status)">
+              {{ getStatusText(row.status) }}
+            </el-tag>
+            <!-- 如果被拒绝，显示拒绝原因 -->
+            <div v-if="row.status === 'rejected' && row.rejectReason" class="reject-reason">
+              <el-tooltip :content="row.rejectReason" placement="top" effect="dark">
+                <el-text type="danger" size="small" style="cursor: pointer">
+                  <el-icon><Warning /></el-icon>
+                  查看原因
+                </el-text>
+              </el-tooltip>
+            </div>
+          </div>
         </template>
       </el-table-column>
 

@@ -220,6 +220,9 @@ export interface Product {
   location?: string
   category?: string
   status?: ProductStatus
+  rejectReason?: string // 拒绝原因
+  suggestions?: string[] // 修改建议
+  auditTime?: string // 审核时间
   skus?: ProductSku[]
   reviews?: Review[]
 }
@@ -305,7 +308,6 @@ export interface ImageCheckResponse {
 export interface DescriptionGenerateRequest {
   title: string
   imageUrls: string[]
-  category: string
 }
 
 export interface DescriptionGenerateResponse {
