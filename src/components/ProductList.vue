@@ -76,9 +76,9 @@
       <el-table-column label="状态" width="200" align="center">
         <template #default="{ row }">
           <div style="display: flex; flex-direction: column; align-items: center; gap: 4px">
-            <el-tag :type="getStatusType(row.status)">
-              {{ getStatusText(row.status) }}
-            </el-tag>
+          <el-tag :type="getStatusType(row.status)">
+            {{ getStatusText(row.status) }}
+          </el-tag>
             <!-- 如果被拒绝，显示拒绝原因 -->
             <div v-if="row.status === 'rejected' && row.rejectReason" class="reject-reason">
               <el-tooltip :content="row.rejectReason" placement="top" effect="dark">

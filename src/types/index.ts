@@ -224,7 +224,8 @@ export interface Product {
   suggestions?: string[] // 修改建议
   auditTime?: string // 审核时间
   skus?: ProductSku[]
-  reviews?: Review[]
+  reviews?: Review[] // 商品评论
+  tagInfos: TagInfo[] // 商品标签
 }
 
 export type ProductStatus = 'draft' | 'pending_review' | 'approved' | 'rejected'
@@ -258,6 +259,11 @@ export interface SkuItem {
   price: number
   stock: number
   image?: string
+}
+
+export interface TagInfo {
+  name: string // 商品标签的名称
+  color: string // 商品标签的颜色，十六进制
 }
 
 // 商品上传表单数据

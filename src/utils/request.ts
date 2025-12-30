@@ -99,10 +99,10 @@ export function createService(basePath: string): AxiosInstance {
 }
 
 // 👇 创建各微服务专用实例（统一管理）
-export const productService = createService('/product-service')
-export const userService = createService('/user-service')
-export const authService = createService('/auth-service')
+export const productService = createService('/shopmind-product-service')
+export const userService = createService('/shopmind-user-service')
+export const authService = createService('/shopmind-auth-service')
 // 商家服务，暂时只对商品进行 crud，所以路由到商品服务。后端暂时不做商家服务。
-export const merchantService = createService('/product-service')
-export const aiService = createService('/ai-service')
-export const orderService = createService('/order-service')
+export const merchantService = createService('/shopmind-product-service')
+export const aiService = createService('/shopmind-ai-service')
+export const orderService = createService('/shopmind-order-service')

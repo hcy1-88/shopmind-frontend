@@ -316,7 +316,7 @@ const handleProductSubmit = async (formData: ProductFormData) => {
       } else if (product.status === 'pending_review') {
         ElMessage.info('商品已提交，等待审核中')
       } else {
-        ElMessage.success('发布成功，等待审核')
+      ElMessage.success('发布成功，等待审核')
       }
     }
 
