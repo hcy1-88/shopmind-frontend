@@ -267,7 +267,11 @@ const handleDeleteProduct = async (product: Product) => {
 }
 
 // 提交商品表单
-const handleProductSubmit = async (formData: ProductFormData) => {
+const handleProductSubmit = async (
+  formData: ProductFormData,
+  resolve?: () => void,
+  reject?: (error?: unknown) => void,
+) => {
   try {
     if (editingProduct.value) {
       // 编辑模式
@@ -316,7 +320,7 @@ const handleProductSubmit = async (formData: ProductFormData) => {
       } else if (product.status === 'pending_review') {
         ElMessage.info('商品已提交，等待审核中')
       } else {
-      ElMessage.success('发布成功，等待审核')
+        ElMessage.success('发布成功，等待审核')
       }
     }
 
@@ -326,9 +330,14 @@ const handleProductSubmit = async (formData: ProductFormData) => {
     // 切换到列表页
     activeTab.value = 'list'
     editingProduct.value = null
+
+    // 调用 resolve 通知子组件处理完成
+    resolve?.()
   } catch (error) {
     console.error('更新失败或发布失败：', error)
     ElMessage.error(editingProduct.value ? '更新失败' : '发布失败')
+    // 调用 reject 通知子组件处理失败
+    reject?.(error)
   }
 }
 

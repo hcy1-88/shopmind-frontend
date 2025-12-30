@@ -33,19 +33,19 @@
       <el-form-item label="商品封面图" prop="coverImage" required>
         <div class="cover-image-container">
           <!-- 上传区域（无图片时显示） -->
-        <el-upload
+          <el-upload
             v-if="!formData.coverImage"
-          class="cover-uploader"
-          :show-file-list="false"
-          :before-upload="handleCoverUpload"
-          accept="image/*"
-          drag
-        >
+            class="cover-uploader"
+            :show-file-list="false"
+            :before-upload="handleCoverUpload"
+            accept="image/*"
+            drag
+          >
             <div class="upload-placeholder">
-            <el-icon :size="50"><Plus /></el-icon>
-            <div>点击或拖拽上传封面图</div>
-          </div>
-        </el-upload>
+              <el-icon :size="50"><Plus /></el-icon>
+              <div>点击或拖拽上传封面图</div>
+            </div>
+          </el-upload>
           <!-- 预览区域（有图片时显示） -->
           <div v-else class="cover-preview-container">
             <el-image
@@ -83,6 +83,7 @@
           :file-list="detailImageList"
           :before-upload="handleDetailImageUpload"
           :on-remove="handleDetailImageRemove"
+          :on-preview="handleDetailImagePreview"
           accept="image/*"
           list-type="picture-card"
           multiple
@@ -216,6 +217,14 @@
         <el-button size="large" @click="handleCancel"> 取消 </el-button>
       </el-form-item>
     </el-form>
+
+    <!-- 图片预览对话框 -->
+    <el-image-viewer
+      v-if="showImageViewer"
+      :url-list="formData.detailImages"
+      :initial-index="previewImageIndex"
+      @close="showImageViewer = false"
+    />
   </div>
 </template>
 
@@ -236,7 +245,12 @@ interface Props {
 }
 
 interface Emits {
-  (e: 'submit', data: ProductFormData): void
+  (
+    e: 'submit',
+    data: ProductFormData,
+    resolve?: () => void,
+    reject?: (error?: unknown) => void,
+  ): void
   (e: 'cancel'): void
 }
 
@@ -297,6 +311,8 @@ const generatingDescription = ref(false)
 const submitting = ref(false)
 const categories = ref<Category[]>([])
 const loadingCategories = ref(false)
+const showImageViewer = ref(false)
+const previewImageIndex = ref(0)
 
 // 详情图列表
 const detailImageList = computed(() => {
@@ -420,6 +436,15 @@ const handleDetailImageRemove = (file: UploadFile) => {
   }
 }
 
+// 预览详情图
+const handleDetailImagePreview = (file: UploadFile) => {
+  const index = formData.detailImages.findIndex((url) => url === file.url)
+  if (index !== -1) {
+    previewImageIndex.value = index
+    showImageViewer.value = true
+  }
+}
+
 // AI 生成商品描述
 const handleGenerateDescription = async () => {
   if (!formData.name) {
@@ -485,7 +510,9 @@ const handleSubmit = async () => {
 
     // 验证 SKU
     if (formData.skuItems.length > 0) {
-      const hasInvalidSku = formData.skuItems.some((item) => !item.price || !item.stock)
+      const hasInvalidSku = formData.skuItems.some(
+        (item) => typeof item.price !== 'number' || typeof item.stock !== 'number',
+      )
       if (hasInvalidSku) {
         ElMessage.error('请完善所有 SKU 的价格和库存信息')
         return
@@ -503,7 +530,21 @@ const handleSubmit = async () => {
       formData.detailAddress = addressData.value.detailAddress
     }
 
-    emit('submit', formData)
+    // 设置 loading 状态
+    submitting.value = true
+
+    try {
+      // 创建一个 Promise 来等待父组件处理完成
+      await new Promise<void>((resolve, reject) => {
+        // 通过 emit 传递 resolve 和 reject，让父组件在完成后调用
+        emit('submit', formData, resolve, reject)
+      })
+    } catch {
+      // 错误已在父组件中处理，这里不需要额外处理
+    } finally {
+      // 无论成功还是失败，都要取消 loading
+      submitting.value = false
+    }
   })
 }
 

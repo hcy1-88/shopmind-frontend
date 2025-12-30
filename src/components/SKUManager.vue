@@ -109,24 +109,24 @@
           </template>
         </el-table-column>
 
-        <el-table-column label="SKU 图片" width="220">
+        <el-table-column label="SKU 图片（可选）" width="220">
           <template #default="{ row, $index }">
             <div style="display: flex; flex-direction: column; gap: 8px">
-            <div style="display: flex; align-items: center; gap: 8px">
-              <el-upload
-                :show-file-list="false"
-                :before-upload="(file: File) => handleSkuImageUpload(file, $index)"
-                accept="image/*"
-              >
-                <el-button :icon="Picture" size="small">上传</el-button>
-              </el-upload>
-              <el-image
-                v-if="row.image"
-                :src="row.image"
+              <div style="display: flex; align-items: center; gap: 8px">
+                <el-upload
+                  :show-file-list="false"
+                  :before-upload="(file: File) => handleSkuImageUpload(file, $index)"
+                  accept="image/*"
+                >
+                  <el-button :icon="Picture" size="small">上传</el-button>
+                </el-upload>
+                <el-image
+                  v-if="row.image"
+                  :src="row.image"
                   :preview-src-list="[row.image]"
-                style="width: 40px; height: 40px; border-radius: 4px"
-                fit="cover"
-              />
+                  style="width: 40px; height: 40px; border-radius: 4px"
+                  fit="cover"
+                />
                 <el-button
                   v-if="row.image"
                   :icon="Close"
@@ -152,6 +152,19 @@
                 </span>
               </div>
             </div>
+          </template>
+        </el-table-column>
+
+        <el-table-column label="操作" width="80" align="center">
+          <template #default="{ $index }">
+            <el-button
+              :icon="Delete"
+              type="danger"
+              size="small"
+              circle
+              @click="removeSku($index)"
+              title="删除此 SKU"
+            />
           </template>
         </el-table-column>
       </el-table>
@@ -285,6 +298,24 @@ const removeSkuImage = (skuIndex: number) => {
     skuImageCheckResults.value.delete(skuIndex)
     onSkuChange()
   }
+}
+
+// 删除 SKU 行
+const removeSku = (skuIndex: number) => {
+  skuItems.value.splice(skuIndex, 1)
+  // 删除对应的图片检测结果
+  skuImageCheckResults.value.delete(skuIndex)
+  // 重新索引后续 SKU 的检测结果
+  const newResults = new Map<number, ImageCheckResponse>()
+  skuImageCheckResults.value.forEach((result, key) => {
+    if (key < skuIndex) {
+      newResults.set(key, result)
+    } else if (key > skuIndex) {
+      newResults.set(key - 1, result)
+    }
+  })
+  skuImageCheckResults.value = newResults
+  onSkuChange()
 }
 
 // 生成 SKU 组合（笛卡尔积）

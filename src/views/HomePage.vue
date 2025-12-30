@@ -14,7 +14,7 @@
           <template v-else>
             <el-link type="primary" @click="goToMerchant">
               <el-icon><Shop /></el-icon>
-              商家中心
+              免费开店
             </el-link>
             <el-dropdown @command="handleCommand">
               <span class="user-info">

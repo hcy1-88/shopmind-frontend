@@ -13,7 +13,7 @@ const generateTraceId = (): string => {
 export function createService(basePath: string): AxiosInstance {
   const instance = axios.create({
     baseURL: `/api${basePath}`, // 注意：basePath 应包含 /xxx-service
-    timeout: 15000,
+    timeout: 120000,
     headers: {
       'Content-Type': 'application/json',
     },
