@@ -223,7 +223,15 @@ export interface Product {
     min: number
     max: number
   }
+
+  /**
+   * 商品的预览图片
+   */
   image: string
+
+  /**
+   * 商品的详情图片
+   */
   images?: string[]
   aiSummary?: string
   description?: string
@@ -355,6 +363,86 @@ export interface Review {
 }
 
 // 订单相关类型
+
+/**
+ * 创建订单请求体
+ */
+export interface CreateOrderRequest {
+  /**
+   * 收货联系人
+   */
+  shippingContact: string
+
+  /**
+   * 收货联系电话
+   */
+  shippingPhone: string
+
+  /**
+   * 收货省名
+   */
+  shippingProvince: string
+
+  /**
+   * 收货城市名
+   */
+  shippingCity: string
+
+  /**
+   * 收货地区名
+   */
+  shippingDistrict: string
+
+  /**
+   * 收货详细地址
+   */
+  shippingDetail: string
+
+  /**
+   * 订单明细列表
+   */
+  items: CreateOrderItemRequest[]
+}
+
+/**
+ * 创建订单明细请求
+ */
+export interface CreateOrderItemRequest {
+  /**
+   * 商品 id
+   */
+  productId: string
+
+  /**
+   * 商品 sku id（可选）
+   */
+  skuId?: string
+
+  /**
+   * 商品名
+   */
+  productName: string
+
+  /**
+   * 商品图片
+   */
+  productImage: string
+
+  /**
+   * 付款时商品的金额快照
+   */
+  price: string
+
+  /**
+   * 付款时商品的购买数量
+   */
+  quantity: number
+
+  /**
+   * 此商品明细的实际付款
+   */
+  subtotal: string
+}
 
 /**
  * 订单明细，对应订单中一个购买的商品

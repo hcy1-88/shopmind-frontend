@@ -8,17 +8,43 @@
     <div v-if="product" class="content">
       <div class="product-info-section">
         <div class="product-images">
-          <el-carousel height="400px" :autoplay="false">
-            <el-carousel-item v-for="(image, index) in productImages" :key="index">
-              <el-image :src="image" fit="cover" style="width: 100%; height: 100%">
+          <el-image
+            :src="currentImage"
+            :preview-src-list="displayImages"
+            :initial-index="currentImageIndex"
+            fit="cover"
+            class="preview-image"
+            style="width: 100%; height: 400px; cursor: zoom-in"
+          >
+            <template #error>
+              <div class="image-error">
+                <el-icon><Picture /></el-icon>
+              </div>
+            </template>
+          </el-image>
+
+          <!-- 缩略图列表 -->
+          <div v-if="displayImages.length > 1" class="thumbnail-list">
+            <div
+              v-for="(img, index) in displayImages"
+              :key="index"
+              :class="[
+                'thumbnail-item',
+                { active: currentImageIndex === index && !selectedSkuObj },
+              ]"
+              @click="currentImageIndex = index"
+            >
+              <el-image :src="img" fit="cover" style="width: 100%; height: 100%">
                 <template #error>
-                  <div class="image-error">
+                  <div class="thumbnail-error">
                     <el-icon><Picture /></el-icon>
                   </div>
                 </template>
               </el-image>
-            </el-carousel-item>
-          </el-carousel>
+            </div>
+          </div>
+
+          <div class="image-hint">点击图片可放大查看</div>
         </div>
 
         <div class="product-main-info">
@@ -26,10 +52,16 @@
 
           <div class="product-price-box">
             <div class="price-row">
-              <span class="current-price">¥{{ product.price }}</span>
+              <span class="current-price">¥{{ currentPrice }}</span>
+              <span v-if="!selectedSkuObj && product.priceRange" class="price-range-hint">
+                (¥{{ product.priceRange.min }} ~ {{ product.priceRange.max }}元)
+              </span>
               <span v-if="product.originalPrice" class="original-price"
                 >¥{{ product.originalPrice }}</span
               >
+            </div>
+            <div v-if="quantity > 1" class="total-price-row">
+              总价：<span class="total-price">¥{{ totalPrice }}</span>
             </div>
           </div>
 
@@ -39,23 +71,69 @@
           </div>
 
           <div v-if="product.skus && product.skus.length > 0" class="sku-selector">
-            <div class="sku-item" v-for="sku in product.skus" :key="sku.id">
-              <div class="sku-label">{{ Object.keys(sku.attributes)[0] }}</div>
-              <el-radio-group v-model="selectedSku" @change="handleSkuChange">
-                <el-radio :label="sku.id" border>{{ Object.values(sku.attributes)[0] }}</el-radio>
-              </el-radio-group>
+            <div class="sku-label">规格</div>
+            <div class="sku-options">
+              <div
+                v-for="sku in product.skus"
+                :key="sku.id"
+                :class="[
+                  'sku-option',
+                  { active: selectedSku === sku.id, disabled: sku.stock === 0 },
+                ]"
+                @click="handleSkuSelect(sku)"
+              >
+                <div class="sku-name">{{ sku.name }}</div>
+                <div class="sku-info">
+                  <span class="sku-price">¥{{ sku.price }}</span>
+                  <span v-if="sku.stock === 0" class="sku-stock-out">缺货</span>
+                  <span v-else class="sku-stock">库存{{ sku.stock }}</span>
+                </div>
+              </div>
             </div>
           </div>
 
+          <!-- 数量选择 -->
+          <div class="quantity-selector">
+            <div class="quantity-label">数量</div>
+            <el-input-number
+              v-model="quantity"
+              :min="1"
+              :max="selectedSkuObj ? selectedSkuObj.stock : 999"
+              size="large"
+            />
+          </div>
+
           <div class="action-buttons">
-            <el-button type="primary" size="large" @click="handleBuyNow">立即购买</el-button>
+            <el-button type="primary" size="large" :loading="buyingLoading" @click="handleBuyNow"
+              >立即购买</el-button
+            >
           </div>
         </div>
       </div>
 
       <div class="product-description-section">
         <h2 class="section-title">商品详情</h2>
-        <div class="description-content" v-html="product.description || '暂无详细描述'"></div>
+        <div class="description-content">
+          <div v-if="product.description" v-html="product.description"></div>
+          <div v-if="product.images && product.images.length > 0" class="detail-images">
+            <el-image
+              v-for="(img, index) in product.images"
+              :key="index"
+              :src="img"
+              fit="contain"
+              style="width: 100%; margin-bottom: 16px"
+            >
+              <template #error>
+                <div class="image-error">
+                  <el-icon><Picture /></el-icon>
+                </div>
+              </template>
+            </el-image>
+          </div>
+          <div v-if="!product.description && (!product.images || product.images.length === 0)">
+            暂无详细描述
+          </div>
+        </div>
       </div>
 
       <div class="reviews-section">
@@ -106,7 +184,15 @@
               </el-image>
               <div class="recommend-info">
                 <div class="recommend-name">{{ item.name }}</div>
-                <div class="recommend-price">¥{{ item.price }}</div>
+                <div class="recommend-price">
+                  <span v-if="item.price != null">¥{{ item.price }}</span>
+                  <span v-else-if="item.priceRange"
+                    >¥{{ item.priceRange.min }} ~ {{ item.priceRange.max }}元</span
+                  >
+                </div>
+                <div v-if="item.originalPrice" class="recommend-original-price">
+                  ¥{{ item.originalPrice }}
+                </div>
               </div>
             </el-card>
           </el-col>
@@ -115,38 +201,137 @@
     </div>
 
     <AIAssistant :context="{ productId: productId }" />
+
+    <!-- 订单确认弹窗 -->
+    <el-dialog v-model="orderDialogVisible" title="确认订单" width="500px">
+      <div v-if="product" class="order-confirm">
+        <div class="order-product">
+          <el-image :src="currentImage" style="width: 80px; height: 80px" fit="cover" />
+          <div class="order-product-info">
+            <div class="order-product-name">{{ product.name }}</div>
+            <div v-if="selectedSkuObj" class="order-product-spec">
+              规格：{{ selectedSkuObj.name }}
+            </div>
+            <div class="order-product-price">单价：¥{{ currentPrice }} × {{ quantity }}</div>
+          </div>
+        </div>
+
+        <el-divider />
+
+        <div class="order-summary">
+          <div class="summary-row">
+            <span>商品金额</span>
+            <span class="summary-value">¥{{ totalPrice }}</span>
+          </div>
+          <div class="summary-row total">
+            <span>实付款</span>
+            <span class="summary-total">¥{{ totalPrice }}</span>
+          </div>
+        </div>
+      </div>
+
+      <template #footer>
+        <el-button @click="orderDialogVisible = false">取消</el-button>
+        <el-button type="primary" :loading="buyingLoading" @click="confirmOrder">
+          确认购买
+        </el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ArrowLeft, Picture, MagicStick, User } from '@element-plus/icons-vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { useProductStore } from '@/stores/productStore'
+import { useUserStore } from '@/stores/userStore'
+import { orderApi } from '@/api/order-api'
 import AIAssistant from '@/components/AIAssistant.vue'
-import type { Product } from '@/types'
+import type { Product, CreateOrderRequest, CreateOrderItemRequest } from '@/types'
 
 const route = useRoute()
 const router = useRouter()
 const productStore = useProductStore()
+const userStore = useUserStore()
 
 const productId = computed(() => route.params.id as string)
 const product = ref<Product | null>(null)
 const selectedSku = ref('')
 const recommendedProducts = ref<Product[]>([])
+const buyingLoading = ref(false)
+const quantity = ref(1) // 购买数量
+const orderDialogVisible = ref(false) // 订单确认弹窗
 
-const productImages = computed(() => {
+// 当前显示的图片列表（包含预览图和 SKU 图片）
+const displayImages = computed(() => {
   if (!product.value) return []
-  return product.value.images && product.value.images.length > 0
-    ? product.value.images
-    : [product.value.image]
+  const images = [product.value.image]
+
+  // 添加有图片的 SKU 图片
+  if (product.value.skus && product.value.skus.length > 0) {
+    product.value.skus.forEach((sku) => {
+      if (sku.image && !images.includes(sku.image)) {
+        images.push(sku.image)
+      }
+    })
+  }
+
+  return images
+})
+
+// 当前选中的 SKU 对象
+const selectedSkuObj = computed(() => {
+  if (!selectedSku.value || !product.value?.skus) return null
+  return product.value.skus.find((sku) => sku.id === selectedSku.value) || null
+})
+
+// 当前显示的价格（根据是否选中 SKU）
+const currentPrice = computed(() => {
+  if (selectedSkuObj.value) {
+    return selectedSkuObj.value.price
+  }
+  if (product.value?.price != null) {
+    return product.value.price
+  }
+  if (product.value?.priceRange) {
+    return product.value.priceRange.min
+  }
+  return 0
+})
+
+// 总价格（价格 * 数量）
+const totalPrice = computed(() => {
+  return (currentPrice.value * quantity.value).toFixed(2)
+})
+
+// 当前显示的图片索引
+const currentImageIndex = ref(0)
+
+// 当前显示的单张图片（根据选中的 SKU）
+const currentImage = computed(() => {
+  if (selectedSkuObj.value?.image) {
+    return selectedSkuObj.value.image
+  }
+  return displayImages.value[currentImageIndex.value] || product.value?.image || ''
 })
 
 onMounted(async () => {
   await loadProduct()
   await loadRecommendations()
 })
+
+// 监听路由参数变化，重新加载商品
+watch(
+  () => route.params.id,
+  async (newId) => {
+    if (newId) {
+      await loadProduct()
+      await loadRecommendations()
+    }
+  },
+)
 
 const loadProduct = async () => {
   try {
@@ -168,12 +353,112 @@ const loadRecommendations = async () => {
   }
 }
 
-const handleSkuChange = (value: string) => {
-  selectedSku.value = value
+const handleSkuSelect = (sku: { id: string; stock: number; image?: string }) => {
+  if (sku.stock === 0) {
+    ElMessage.warning('该规格已售罄')
+    return
+  }
+
+  selectedSku.value = sku.id
+  // 如果 SKU 有图片，更新当前显示的图片
+  if (sku.image) {
+    const index = displayImages.value.indexOf(sku.image)
+    if (index !== -1) {
+      currentImageIndex.value = index
+    }
+  }
 }
 
-const handleBuyNow = () => {
-  ElMessage.info('立即购买功能开发中')
+const handleBuyNow = async () => {
+  if (!userStore.isLoggedIn) {
+    ElMessage.warning('请先登录')
+    return
+  }
+
+  if (!product.value) {
+    ElMessage.error('商品信息加载失败')
+    return
+  }
+
+  // 如果有 SKU，检查是否选择了
+  if (product.value.skus && product.value.skus.length > 0 && !selectedSku.value) {
+    ElMessage.warning('请选择商品规格')
+    return
+  }
+
+  // 检查库存
+  if (selectedSkuObj.value && selectedSkuObj.value.stock < quantity.value) {
+    ElMessage.warning(`库存不足，当前库存仅剩 ${selectedSkuObj.value.stock} 件`)
+    return
+  }
+
+  // 打开订单确认弹窗
+  orderDialogVisible.value = true
+}
+
+// 确认下单
+const confirmOrder = async () => {
+  if (!product.value) return
+
+  // 检查用户是否有默认地址
+  const addresses = await userStore.fetchAddresses()
+  const defaultAddress = addresses.find((addr) => addr.isDefault)
+
+  if (!defaultAddress) {
+    ElMessage.warning('请先添加收货地址')
+    router.push('/profile')
+    orderDialogVisible.value = false
+    return
+  }
+
+  try {
+    buyingLoading.value = true
+
+    // 计算价格
+    const itemPrice = currentPrice.value.toString()
+    const subtotal = totalPrice.value
+
+    // 构造订单明细
+    const orderItem: CreateOrderItemRequest = {
+      productId: product.value.id,
+      skuId: selectedSku.value || undefined,
+      productName: selectedSkuObj.value
+        ? `${product.value.name} - ${selectedSkuObj.value.name}`
+        : product.value.name,
+      productImage: currentImage.value,
+      price: itemPrice,
+      quantity: quantity.value,
+      subtotal: subtotal,
+    }
+
+    // 构造订单请求
+    const orderRequest: CreateOrderRequest = {
+      shippingContact: defaultAddress.contactName || '',
+      shippingPhone: defaultAddress.contactPhone || '',
+      shippingProvince: defaultAddress.provinceName,
+      shippingCity: defaultAddress.cityName,
+      shippingDistrict: defaultAddress.districtName,
+      shippingDetail: defaultAddress.detailAddress,
+      items: [orderItem],
+    }
+
+    // 创建订单
+    await orderApi.createOrder(orderRequest)
+
+    orderDialogVisible.value = false
+
+    ElMessageBox.alert('购买成功！订单已创建', '提示', {
+      confirmButtonText: '查看订单',
+      callback: () => {
+        router.push('/profile?tab=orders')
+      },
+    })
+  } catch (error) {
+    console.error('购买失败:', error)
+    ElMessage.error('购买失败，请稍后重试')
+  } finally {
+    buyingLoading.value = false
+  }
 }
 
 const goBack = () => {
@@ -228,6 +513,31 @@ const formatDate = (dateString: string) => {
 .product-images {
   border-radius: 12px;
   overflow: hidden;
+  position: relative;
+}
+.preview-image {
+  transition: transform 0.3s ease;
+  border-radius: 12px;
+}
+.preview-image:hover {
+  transform: scale(1.02);
+}
+.image-hint {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  padding: 6px 16px;
+  border-radius: 16px;
+  font-size: 12px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.product-images:hover .image-hint {
+  opacity: 1;
 }
 .image-error {
   display: flex;
@@ -269,6 +579,22 @@ const formatDate = (dateString: string) => {
   color: #999;
   text-decoration: line-through;
 }
+.price-range-hint {
+  font-size: 14px;
+  color: #999;
+  margin-left: 8px;
+}
+.total-price-row {
+  margin-top: 8px;
+  font-size: 14px;
+  color: #666;
+}
+.total-price {
+  font-size: 18px;
+  color: #ff4444;
+  font-weight: bold;
+  margin-left: 8px;
+}
 .ai-recommendation {
   display: flex;
   align-items: center;
@@ -283,14 +609,67 @@ const formatDate = (dateString: string) => {
 .sku-selector {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-}
-.sku-item {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  gap: 12px;
 }
 .sku-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #666;
+}
+.sku-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.sku-option {
+  padding: 12px 16px;
+  border: 2px solid #e4e7ed;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s;
+  min-width: 120px;
+}
+.sku-option:hover:not(.disabled) {
+  border-color: #7c3aed;
+  background-color: #f8f9ff;
+}
+.sku-option.active {
+  border-color: #7c3aed;
+  background-color: #f0e7ff;
+}
+.sku-option.disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+  background-color: #f5f7fa;
+}
+.sku-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: #303133;
+  margin-bottom: 4px;
+}
+.sku-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+}
+.sku-price {
+  color: #ff4444;
+  font-weight: bold;
+}
+.sku-stock {
+  color: #67c23a;
+}
+.sku-stock-out {
+  color: #f56c6c;
+}
+.quantity-selector {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.quantity-label {
   font-size: 14px;
   font-weight: 500;
   color: #666;
@@ -397,7 +776,103 @@ const formatDate = (dateString: string) => {
   font-size: 16px;
   color: #ff4444;
   font-weight: bold;
+  margin-bottom: 4px;
 }
+.recommend-original-price {
+  font-size: 12px;
+  color: #999;
+  text-decoration: line-through;
+}
+.detail-images {
+  margin-top: 16px;
+}
+.thumbnail-list {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  overflow-x: auto;
+}
+.thumbnail-item {
+  width: 60px;
+  height: 60px;
+  border: 2px solid #e4e7ed;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+.thumbnail-item:hover {
+  border-color: #7c3aed;
+}
+.thumbnail-item.active {
+  border-color: #7c3aed;
+  box-shadow: 0 0 8px rgba(124, 58, 237, 0.3);
+}
+.thumbnail-error {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  background-color: #f5f5f5;
+  color: #999;
+  font-size: 20px;
+}
+
+/* 订单确认弹窗样式 */
+.order-confirm {
+  padding: 16px 0;
+}
+.order-product {
+  display: flex;
+  gap: 16px;
+}
+.order-product-info {
+  flex: 1;
+}
+.order-product-name {
+  font-size: 16px;
+  font-weight: 500;
+  color: #303133;
+  margin-bottom: 8px;
+}
+.order-product-spec {
+  font-size: 14px;
+  color: #909399;
+  margin-bottom: 8px;
+}
+.order-product-price {
+  font-size: 14px;
+  color: #606266;
+}
+.order-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+  color: #606266;
+}
+.summary-row.total {
+  font-size: 16px;
+  font-weight: bold;
+  color: #303133;
+  padding-top: 12px;
+  border-top: 1px dashed #e4e7ed;
+}
+.summary-value {
+  color: #303133;
+}
+.summary-total {
+  color: #ff4444;
+  font-size: 20px;
+}
+
 @media (max-width: 768px) {
   .product-info-section {
     grid-template-columns: 1fr;

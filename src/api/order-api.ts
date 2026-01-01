@@ -1,5 +1,5 @@
 import { orderService } from '@/utils/request'
-import type { Order, OrderStatus } from '@/types'
+import type { Order, OrderStatus, CreateOrderRequest } from '@/types'
 
 /**
  * 订单分页查询参数
@@ -40,4 +40,12 @@ export const orderApi = {
    */
   getOrderById: (orderId: string): Promise<Order> =>
     orderService.get<Order>(`/order/${orderId}`) as unknown as Promise<Order>,
+
+  /**
+   * 创建订单
+   * @param orderData 订单数据
+   * @returns 创建的订单
+   */
+  createOrder: (orderData: CreateOrderRequest): Promise<Order> =>
+    orderService.post<Order>('/order', orderData) as unknown as Promise<Order>,
 }

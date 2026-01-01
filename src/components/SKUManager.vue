@@ -42,7 +42,7 @@
                 :before-upload="(file: File) => handleSpecImageUpload(file, specIndex, valueIndex)"
                 accept="image/*"
               >
-                <el-button :icon="Picture" size="small">规格图</el-button>
+                <el-button :icon="Picture" size="small">规格图（可选）</el-button>
               </el-upload>
               <el-image
                 v-if="value.image"
@@ -109,7 +109,7 @@
           </template>
         </el-table-column>
 
-        <el-table-column label="SKU 图片（可选）" width="220">
+        <el-table-column label="SKU 图片" width="220">
           <template #default="{ row, $index }">
             <div style="display: flex; flex-direction: column; gap: 8px">
               <div style="display: flex; align-items: center; gap: 8px">
