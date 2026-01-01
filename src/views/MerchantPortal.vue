@@ -55,9 +55,16 @@
           <ProductList
             :products="productStore.merchantProducts"
             :loading="productStore.isLoading"
+            :total="productStore.merchantProductsTotal"
+            :current-page="currentPage"
+            :page-size="pageSize"
             @view="handleViewProduct"
             @edit="handleEditProduct"
             @delete="handleDeleteProduct"
+            @page-change="handlePageChange"
+            @size-change="handleSizeChange"
+            @search="handleSearch"
+            @filter-change="handleFilterChange"
           />
         </div>
 
@@ -179,6 +186,12 @@ const viewDialogVisible = ref(false)
 const categories = ref<Category[]>([])
 const loadingCategories = ref(false)
 
+// 分页和筛选状态
+const currentPage = ref(1)
+const pageSize = ref(10)
+const searchKeyword = ref('')
+const statusFilter = ref<ProductStatus | ''>('')
+
 // 获取商品分类
 const fetchCategories = async () => {
   try {
@@ -199,10 +212,25 @@ const getCategoryName = (categoryId: string): string => {
   return category?.name || categoryId
 }
 
+// 加载商品列表（支持分页、搜索、筛选）
+const loadMerchantProducts = async () => {
+  try {
+    await productStore.fetchMerchantProducts({
+      pageNumber: currentPage.value,
+      pageSize: pageSize.value,
+      keyword: searchKeyword.value.trim() || undefined,
+      status: statusFilter.value || undefined,
+    })
+  } catch (error) {
+    console.error('获取商品列表失败:', error)
+    ElMessage.error('获取商品列表失败')
+  }
+}
+
 // 页面加载时获取商品列表和分类
 onMounted(async () => {
   try {
-    await Promise.all([productStore.fetchMerchantProducts(), fetchCategories()])
+    await Promise.all([loadMerchantProducts(), fetchCategories()])
   } catch (error) {
     console.error('获取数据失败:', error)
     ElMessage.error('获取数据失败')
@@ -214,7 +242,36 @@ const handleTabChange = (index: string) => {
   activeTab.value = index
   if (index === 'list') {
     editingProduct.value = null
+    // 切换回列表页时重新加载数据
+    loadMerchantProducts()
   }
+}
+
+// 分页变化
+const handlePageChange = (page: number) => {
+  currentPage.value = page
+  loadMerchantProducts()
+}
+
+// 每页大小变化
+const handleSizeChange = (size: number) => {
+  pageSize.value = size
+  currentPage.value = 1
+  loadMerchantProducts()
+}
+
+// 搜索
+const handleSearch = (keyword: string) => {
+  searchKeyword.value = keyword
+  currentPage.value = 1
+  loadMerchantProducts()
+}
+
+// 筛选变化
+const handleFilterChange = (status: ProductStatus | '') => {
+  statusFilter.value = status
+  currentPage.value = 1
+  loadMerchantProducts()
 }
 
 // 返回首页
@@ -325,7 +382,7 @@ const handleProductSubmit = async (
     }
 
     // 刷新商品列表
-    await productStore.fetchMerchantProducts()
+    await loadMerchantProducts()
 
     // 切换到列表页
     activeTab.value = 'list'

@@ -1243,10 +1243,12 @@ watch(showProfileDialog, (newVal) => {
 }
 
 .interest-item {
-  padding: 12px 16px;
+  padding: 12px 20px;
   border: 1px solid #e4e7ed;
   border-radius: 8px;
   transition: all 0.3s;
+  min-width: 110px; /* 设置最小宽度，确保对齐 */
+  text-align: center; /* 文字居中 */
 }
 
 .interest-item:hover {
@@ -1257,16 +1259,22 @@ watch(showProfileDialog, (newVal) => {
 .interest-content {
   display: flex;
   align-items: center;
+  justify-content: center; /* 内容居中 */
   gap: 8px;
+  white-space: nowrap; /* 防止换行 */
 }
 
 .interest-icon {
   font-size: 18px;
+  flex-shrink: 0; /* 图标不收缩 */
 }
 
 .interest-name {
   font-size: 14px;
   color: #303133;
+  min-width: 3em; /* 设置最小宽度（约3个字符），确保对齐 */
+  text-align: center; /* 文字居中对齐 */
+  display: inline-block; /* 确保宽度生效 */
 }
 
 .order-detail-dialog {

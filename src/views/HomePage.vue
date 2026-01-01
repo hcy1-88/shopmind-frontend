@@ -144,7 +144,7 @@ onMounted(async () => {
 
 const loadProducts = async () => {
   try {
-    products.value = await productStore.fetchProducts({ limit: 12 })
+    products.value = await productStore.fetchProducts(12)
   } catch (error) {
     console.error('加载商品失败：', error)
     ElMessage.error('加载商品失败')

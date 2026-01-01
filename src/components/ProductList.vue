@@ -9,8 +9,10 @@
           :prefix-icon="Search"
           clearable
           style="width: 300px"
-          @input="handleSearch"
+          @keyup.enter="handleSearch"
+          @clear="handleSearch"
         />
+        <el-button :icon="Search" @click="handleSearch">搜索</el-button>
         <el-select
           v-model="statusFilter"
           placeholder="筛选状态"
@@ -26,7 +28,7 @@
       </div>
     </div>
 
-    <el-table v-loading="loading" :data="filteredProducts" border style="width: 100%">
+    <el-table v-loading="loading" :data="props.products" border style="width: 100%">
       <el-table-column label="商品信息" width="400">
         <template #default="{ row }">
           <div class="product-info">
@@ -53,10 +55,12 @@
       <el-table-column label="价格" width="150" align="center">
         <template #default="{ row }">
           <div class="price-info">
-            <div v-if="row.priceRange" class="price-range">
+            <div v-if="row.price !== undefined && row.price !== null" class="price">
+              ¥{{ row.price }}
+            </div>
+            <div v-else-if="row.priceRange" class="price-range">
               ¥{{ row.priceRange.min }} - ¥{{ row.priceRange.max }}
             </div>
-            <div v-else class="price">¥{{ row.price }}</div>
             <div v-if="row.originalPrice" class="original-price">
               原价：¥{{ row.originalPrice }}
             </div>
@@ -76,9 +80,9 @@
       <el-table-column label="状态" width="200" align="center">
         <template #default="{ row }">
           <div style="display: flex; flex-direction: column; align-items: center; gap: 4px">
-          <el-tag :type="getStatusType(row.status)">
-            {{ getStatusText(row.status) }}
-          </el-tag>
+            <el-tag :type="getStatusType(row.status)">
+              {{ getStatusText(row.status) }}
+            </el-tag>
             <!-- 如果被拒绝，显示拒绝原因 -->
             <div v-if="row.status === 'rejected' && row.rejectReason" class="reject-reason">
               <el-tooltip :content="row.rejectReason" placement="top" effect="dark">
@@ -117,9 +121,9 @@
     <!-- 分页 -->
     <div class="pagination-wrapper">
       <el-pagination
-        v-model:current-page="currentPage"
-        v-model:page-size="pageSize"
-        :total="total"
+        :current-page="props.currentPage"
+        :page-size="props.pageSize"
+        :total="props.total"
         :page-sizes="[10, 20, 50, 100]"
         layout="total, sizes, prev, pager, next, jumper"
         @size-change="handleSizeChange"
@@ -130,7 +134,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { Search, View, Edit, Delete } from '@element-plus/icons-vue'
 import { productApi } from '@/api/product-api'
 import type { Product, ProductStatus, ProductSku, Category } from '@/types'
@@ -138,61 +142,33 @@ import type { Product, ProductStatus, ProductSku, Category } from '@/types'
 interface Props {
   products: Product[]
   loading?: boolean
+  total?: number // 总记录数（服务端分页）
+  currentPage?: number // 当前页码（服务端分页）
+  pageSize?: number // 每页大小（服务端分页）
 }
 
 interface Emits {
   (e: 'view', product: Product): void
   (e: 'edit', product: Product): void
   (e: 'delete', product: Product): void
+  (e: 'page-change', page: number): void
+  (e: 'size-change', size: number): void
+  (e: 'search', keyword: string): void
+  (e: 'filter-change', status: ProductStatus | ''): void
 }
 
 const props = withDefaults(defineProps<Props>(), {
   loading: false,
+  total: 0,
+  currentPage: 1,
+  pageSize: 10,
 })
 
 const emit = defineEmits<Emits>()
 
 const searchKeyword = ref('')
 const statusFilter = ref<ProductStatus | ''>('')
-const currentPage = ref(1)
-const pageSize = ref(10)
 const categories = ref<Category[]>([])
-
-// 过滤后的商品列表
-const filteredProducts = computed(() => {
-  let result = [...props.products]
-
-  // 关键词搜索
-  if (searchKeyword.value) {
-    const keyword = searchKeyword.value.toLowerCase()
-    result = result.filter((p) => p.name.toLowerCase().includes(keyword))
-  }
-
-  // 状态筛选
-  if (statusFilter.value) {
-    result = result.filter((p) => p.status === statusFilter.value)
-  }
-
-  // 分页
-  const start = (currentPage.value - 1) * pageSize.value
-  const end = start + pageSize.value
-  return result.slice(start, end)
-})
-
-const total = computed(() => {
-  let result = [...props.products]
-
-  if (searchKeyword.value) {
-    const keyword = searchKeyword.value.toLowerCase()
-    result = result.filter((p) => p.name.toLowerCase().includes(keyword))
-  }
-
-  if (statusFilter.value) {
-    result = result.filter((p) => p.status === statusFilter.value)
-  }
-
-  return result.length
-})
 
 // 获取商品分类
 const fetchCategories = async () => {
@@ -245,12 +221,12 @@ const getStatusText = (status?: ProductStatus) => {
 
 // 搜索
 const handleSearch = () => {
-  currentPage.value = 1
+  emit('search', searchKeyword.value)
 }
 
 // 筛选变化
 const handleFilterChange = () => {
-  currentPage.value = 1
+  emit('filter-change', statusFilter.value)
 }
 
 // 查看
@@ -270,12 +246,11 @@ const handleDelete = (product: Product) => {
 
 // 分页变化
 const handlePageChange = (page: number) => {
-  currentPage.value = page
+  emit('page-change', page)
 }
 
 const handleSizeChange = (size: number) => {
-  pageSize.value = size
-  currentPage.value = 1
+  emit('size-change', size)
 }
 </script>
 

@@ -20,17 +20,17 @@
 
     <div class="search-content">
       <div class="result-header">
-        <span class="result-count">共找到 {{ searchResults.length }} 个相关商品</span>
+        <span class="result-count">共找到 {{ productStore.searchResultsTotal }} 个相关商品</span>
       </div>
 
       <div v-loading="productStore.isLoading" class="result-list">
         <el-empty
-          v-if="!productStore.isLoading && searchResults.length === 0"
+          v-if="!productStore.isLoading && productStore.searchResults.length === 0"
           description="没有找到相关商品"
         />
 
         <div
-          v-for="product in searchResults"
+          v-for="product in productStore.searchResults"
           :key="product.id"
           class="product-item"
           @click="goToProduct(product.id)"
@@ -71,6 +71,19 @@
             </div>
           </div>
         </div>
+
+        <!-- 分页 -->
+        <div v-if="productStore.searchResultsTotal > 0" class="pagination-wrapper">
+          <el-pagination
+            v-model:current-page="currentPage"
+            v-model:page-size="pageSize"
+            :total="productStore.searchResultsTotal"
+            :page-sizes="[10, 20, 50, 100]"
+            layout="total, sizes, prev, pager, next, jumper"
+            @size-change="handleSizeChange"
+            @current-change="handlePageChange"
+          />
+        </div>
       </div>
     </div>
 
@@ -85,19 +98,20 @@ import { ArrowLeft, Search, Picture, Location, MagicStick } from '@element-plus/
 import { ElMessage } from 'element-plus'
 import { useProductStore } from '@/stores/productStore'
 import AIAssistant from '@/components/AIAssistant.vue'
-import type { Product } from '@/types'
 
 const router = useRouter()
 const route = useRoute()
 const productStore = useProductStore()
 
 const searchQuery = ref('')
-const searchResults = ref<Product[]>([])
+const currentPage = ref(1)
+const pageSize = ref(10)
 
 onMounted(() => {
   const query = route.query.q as string
   if (query) {
     searchQuery.value = query
+    currentPage.value = 1 // 初始化时重置到第一页
     performSearch()
   }
 })
@@ -117,16 +131,30 @@ const handleSearch = () => {
     ElMessage.warning('请输入搜索内容')
     return
   }
+  currentPage.value = 1 // 重置到第一页
   router.push({ name: 'search', query: { q: searchQuery.value } })
 }
 
 const performSearch = async () => {
   try {
-    searchResults.value = await productStore.searchProducts(searchQuery.value)
+    await productStore.searchProducts(searchQuery.value, currentPage.value, pageSize.value)
   } catch (error) {
     console.error('搜索失败：', error)
     ElMessage.error('搜索失败')
   }
+}
+
+// 分页变化
+const handlePageChange = (page: number) => {
+  currentPage.value = page
+  performSearch()
+}
+
+// 每页大小变化
+const handleSizeChange = (size: number) => {
+  pageSize.value = size
+  currentPage.value = 1
+  performSearch()
 }
 
 const goBack = () => {
@@ -259,6 +287,14 @@ const goToProduct = (productId: string) => {
   color: #999;
   text-decoration: line-through;
 }
+
+.pagination-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+  padding: 20px 0;
+}
+
 @media (max-width: 768px) {
   .product-item {
     flex-direction: column;

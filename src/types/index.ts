@@ -1,3 +1,15 @@
+// 通用分页类型
+/**
+ * 分页结果（对应后端 PageResult<T> 结构）
+ * @template T 分页数据的类型
+ */
+export interface PageResult<T> {
+  data: T // 分页数据
+  total: number // 总记录数
+  pageNumber: number // 当前页码
+  pageSize: number // 每页大小
+}
+
 // 用户相关类型
 export interface User {
   id: string
@@ -213,7 +225,7 @@ export interface Product {
   }
   image: string
   images?: string[]
-  aiSummary: string
+  aiSummary?: string
   description?: string
   merchantName?: string
   merchantId?: string
@@ -225,7 +237,7 @@ export interface Product {
   auditTime?: string // 审核时间
   skus?: ProductSku[]
   reviews?: Review[] // 商品评论
-  tagInfos: TagInfo[] // 商品标签
+  tagInfos?: TagInfo[] // 商品标签
 }
 
 export type ProductStatus = 'draft' | 'pending_review' | 'approved' | 'rejected'

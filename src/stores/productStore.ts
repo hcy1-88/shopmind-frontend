@@ -7,27 +7,35 @@ import type {
   ImageCheckResponse,
   DescriptionGenerateRequest,
   DescriptionGenerateResponse,
+  PageResult,
 } from '@/types'
 import { productApi } from '@/api/product-api'
-import { merchantApi } from '@/api/merchant-api'
+import {
+  merchantApi,
+  type MerchantProductQueryParams,
+  type MerchantProductPageResponse,
+} from '@/api/merchant-api'
 import { aiApi } from '@/api/ai-api'
 
 export const useProductStore = defineStore('product', () => {
   const currentProduct = ref<Product | null>(null)
   const recommendedProducts = ref<Product[]>([])
-  const searchResults = ref<Product[]>([])
+  const searchResults = ref<Product[]>([]) // 搜索结果列表
+  const searchResultsTotal = ref(0) // 搜索结果总数
   const merchantProducts = ref<Product[]>([]) // 商家的商品列表
+  const merchantProductsTotal = ref(0) // 商家商品总数
   const isLoading = ref(false)
 
   // ========== 商品相关（product-service）==========
 
   /**
-   * 获取商品列表
+   * 获取热门商品列表（首页使用）
+   * @param limit 返回商品数量限制
    */
-  const fetchProducts = async (params?: { query?: string; limit?: number }) => {
+  const fetchProducts = async (limit?: number) => {
     try {
       isLoading.value = true
-      const data = await productApi.getProducts(params)
+      const data = await productApi.getHotProducts(limit)
       return data
     } catch (error) {
       console.error('获取商品失败:', error)
@@ -38,13 +46,26 @@ export const useProductStore = defineStore('product', () => {
   }
 
   /**
-   * 搜索商品
+   * 搜索商品（搜索页使用，支持分页）
+   * @param keyword 搜索关键词
+   * @param pageNumber 页码
+   * @param pageSize 每页大小
+   * @returns 分页响应数据
    */
-  const searchProducts = async (query: string) => {
+  const searchProducts = async (
+    keyword: string,
+    pageNumber?: number,
+    pageSize?: number,
+  ): Promise<PageResult<Product[]>> => {
     try {
       isLoading.value = true
-      const data = await productApi.getProducts({ query })
-      searchResults.value = data
+      const data = await productApi.searchProducts({
+        keyword,
+        pageNumber,
+        pageSize,
+      })
+      searchResults.value = data.data // PageResult<Product[]>.data
+      searchResultsTotal.value = data.total
       return data
     } catch (error) {
       console.error('搜索失败:', error)
@@ -88,13 +109,18 @@ export const useProductStore = defineStore('product', () => {
   // ========== 商家功能（merchant-service）==========
 
   /**
-   * 获取商家的商品列表
+   * 获取商家的商品列表（支持分页、搜索、状态筛选）
+   * @param params 查询参数（分页、状态筛选、关键词搜索）
+   * @returns 分页响应数据
    */
-  const fetchMerchantProducts = async () => {
+  const fetchMerchantProducts = async (
+    params?: MerchantProductQueryParams,
+  ): Promise<MerchantProductPageResponse> => {
     try {
       isLoading.value = true
-      const data = await merchantApi.getMerchantProducts()
-      merchantProducts.value = data
+      const data = await merchantApi.getMerchantProducts(params)
+      merchantProducts.value = data.data // 使用 data.data 对应后端的 PageResult.data
+      merchantProductsTotal.value = data.total
       return data
     } catch (error) {
       console.error('获取商家商品失败:', error)
@@ -205,7 +231,9 @@ export const useProductStore = defineStore('product', () => {
     currentProduct,
     recommendedProducts,
     searchResults,
+    searchResultsTotal,
     merchantProducts,
+    merchantProductsTotal,
     isLoading,
 
     // 商品方法
