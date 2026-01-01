@@ -28,10 +28,7 @@
             <div
               v-for="(img, index) in displayImages"
               :key="index"
-              :class="[
-                'thumbnail-item',
-                { active: currentImageIndex === index },
-              ]"
+              :class="['thumbnail-item', { active: currentImageIndex === index }]"
               @click="handleThumbnailClick(index)"
             >
               <el-image :src="img" fit="cover" style="width: 100%; height: 100%">
@@ -253,7 +250,7 @@ import { useProductStore } from '@/stores/productStore'
 import { useUserStore } from '@/stores/userStore'
 import { orderApi } from '@/api/order-api'
 import AIAssistant from '@/components/AIAssistant.vue'
-import type { Product, CreateOrderRequest, CreateOrderItemRequest } from '@/types'
+import type { Product, ProductSku, CreateOrderRequest, CreateOrderItemRequest } from '@/types'
 
 const route = useRoute()
 const router = useRouter()
@@ -292,12 +289,12 @@ const selectedSkuObj = computed(() => {
 })
 
 // 获取 SKU 的显示名称（从 attributes 中提取）
-const getSkuDisplayName = (sku: any) => {
+const getSkuDisplayName = (sku: ProductSku): string => {
   if (sku.name) return sku.name
   if (sku.attributes && Object.keys(sku.attributes).length > 0) {
-    // 将 attributes 转换为字符串，如 "款式:恋恋不忘-粉色小狗"
+    // 将 attributes 转换为字符串，如 "恋恋不忘-粉色小狗"
     return Object.entries(sku.attributes)
-      .map(([key, value]) => `${value}`)
+      .map(([, value]) => `${value}`)
       .join(' ')
   }
   return '默认规格'
@@ -373,7 +370,7 @@ const loadRecommendations = async () => {
 const handleSkuSelect = (skuIndex: number) => {
   if (!product.value?.skus) return
 
-  const sku = product.value.skus[skuIndex]
+  const sku = product.value.skus[skuIndex]!
 
   // 如果库存为0，不允许选择
   if (sku.stock === 0) {
@@ -420,7 +417,7 @@ const handleThumbnailClick = (index: number) => {
     const skuIndex = product.value.skus.findIndex((sku) => sku.image === clickedImage)
     if (skuIndex !== -1) {
       // 检查库存
-      const sku = product.value.skus[skuIndex]
+      const sku = product.value.skus[skuIndex]!
       if (sku.stock === 0) {
         ElMessage.warning('该规格已售罄')
         return

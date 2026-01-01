@@ -251,8 +251,8 @@ export interface Product {
 export type ProductStatus = 'draft' | 'pending_review' | 'approved' | 'rejected'
 
 export interface ProductSku {
-  id: string
-  name: string
+  id: string | null
+  name: string | null
   attributes: {
     [key: string]: string
   }
