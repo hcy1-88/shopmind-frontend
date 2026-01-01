@@ -26,9 +26,8 @@ export const productApi = {
     }) as unknown as Promise<Product[]>,
 
   /**
-   * 搜索商品（搜索页使用，支持分页）
-   * @param params 搜索参数（关键词、分页参数）
-   * @returns 分页响应数据
+   * 搜索商品（已迁移到 recommendation-service，保留此接口作为备用）
+   * @deprecated 请使用 recommendationApi.searchProducts
    */
   searchProducts: (params: ProductSearchParams): Promise<PageResult<Product[]>> =>
     productService.get<PageResult<Product[]>>('/products/search', {

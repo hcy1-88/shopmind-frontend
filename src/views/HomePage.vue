@@ -114,7 +114,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { User, ChatDotRound, Search, Picture, MagicStick, Shop } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
@@ -132,19 +132,32 @@ const searchQuery = ref('')
 const products = ref<Product[]>([])
 
 const quickQuestions = [
-  '帮我找平价蓝牙耳机',
-  '最近有什么新品',
-  '适合送礼的商品',
-  '性价比高的数码产品',
+  'pyhton从入门到入坟',
+  '帮我找性价比高的笔记本电脑',
+  '情人节送女朋友什么礼物好',
+  '拍照好看的手机',
 ]
 
 onMounted(async () => {
   await loadProducts()
 })
 
+// 监听登录状态变化，登录后自动刷新推荐商品
+watch(
+  () => userStore.isLoggedIn,
+  async (newValue, oldValue) => {
+    // 当从未登录变为已登录时，重新加载商品（使用推荐接口）
+    if (newValue && !oldValue) {
+      await loadProducts()
+    }
+  },
+)
+
 const loadProducts = async () => {
   try {
-    products.value = await productStore.fetchProducts(12)
+    // 根据登录状态决定调用方式
+    const userId = userStore.isLoggedIn ? userStore.user?.id : undefined
+    products.value = await productStore.fetchProducts(userId, 12)
   } catch (error) {
     console.error('加载商品失败：', error)
     ElMessage.error('加载商品失败')

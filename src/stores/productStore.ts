@@ -10,6 +10,7 @@ import type {
   PageResult,
 } from '@/types'
 import { productApi } from '@/api/product-api'
+import { recommendationApi } from '@/api/recommendation-api'
 import {
   merchantApi,
   type MerchantProductQueryParams,
@@ -29,14 +30,22 @@ export const useProductStore = defineStore('product', () => {
   // ========== 商品相关（product-service）==========
 
   /**
-   * 获取热门商品列表（首页使用）
+   * 获取商品列表（首页使用）
+   * @param userId 可选的用户ID，如果提供则调用推荐服务，否则调用热门商品
    * @param limit 返回商品数量限制
    */
-  const fetchProducts = async (limit?: number) => {
+  const fetchProducts = async (userId?: string, limit?: number): Promise<Product[]> => {
     try {
       isLoading.value = true
-      const data = await productApi.getHotProducts(limit)
-      return data
+      if (userId) {
+        // 已登录用户，调用推荐服务
+        const data = await recommendationApi.getRecommendedProducts(userId, limit)
+        return data.products
+      } else {
+        // 未登录用户，调用热门商品接口
+        const data = await productApi.getHotProducts(limit)
+        return data
+      }
     } catch (error) {
       console.error('获取商品失败:', error)
       throw error
@@ -59,7 +68,8 @@ export const useProductStore = defineStore('product', () => {
   ): Promise<PageResult<Product[]>> => {
     try {
       isLoading.value = true
-      const data = await productApi.searchProducts({
+      // 搜索统一使用推荐服务的搜索接口
+      const data = await recommendationApi.searchProducts({
         keyword,
         pageNumber,
         pageSize,

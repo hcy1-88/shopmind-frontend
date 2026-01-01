@@ -6,6 +6,7 @@
  * - merchant-service: 商家服务
  * - ai-service: AI 服务
  * - order-service: 订单服务
+ * - recommendation-service: 推荐服务
  */
 
 export { productApi } from './product-api'
@@ -14,3 +15,4 @@ export { merchantApi } from './merchant-api'
 export { aiApi } from './ai-api'
 export { orderApi } from './order-api'
 export { authApi } from './auth-api'
+export { recommendationApi } from './recommendation-api'

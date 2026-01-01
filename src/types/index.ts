@@ -501,6 +501,18 @@ export interface AIAskResponse {
 }
 
 /**
+ * 推荐服务相关
+ */
+export interface RecommendationResponse {
+  products: Product[]
+  /**
+   * personalized(个性化推荐)、cold_start(冷启动推荐)、fallback(兜底)
+   */
+  strategy?: string
+  total?: number
+}
+
+/**
  * 后端统一响应类型（对应 Java ResultContext）
  */
 export interface ApiResponse<T = unknown> {
