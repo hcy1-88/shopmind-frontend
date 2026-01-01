@@ -188,7 +188,7 @@ const loadingCategories = ref(false)
 
 // 分页和筛选状态
 const currentPage = ref(1)
-const pageSize = ref(10)
+const pageSize = ref(5)
 const searchKeyword = ref('')
 const statusFilter = ref<ProductStatus | ''>('')
 

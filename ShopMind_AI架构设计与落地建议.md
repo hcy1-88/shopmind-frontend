@@ -550,7 +550,7 @@ public List<Product> smartSearch(
             │   ├─→ 向量相似度搜索
             │   └─→ 返回 Top-K 商品 ID
             │
-            ├─ 【步骤 3】从 PGSQL 获取商品详情
+            ├─ 【步骤 3】从 商品服务 获取商品详情
             │   └─→ 调用 Product Service API
             │
             └─→ 返回个性化推荐结果
