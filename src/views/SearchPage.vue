@@ -1,21 +1,47 @@
 <template>
   <div class="search-page">
     <div class="search-header">
-      <el-button :icon="ArrowLeft" circle @click="goBack" />
-      <el-input
-        v-model="searchQuery"
-        size="large"
-        placeholder="搜索商品..."
-        @keyup.enter="handleSearch"
-        class="search-input"
-      >
-        <template #prefix>
-          <el-icon><Search /></el-icon>
+      <div class="header-left">
+        <el-button :icon="ArrowLeft" circle @click="goBack" />
+        <el-input
+          v-model="searchQuery"
+          size="large"
+          placeholder="搜索商品..."
+          @keyup.enter="handleSearch"
+          class="search-input"
+        >
+          <template #prefix>
+            <el-icon><Search /></el-icon>
+          </template>
+          <template #append>
+            <el-button :icon="Search" @click="handleSearch" />
+          </template>
+        </el-input>
+      </div>
+
+      <div class="header-actions">
+        <el-link v-if="!userStore.isLoggedIn" type="primary" @click="loginVisible = true">
+          登录
+        </el-link>
+        <template v-else>
+          <el-link type="primary" @click="goToMerchant">
+            <el-icon><Shop /></el-icon>
+            免费开店
+          </el-link>
+          <el-dropdown @command="handleCommand">
+            <span class="user-info">
+              <el-avatar :src="userStore.user?.avatar" :icon="User" />
+              <span class="user-nickname">{{ userStore.user?.nickname || '用户' }}</span>
+            </span>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item command="profile">个人中心</el-dropdown-item>
+                <el-dropdown-item command="logout" divided>退出登录</el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
         </template>
-        <template #append>
-          <el-button :icon="Search" @click="handleSearch" />
-        </template>
-      </el-input>
+      </div>
     </div>
 
     <div class="search-content">
@@ -64,7 +90,10 @@
             </div>
 
             <div class="product-price">
-              <span class="current-price">¥{{ product.price }}</span>
+              <span v-if="product.price != null" class="current-price">¥{{ product.price }}</span>
+              <span v-else-if="product.priceRange" class="current-price"
+                >¥{{ product.priceRange.min }} ~ {{ product.priceRange.max }}元</span
+              >
               <span v-if="product.originalPrice" class="original-price"
                 >¥{{ product.originalPrice }}</span
               >
@@ -88,24 +117,37 @@
     </div>
 
     <AIAssistant />
+    <LoginDialog v-model:visible="loginVisible" />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { ArrowLeft, Search, Picture, Location, MagicStick } from '@element-plus/icons-vue'
+import {
+  ArrowLeft,
+  Search,
+  Picture,
+  Location,
+  MagicStick,
+  User,
+  Shop,
+} from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { useProductStore } from '@/stores/productStore'
+import { useUserStore } from '@/stores/userStore'
 import AIAssistant from '@/components/AIAssistant.vue'
+import LoginDialog from '@/components/LoginDialog.vue'
 
 const router = useRouter()
 const route = useRoute()
 const productStore = useProductStore()
+const userStore = useUserStore()
 
 const searchQuery = ref('')
 const currentPage = ref(1)
 const pageSize = ref(10)
+const loginVisible = ref(false)
 
 onMounted(() => {
   const query = route.query.q as string
@@ -164,6 +206,19 @@ const goBack = () => {
 const goToProduct = (productId: string) => {
   router.push({ name: 'product', params: { id: productId } })
 }
+
+const goToMerchant = () => {
+  router.push({ name: 'merchant-portal' })
+}
+
+const handleCommand = (command: string) => {
+  if (command === 'profile') {
+    router.push({ name: 'profile' })
+  } else if (command === 'logout') {
+    userStore.logout()
+    ElMessage.success('已退出登录')
+  }
+}
 </script>
 
 <style scoped>
@@ -179,12 +234,46 @@ const goToProduct = (productId: string) => {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 12px;
   z-index: 100;
 }
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
 .search-input {
   flex: 1;
   max-width: 800px;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 4px 12px;
+  border-radius: 4px;
+  transition: background-color 0.3s;
+}
+
+.user-info:hover {
+  background-color: #f5f7fa;
+}
+
+.user-nickname {
+  font-size: 14px;
+  color: #303133;
 }
 .search-input :deep(.el-input__wrapper) {
   border-radius: 24px;
