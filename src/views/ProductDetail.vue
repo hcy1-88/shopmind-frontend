@@ -30,9 +30,9 @@
               :key="index"
               :class="[
                 'thumbnail-item',
-                { active: currentImageIndex === index && !selectedSkuObj },
+                { active: currentImageIndex === index },
               ]"
-              @click="currentImageIndex = index"
+              @click="handleThumbnailClick(index)"
             >
               <el-image :src="img" fit="cover" style="width: 100%; height: 100%">
                 <template #error>
@@ -60,6 +60,10 @@
                 >¥{{ product.originalPrice }}</span
               >
             </div>
+            <!-- 显示选中的 SKU 信息 -->
+            <div v-if="selectedSkuObj" class="selected-sku-info">
+              已选：{{ getSkuDisplayName(selectedSkuObj) }}
+            </div>
             <div v-if="quantity > 1" class="total-price-row">
               总价：<span class="total-price">¥{{ totalPrice }}</span>
             </div>
@@ -74,15 +78,15 @@
             <div class="sku-label">规格</div>
             <div class="sku-options">
               <div
-                v-for="sku in product.skus"
-                :key="sku.id"
+                v-for="(sku, index) in product.skus"
+                :key="index"
                 :class="[
                   'sku-option',
-                  { active: selectedSku === sku.id, disabled: sku.stock === 0 },
+                  { active: selectedSku === index, disabled: sku.stock === 0 },
                 ]"
-                @click="handleSkuSelect(sku)"
+                @click.stop="handleSkuSelect(index)"
               >
-                <div class="sku-name">{{ sku.name }}</div>
+                <div class="sku-name">{{ getSkuDisplayName(sku) }}</div>
                 <div class="sku-info">
                   <span class="sku-price">¥{{ sku.price }}</span>
                   <span v-if="sku.stock === 0" class="sku-stock-out">缺货</span>
@@ -210,7 +214,7 @@
           <div class="order-product-info">
             <div class="order-product-name">{{ product.name }}</div>
             <div v-if="selectedSkuObj" class="order-product-spec">
-              规格：{{ selectedSkuObj.name }}
+              规格：{{ getSkuDisplayName(selectedSkuObj) }}
             </div>
             <div class="order-product-price">单价：¥{{ currentPrice }} × {{ quantity }}</div>
           </div>
@@ -258,7 +262,7 @@ const userStore = useUserStore()
 
 const productId = computed(() => route.params.id as string)
 const product = ref<Product | null>(null)
-const selectedSku = ref('')
+const selectedSku = ref<number>(-1) // 使用索引而不是ID，-1表示未选中
 const recommendedProducts = ref<Product[]>([])
 const buyingLoading = ref(false)
 const quantity = ref(1) // 购买数量
@@ -283,9 +287,21 @@ const displayImages = computed(() => {
 
 // 当前选中的 SKU 对象
 const selectedSkuObj = computed(() => {
-  if (!selectedSku.value || !product.value?.skus) return null
-  return product.value.skus.find((sku) => sku.id === selectedSku.value) || null
+  if (selectedSku.value === -1 || !product.value?.skus) return null
+  return product.value.skus[selectedSku.value] || null
 })
+
+// 获取 SKU 的显示名称（从 attributes 中提取）
+const getSkuDisplayName = (sku: any) => {
+  if (sku.name) return sku.name
+  if (sku.attributes && Object.keys(sku.attributes).length > 0) {
+    // 将 attributes 转换为字符串，如 "款式:恋恋不忘-粉色小狗"
+    return Object.entries(sku.attributes)
+      .map(([key, value]) => `${value}`)
+      .join(' ')
+  }
+  return '默认规格'
+}
 
 // 当前显示的价格（根据是否选中 SKU）
 const currentPrice = computed(() => {
@@ -336,9 +352,10 @@ watch(
 const loadProduct = async () => {
   try {
     product.value = await productStore.fetchProductDetail(productId.value)
-    if (product.value && product.value.skus && product.value.skus.length > 0) {
-      selectedSku.value = product.value.skus[0]?.id || ''
-    }
+    // 不自动选择 SKU，让用户手动选择
+    selectedSku.value = -1
+    quantity.value = 1
+    currentImageIndex.value = 0
   } catch (error) {
     console.error('加载商品失败:', error)
     ElMessage.error('加载商品失败')
@@ -353,18 +370,66 @@ const loadRecommendations = async () => {
   }
 }
 
-const handleSkuSelect = (sku: { id: string; stock: number; image?: string }) => {
+const handleSkuSelect = (skuIndex: number) => {
+  if (!product.value?.skus) return
+
+  const sku = product.value.skus[skuIndex]
+
+  // 如果库存为0，不允许选择
   if (sku.stock === 0) {
     ElMessage.warning('该规格已售罄')
     return
   }
 
-  selectedSku.value = sku.id
+  // 如果点击的是当前已选中的 SKU，则取消选择
+  if (selectedSku.value === skuIndex) {
+    selectedSku.value = -1
+    // 重置图片显示为预览图
+    currentImageIndex.value = 0
+    return
+  }
+
+  // 选择新的 SKU（确保只有1个被选中）
+  selectedSku.value = skuIndex
+
   // 如果 SKU 有图片，更新当前显示的图片
   if (sku.image) {
     const index = displayImages.value.indexOf(sku.image)
     if (index !== -1) {
       currentImageIndex.value = index
+    }
+  }
+}
+
+// 处理缩略图点击
+const handleThumbnailClick = (index: number) => {
+  // 更新当前图片索引
+  currentImageIndex.value = index
+
+  // 获取点击的图片 URL
+  const clickedImage = displayImages.value[index]
+
+  // 如果是第一张图（预览图），取消所有 SKU 选中
+  if (index === 0) {
+    selectedSku.value = -1
+    return
+  }
+
+  // 查找对应的 SKU
+  if (product.value?.skus) {
+    const skuIndex = product.value.skus.findIndex((sku) => sku.image === clickedImage)
+    if (skuIndex !== -1) {
+      // 检查库存
+      const sku = product.value.skus[skuIndex]
+      if (sku.stock === 0) {
+        ElMessage.warning('该规格已售罄')
+        return
+      }
+      // 选中对应的 SKU
+      selectedSku.value = skuIndex
+    } else {
+      // 如果没有找到对应的 SKU（可能是其他图片），取消选中
+      selectedSku.value = -1
     }
   }
 }
@@ -380,9 +445,9 @@ const handleBuyNow = async () => {
     return
   }
 
-  // 如果有 SKU，检查是否选择了
-  if (product.value.skus && product.value.skus.length > 0 && !selectedSku.value) {
-    ElMessage.warning('请选择商品规格')
+  // 如果有 SKU，检查是否选择了至少一个款式
+  if (product.value.skus && product.value.skus.length > 0 && selectedSku.value === -1) {
+    ElMessage.warning('请选择至少一个款式')
     return
   }
 
@@ -421,9 +486,9 @@ const confirmOrder = async () => {
     // 构造订单明细
     const orderItem: CreateOrderItemRequest = {
       productId: product.value.id,
-      skuId: selectedSku.value || undefined,
+      skuId: selectedSkuObj.value?.id || undefined,
       productName: selectedSkuObj.value
-        ? `${product.value.name} - ${selectedSkuObj.value.name}`
+        ? `${product.value.name} - ${getSkuDisplayName(selectedSkuObj.value)}`
         : product.value.name,
       productImage: currentImage.value,
       price: itemPrice,
@@ -583,6 +648,12 @@ const formatDate = (dateString: string) => {
   font-size: 14px;
   color: #999;
   margin-left: 8px;
+}
+.selected-sku-info {
+  margin-top: 8px;
+  font-size: 14px;
+  color: #7c3aed;
+  font-weight: 500;
 }
 .total-price-row {
   margin-top: 8px;

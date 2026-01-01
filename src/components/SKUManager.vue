@@ -42,7 +42,7 @@
                 :before-upload="(file: File) => handleSpecImageUpload(file, specIndex, valueIndex)"
                 accept="image/*"
               >
-                <el-button :icon="Picture" size="small">规格图（可选）</el-button>
+                <!-- <el-button :icon="Picture" size="small">规格图（可选）</el-button> 没什么用 -->
               </el-upload>
               <el-image
                 v-if="value.image"

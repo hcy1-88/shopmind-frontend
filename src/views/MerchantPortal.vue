@@ -295,21 +295,89 @@ const handleViewProduct = (product: Product) => {
 }
 
 // 编辑商品
-const handleEditProduct = (product: Product) => {
-  // 转换为表单数据格式
-  editingProduct.value = {
-    name: product.name,
-    coverImage: product.image,
-    detailImages: product.images || [],
-    price: product.price,
-    originalPrice: product.originalPrice,
-    priceRange: product.priceRange,
-    skuSpecs: [],
-    skuItems: [],
-    description: product.description || '',
-    category: product.category || '',
+const handleEditProduct = async (product: Product) => {
+  try {
+    // 获取商品详情（包含完整的 SKU 和地址信息）
+    const productDetail = await productStore.fetchProductDetail(product.id)
+
+    // 将 Product.skus 转换为 skuSpecs 和 skuItems
+    let skuSpecs: { name: string; values: { value: string }[] }[] = []
+    let skuItems: {
+      id?: string
+      specs: { [specName: string]: string }
+      price: number
+      stock: number
+      image?: string
+    }[] = []
+
+    if (productDetail.skus && productDetail.skus.length > 0) {
+      // 从 SKU 的 attributes 中提取规格定义
+      const specMap = new Map<string, Set<string>>()
+
+      productDetail.skus.forEach((sku) => {
+        Object.entries(sku.attributes).forEach(([specName, specValue]) => {
+          if (!specMap.has(specName)) {
+            specMap.set(specName, new Set())
+          }
+          specMap.get(specName)!.add(specValue)
+        })
+      })
+
+      // 转换为 skuSpecs 格式
+      skuSpecs = Array.from(specMap.entries()).map(([name, values]) => ({
+        name,
+        values: Array.from(values).map((value) => ({ value })),
+      }))
+
+      // 转换为 skuItems 格式
+      skuItems = productDetail.skus.map((sku) => ({
+        id: sku.id,
+        specs: sku.attributes,
+        price: sku.price,
+        stock: sku.stock,
+        image: sku.image,
+      }))
+    }
+
+    // 扩展 Product 类型以包含发货地址字段（如果后端返回了这些字段）
+    type ProductWithAddress = Product & {
+      provinceCode?: string
+      provinceName?: string
+      cityCode?: string
+      cityName?: string
+      districtCode?: string
+      districtName?: string
+      detailAddress?: string
+    }
+
+    const productWithAddress = productDetail as ProductWithAddress
+
+    // 转换为表单数据格式
+    editingProduct.value = {
+      name: productDetail.name,
+      coverImage: productDetail.image,
+      detailImages: productDetail.images || [],
+      price: productDetail.price,
+      originalPrice: productDetail.originalPrice,
+      priceRange: productDetail.priceRange,
+      skuSpecs,
+      skuItems,
+      description: productDetail.description || '',
+      category: productDetail.category || '',
+      // 发货地址信息（如果后端返回了这些字段）
+      provinceCode: productWithAddress.provinceCode,
+      provinceName: productWithAddress.provinceName,
+      cityCode: productWithAddress.cityCode,
+      cityName: productWithAddress.cityName,
+      districtCode: productWithAddress.districtCode,
+      districtName: productWithAddress.districtName,
+      detailAddress: productWithAddress.detailAddress,
+    }
+    activeTab.value = 'upload'
+  } catch (error) {
+    console.error('获取商品详情失败:', error)
+    ElMessage.error('获取商品详情失败，请稍后重试')
   }
-  activeTab.value = 'upload'
 }
 
 // 删除商品

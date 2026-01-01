@@ -49,7 +49,19 @@ interface Props {
 }
 
 interface Emits {
-  (e: 'update:modelValue', value: { regionCodes: [string, string, string]; detailAddress: string; provinceCode: string; provinceName: string; cityCode: string; cityName: string; districtCode: string; districtName: string }): void
+  (
+    e: 'update:modelValue',
+    value: {
+      regionCodes: [string, string, string]
+      detailAddress: string
+      provinceCode: string
+      provinceName: string
+      cityCode: string
+      cityName: string
+      districtCode: string
+      districtName: string
+    },
+  ): void
 }
 
 const props = defineProps<Props>()
@@ -96,11 +108,14 @@ watch(
   () => props.modelValue,
   (newVal) => {
     if (newVal) {
-      regionCodes.value = newVal.regionCodes
-      detailAddress.value = newVal.detailAddress
+      regionCodes.value = newVal.regionCodes || ['', '', '']
+      detailAddress.value = newVal.detailAddress || ''
+    } else {
+      regionCodes.value = ['', '', '']
+      detailAddress.value = ''
     }
   },
-  { deep: true }
+  { deep: true, immediate: true },
 )
 
 // 地区选择变化

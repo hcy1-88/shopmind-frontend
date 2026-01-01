@@ -229,7 +229,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { ElMessage, type FormInstance, type FormRules, type UploadFile } from 'element-plus'
 import { Plus, MagicStick, Upload } from '@element-plus/icons-vue'
 import { debounce } from 'lodash-es'
@@ -283,7 +283,8 @@ const formData = reactive<ProductFormData>({
   detailAddress: props.initialData?.detailAddress,
 })
 
-const priceType = ref<'single' | 'range'>('single')
+// 根据初始数据判断价格类型：有 price 则为单一价格，否则为价格区间
+const priceType = ref<'single' | 'range'>(props.initialData?.price != null ? 'single' : 'range')
 const skuData = ref({
   specs: formData.skuSpecs,
   items: formData.skuItems,
@@ -303,6 +304,30 @@ const addressData = ref({
   districtCode: props.initialData?.districtCode || '',
   districtName: props.initialData?.districtName || '',
 })
+
+// 监听 initialData 变化，更新 addressData（编辑模式下）
+watch(
+  () => props.initialData,
+  (newData) => {
+    if (newData) {
+      addressData.value = {
+        regionCodes: [
+          newData.provinceCode || '',
+          newData.cityCode || '',
+          newData.districtCode || '',
+        ] as [string, string, string],
+        detailAddress: newData.detailAddress || '',
+        provinceCode: newData.provinceCode || '',
+        provinceName: newData.provinceName || '',
+        cityCode: newData.cityCode || '',
+        cityName: newData.cityName || '',
+        districtCode: newData.districtCode || '',
+        districtName: newData.districtName || '',
+      }
+    }
+  },
+  { deep: true, immediate: true },
+)
 
 const titleCheckResult = ref<TitleCheckResponse | null>(null)
 const coverImageCheckResult = ref<ImageCheckResponse | null>(null)
