@@ -42,4 +42,18 @@ export const recommendationApi = {
         pageSize: params.pageSize ?? 10,
       },
     }) as unknown as Promise<PageResult<Product[]>>,
+
+  /**
+   * 获取推荐商品列表
+   * @param productId 可选的参考商品 ID（用于个性化推荐）
+   * @param limit 推荐数量限制
+   * @returns 推荐商品列表
+   */
+  getRecommendations: (productId?: string, limit?: number): Promise<Product[]> =>
+    recommendationService.get<Product[]>('/recommend/products/recommendations', {
+      params: {
+        ...(productId ? { productId } : {}),
+        ...(limit ? { limit } : {}),
+      },
+    }) as unknown as Promise<Product[]>,
 }

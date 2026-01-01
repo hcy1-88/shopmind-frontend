@@ -107,7 +107,7 @@ export const useProductStore = defineStore('product', () => {
    */
   const fetchRecommendations = async (productId?: string) => {
     try {
-      const data = await productApi.getRecommendations(productId)
+      const data = await recommendationApi.getRecommendations(productId)
       recommendedProducts.value = data
       return data
     } catch (error) {

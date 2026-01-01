@@ -48,9 +48,6 @@
           </div>
 
           <div class="action-buttons">
-            <el-button type="warning" size="large" :icon="ShoppingCart" @click="handleAddToCart"
-              >加入购物车</el-button
-            >
             <el-button type="primary" size="large" @click="handleBuyNow">立即购买</el-button>
           </div>
         </div>
@@ -124,7 +121,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ArrowLeft, Picture, MagicStick, ShoppingCart, User } from '@element-plus/icons-vue'
+import { ArrowLeft, Picture, MagicStick, User } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { useProductStore } from '@/stores/productStore'
 import AIAssistant from '@/components/AIAssistant.vue'
@@ -173,16 +170,6 @@ const loadRecommendations = async () => {
 
 const handleSkuChange = (value: string) => {
   selectedSku.value = value
-}
-
-const handleAddToCart = async () => {
-  try {
-    await productStore.addToCart(productId.value, selectedSku.value)
-    ElMessage.success('已加入购物车')
-  } catch (error) {
-    console.error('加入购物车失败:', error)
-    ElMessage.error('加入购物车失败')
-  }
 }
 
 const handleBuyNow = () => {

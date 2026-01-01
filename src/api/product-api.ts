@@ -1,5 +1,5 @@
 import { productService } from '@/utils/request'
-import type { Product, Category, PageResult } from '@/types'
+import type { Product, Category } from '@/types'
 
 /**
  * 商品搜索查询参数
@@ -26,33 +26,11 @@ export const productApi = {
     }) as unknown as Promise<Product[]>,
 
   /**
-   * 搜索商品（已迁移到 recommendation-service，保留此接口作为备用）
-   * @deprecated 请使用 recommendationApi.searchProducts
-   */
-  searchProducts: (params: ProductSearchParams): Promise<PageResult<Product[]>> =>
-    productService.get<PageResult<Product[]>>('/products/search', {
-      params: {
-        keyword: params.keyword,
-        pageNumber: params.pageNumber ?? 1,
-        pageSize: params.pageSize ?? 10,
-      },
-    }) as unknown as Promise<PageResult<Product[]>>,
-
-  /**
    * 根据 ID 获取商品详情
    * @param id 商品 ID
    */
   getProductById: (id: string): Promise<Product> =>
-    productService.get<Product>(`/products/${id}`) as unknown as Promise<Product>,
-
-  /**
-   * 获取推荐商品列表
-   * @param productId 可选的参考商品 ID（用于个性化推荐）
-   */
-  getRecommendations: (productId?: string): Promise<Product[]> =>
-    productService.get<Product[]>('/products/recommendations', {
-      params: { productId },
-    }) as unknown as Promise<Product[]>,
+    productService.get<Product>(`/products/detail/${id}`) as unknown as Promise<Product>,
 
   /**
    * 获取商品分类列表
