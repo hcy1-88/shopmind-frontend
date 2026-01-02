@@ -160,7 +160,7 @@
                       </div>
                       <div class="order-info-item">
                         <span class="label">创建时间：</span>
-                        <span class="value">{{ order.createdAt }}</span>
+                        <span class="value">{{ formatOrderTime(order.createdAt) }}</span>
                       </div>
                       <div v-if="order.shippingContact" class="order-info-item">
                         <span class="label">收货人：</span>
@@ -215,7 +215,7 @@
                       </div>
                       <div class="order-info-item">
                         <span class="label">创建时间：</span>
-                        <span class="value">{{ order.createdAt }}</span>
+                        <span class="value">{{ formatOrderTime(order.createdAt) }}</span>
                       </div>
                     </div>
                   </div>
@@ -262,7 +262,7 @@
                       </div>
                       <div class="order-info-item">
                         <span class="label">创建时间：</span>
-                        <span class="value">{{ order.createdAt }}</span>
+                        <span class="value">{{ formatOrderTime(order.createdAt) }}</span>
                       </div>
                     </div>
                   </div>
@@ -309,7 +309,7 @@
                       </div>
                       <div class="order-info-item">
                         <span class="label">创建时间：</span>
-                        <span class="value">{{ order.createdAt }}</span>
+                        <span class="value">{{ formatOrderTime(order.createdAt) }}</span>
                       </div>
                     </div>
                   </div>
@@ -356,7 +356,7 @@
                       </div>
                       <div class="order-info-item">
                         <span class="label">创建时间：</span>
-                        <span class="value">{{ order.createdAt }}</span>
+                        <span class="value">{{ formatOrderTime(order.createdAt) }}</span>
                       </div>
                     </div>
                   </div>
@@ -492,7 +492,7 @@
           <el-descriptions-item label="订单金额">
             <span class="amount">¥{{ viewingOrder.totalAmount }}</span>
           </el-descriptions-item>
-          <el-descriptions-item label="创建时间">{{ viewingOrder.createdAt }}</el-descriptions-item>
+          <el-descriptions-item label="创建时间">{{ formatOrderTime(viewingOrder.createdAt) }}</el-descriptions-item>
         </el-descriptions>
 
         <!-- 收货信息 -->
@@ -815,6 +815,25 @@ const getStatusText = (status: OrderStatus) => {
     refund: '退款/售后',
   }
   return statusMap[status] || status
+}
+
+// 格式化订单时间：从 "2026-01-02 08:16:06" 格式化为 "2026年1月2日 08:16"（年月日 时:分）
+const formatOrderTime = (timeStr: string | undefined | null): string => {
+  if (!timeStr) return ''
+  
+  // 格式：YYYY-MM-DD HH:MM:SS 或 YYYY-MM-DDTHH:MM:SS
+  // 目标格式：YYYY年M月D日 HH:MM（年月日 时:分）
+  const match = timeStr.match(/^(\d{4})-(\d{1,2})-(\d{1,2})[T ](\d{2}:\d{2})/)
+  if (match) {
+    const year = match[1]
+    const month = parseInt(match[2], 10).toString() // 去掉前导0
+    const day = parseInt(match[3], 10).toString() // 去掉前导0
+    const time = match[4]
+    return `${year}年${month}月${day}日 ${time}`
+  }
+  
+  // 如果匹配失败，返回原字符串
+  return timeStr
 }
 
 const getStatusTagType = (status: OrderStatus) => {
