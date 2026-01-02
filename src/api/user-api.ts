@@ -1,5 +1,12 @@
 import { userService } from '@/utils/request'
-import type { User, UserPreferences, Address, UpdateProfileForm, InterestDto } from '@/types'
+import type {
+  User,
+  UserPreferences,
+  Address,
+  UpdateProfileForm,
+  InterestDto,
+  BehaviorCreatedRequestDTO,
+} from '@/types'
 
 /**
  * 用户服务 API
@@ -85,4 +92,17 @@ export const userApi = {
    */
   setDefaultAddress: (userId: string, addressId: string): Promise<void> =>
     userService.post(`/user/${userId}/address/default/${addressId}`) as unknown as Promise<void>,
+
+  // ========== 用户行为埋点 ==========
+
+  /**
+   * 创建用户行为记录（异步，不处理响应结果）
+   */
+  createBehavior: (data: BehaviorCreatedRequestDTO): Promise<void> => {
+    // 异步调用，不等待结果，不处理错误
+    userService.post('/behavior/creation', data).catch(() => {
+      // 静默失败，不影响主流程
+    })
+    return Promise.resolve()
+  },
 }

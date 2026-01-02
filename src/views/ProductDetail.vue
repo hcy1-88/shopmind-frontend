@@ -249,6 +249,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { useProductStore } from '@/stores/productStore'
 import { useUserStore } from '@/stores/userStore'
 import { orderApi } from '@/api/order-api'
+import { userApi } from '@/api/user-api'
 import AIAssistant from '@/components/AIAssistant.vue'
 import type {
   Product,
@@ -360,6 +361,16 @@ const loadProduct = async () => {
     selectedSku.value = -1
     quantity.value = 1
     currentImageIndex.value = 0
+
+    // 埋点：记录商品查看行为
+    if (userStore.isLoggedIn && userStore.user?.id && product.value) {
+      userApi.createBehavior({
+        userId: userStore.user.id,
+        behaviorType: 'view',
+        targetType: 'product',
+        targetId: product.value.id,
+      })
+    }
   } catch (error) {
     console.error('加载商品失败:', error)
     ElMessage.error('加载商品失败')
@@ -538,6 +549,16 @@ const confirmOrder = async () => {
 
     // 创建订单
     await orderApi.createOrder(orderRequest)
+
+    // 埋点：记录购买行为
+    if (userStore.user?.id && product.value) {
+      userApi.createBehavior({
+        userId: userStore.user.id,
+        behaviorType: 'purchase',
+        targetType: 'product',
+        targetId: product.value.id,
+      })
+    }
 
     orderDialogVisible.value = false
 

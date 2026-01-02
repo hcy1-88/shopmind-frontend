@@ -121,6 +121,7 @@ import { ElMessage } from 'element-plus'
 import { useUserStore } from '@/stores/userStore'
 import { useProductStore } from '@/stores/productStore'
 import LoginDialog from '@/components/LoginDialog.vue'
+import { userApi } from '@/api/user-api'
 import type { Product } from '@/types'
 
 const router = useRouter()
@@ -169,6 +170,17 @@ const handleSearch = () => {
     ElMessage.warning('请输入搜索内容')
     return
   }
+
+  // 埋点：记录搜索行为
+  if (userStore.isLoggedIn && userStore.user?.id) {
+    userApi.createBehavior({
+      userId: userStore.user.id,
+      behaviorType: 'search',
+      targetType: 'product',
+      searchKeyword: searchQuery.value.trim(),
+    })
+  }
+
   router.push({ name: 'search', query: { q: searchQuery.value } })
 }
 

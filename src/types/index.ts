@@ -663,3 +663,33 @@ export interface Category {
   icon?: string
   description?: string
 }
+
+/**
+ * 用户行为创建请求 DTO
+ */
+export interface BehaviorCreatedRequestDTO {
+  /**
+   * 用户 ID
+   */
+  userId: string
+
+  /**
+   * 行为类型：view/like/share/search/add_cart/purchase
+   */
+  behaviorType: 'view' | 'like' | 'share' | 'search' | 'add_cart' | 'purchase'
+
+  /**
+   * 目标类型：product/review/order
+   */
+  targetType: 'product' | 'review' | 'order'
+
+  /**
+   * 比如 商品 id、评论 id、订单 id，跟 targetType 操作对象的类型有关
+   */
+  targetId?: string
+
+  /**
+   * 搜索关键词, 当 behaviorType 为 search 时有用
+   */
+  searchKeyword?: string
+}
