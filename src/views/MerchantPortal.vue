@@ -112,7 +112,13 @@
               <el-tag>{{ getCategoryName(viewingProduct.category || '') }}</el-tag>
             </el-descriptions-item>
             <el-descriptions-item label="价格">
-              <span v-if="viewingProduct.priceRange" class="price">
+              <span
+                v-if="
+                  viewingProduct.priceRange &&
+                  (viewingProduct.priceRange.min !== 0 || viewingProduct.priceRange.max !== 0)
+                "
+                class="price"
+              >
                 ¥{{ viewingProduct.priceRange.min }} - ¥{{ viewingProduct.priceRange.max }}
               </span>
               <span v-else class="price"> ¥{{ viewingProduct.price }} </span>

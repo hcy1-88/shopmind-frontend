@@ -143,7 +143,7 @@
         <span style="margin-left: 12px">元</span>
       </el-form-item>
 
-      <el-form-item v-if="priceType === 'range'" label="价格区间" required>
+      <el-form-item v-if="priceType === 'range'" label="价格区间" prop="priceRange">
         <div style="display: flex; align-items: center; gap: 12px">
           <el-input-number
             v-model="formData.priceRange!.min"
@@ -358,6 +358,46 @@ const rules: FormRules = {
     { required: true, message: '请输入商品描述', trigger: 'blur' },
     { min: 10, message: '描述至少 10 个字符', trigger: 'blur' },
   ],
+  price: [
+    {
+      validator: (_rule, value, callback) => {
+        // 如果选择了单一价格类型，则价格必填
+        if (priceType.value === 'single') {
+          if (!value && value !== 0) {
+            callback(new Error('请输入商品价格'))
+          } else {
+            callback()
+          }
+        } else {
+          // 如果选择了价格区间类型，则单一价格不需要验证
+          callback()
+        }
+      },
+      trigger: 'blur',
+    },
+  ],
+  priceRange: [
+    {
+      validator: (_rule, value, callback) => {
+        // 如果选择了价格区间类型，则价格区间必填
+        if (priceType.value === 'range') {
+          if (!value?.min && value?.min !== 0) {
+            callback(new Error('请输入最低价'))
+          } else if (!value?.max && value?.max !== 0) {
+            callback(new Error('请输入最高价'))
+          } else if (value.min >= value.max) {
+            callback(new Error('最低价必须小于最高价'))
+          } else {
+            callback()
+          }
+        } else {
+          // 如果选择了单一价格类型，则价格区间不需要验证
+          callback()
+        }
+      },
+      trigger: 'blur',
+    },
+  ],
 }
 
 // 标题合规性检查（防抖）
@@ -512,15 +552,19 @@ const handleSubmit = async () => {
       return
     }
 
-    // 验证价格
-    if (priceType.value === 'single' && !formData.price) {
-      ElMessage.error('请输入商品价格')
-      return
-    }
-
-    if (priceType.value === 'range') {
-      if (!formData.priceRange?.min || !formData.priceRange?.max) {
-        ElMessage.error('请输入完整的价格区间')
+    // 验证价格：至少填写单一价格或价格区间中的一个
+    if (priceType.value === 'single') {
+      if (!formData.price && formData.price !== 0) {
+        ElMessage.error('请输入商品价格')
+        return
+      }
+    } else if (priceType.value === 'range') {
+      if (!formData.priceRange?.min && formData.priceRange?.min !== 0) {
+        ElMessage.error('请输入最低价')
+        return
+      }
+      if (!formData.priceRange?.max && formData.priceRange?.max !== 0) {
+        ElMessage.error('请输入最高价')
         return
       }
       if (formData.priceRange.min >= formData.priceRange.max) {
