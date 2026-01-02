@@ -250,7 +250,13 @@ import { useProductStore } from '@/stores/productStore'
 import { useUserStore } from '@/stores/userStore'
 import { orderApi } from '@/api/order-api'
 import AIAssistant from '@/components/AIAssistant.vue'
-import type { Product, ProductSku, CreateOrderRequest, CreateOrderItemRequest } from '@/types'
+import type {
+  Product,
+  ProductSku,
+  Address,
+  CreateOrderRequest,
+  CreateOrderItemRequest,
+} from '@/types'
 
 const route = useRoute()
 const router = useRouter()
@@ -264,6 +270,7 @@ const recommendedProducts = ref<Product[]>([])
 const buyingLoading = ref(false)
 const quantity = ref(1) // 购买数量
 const orderDialogVisible = ref(false) // 订单确认弹窗
+const defaultAddress = ref<Address | null>(null) // 用户的默认地址
 
 // 当前显示的图片列表（包含预览图和 SKU 图片）
 const displayImages = computed(() => {
@@ -432,6 +439,7 @@ const handleThumbnailClick = (index: number) => {
 }
 
 const handleBuyNow = async () => {
+  // 1. 检查用户是否登录
   if (!userStore.isLoggedIn) {
     ElMessage.warning('请先登录')
     return
@@ -454,21 +462,43 @@ const handleBuyNow = async () => {
     return
   }
 
-  // 打开订单确认弹窗
-  orderDialogVisible.value = true
+  // 2. 获取用户地址列表
+  try {
+    const addresses = await userStore.fetchAddresses()
+
+    // 3. 检查用户是否有地址
+    if (!addresses || addresses.length === 0) {
+      ElMessage.warning('您还没有收货地址，请先添加收货地址')
+      router.push('/profile')
+      return
+    }
+
+    // 4. 查找默认地址
+    const foundDefaultAddress = addresses.find((addr) => addr.isDefault)
+    if (!foundDefaultAddress) {
+      ElMessage.warning('请先设置默认收货地址')
+      router.push('/profile')
+      return
+    }
+
+    // 保存默认地址供后续使用
+    defaultAddress.value = foundDefaultAddress
+
+    // 打开订单确认弹窗
+    orderDialogVisible.value = true
+  } catch (error) {
+    console.error('获取地址失败:', error)
+    ElMessage.error('获取收货地址失败，请稍后重试')
+  }
 }
 
 // 确认下单
 const confirmOrder = async () => {
   if (!product.value) return
 
-  // 检查用户是否有默认地址
-  const addresses = await userStore.fetchAddresses()
-  const defaultAddress = addresses.find((addr) => addr.isDefault)
-
-  if (!defaultAddress) {
-    ElMessage.warning('请先添加收货地址')
-    router.push('/profile')
+  // 使用已保存的默认地址
+  if (!defaultAddress.value) {
+    ElMessage.error('收货地址信息丢失，请重新选择商品')
     orderDialogVisible.value = false
     return
   }
@@ -483,7 +513,9 @@ const confirmOrder = async () => {
     // 构造订单明细
     const orderItem: CreateOrderItemRequest = {
       productId: product.value.id,
-      skuId: selectedSkuObj.value?.id || undefined,
+      merchantId: product.value.merchantId,
+      skuId: selectedSkuObj.value ? selectedSkuObj.value.id : undefined,
+      skuSpecs: selectedSkuObj.value?.attributes,
       productName: selectedSkuObj.value
         ? `${product.value.name} - ${getSkuDisplayName(selectedSkuObj.value)}`
         : product.value.name,
@@ -495,12 +527,12 @@ const confirmOrder = async () => {
 
     // 构造订单请求
     const orderRequest: CreateOrderRequest = {
-      shippingContact: defaultAddress.contactName || '',
-      shippingPhone: defaultAddress.contactPhone || '',
-      shippingProvince: defaultAddress.provinceName,
-      shippingCity: defaultAddress.cityName,
-      shippingDistrict: defaultAddress.districtName,
-      shippingDetail: defaultAddress.detailAddress,
+      shippingContact: defaultAddress.value.contactName || '',
+      shippingPhone: defaultAddress.value.contactPhone || '',
+      shippingProvince: defaultAddress.value.provinceName,
+      shippingCity: defaultAddress.value.cityName,
+      shippingDistrict: defaultAddress.value.districtName,
+      shippingDetail: defaultAddress.value.detailAddress,
       items: [orderItem],
     }
 

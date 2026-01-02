@@ -236,7 +236,7 @@ export interface Product {
   aiSummary?: string
   description?: string
   merchantName?: string
-  merchantId?: string
+  merchantId: string
   location?: string
   category?: string
   status?: ProductStatus
@@ -414,9 +414,19 @@ export interface CreateOrderItemRequest {
   productId: string
 
   /**
+   * 商家 id
+   */
+  merchantId: string
+
+  /**
    * 商品 sku id（可选）
    */
-  skuId?: string
+  skuId?: string | null
+
+  /**
+   * SKU 规格快照（可选）
+   */
+  skuSpecs?: Record<string, string>
 
   /**
    * 商品名
