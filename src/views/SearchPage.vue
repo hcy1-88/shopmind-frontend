@@ -161,8 +161,9 @@ onMounted(() => {
 watch(
   () => route.query.q,
   (newQuery) => {
-    if (newQuery) {
+    if (newQuery && newQuery !== searchQuery.value) {
       searchQuery.value = newQuery as string
+      currentPage.value = 1 // 重置到第一页
       performSearch()
     }
   },
@@ -174,7 +175,14 @@ const handleSearch = () => {
     return
   }
   currentPage.value = 1 // 重置到第一页
-  router.push({ name: 'search', query: { q: searchQuery.value } })
+  // 更新路由参数（用于 URL 同步）
+  const newQuery = { q: searchQuery.value }
+  // 如果路由参数已经匹配，直接执行搜索，否则更新路由让 watch 触发
+  if (route.query.q === searchQuery.value) {
+    performSearch()
+  } else {
+    router.push({ name: 'search', query: newQuery })
+  }
 }
 
 const performSearch = async () => {

@@ -109,6 +109,7 @@
       </div>
     </el-main>
 
+    <AIAssistant />
     <LoginDialog v-model:visible="loginVisible" />
   </div>
 </template>
@@ -121,6 +122,7 @@ import { ElMessage } from 'element-plus'
 import { useUserStore } from '@/stores/userStore'
 import { useProductStore } from '@/stores/productStore'
 import LoginDialog from '@/components/LoginDialog.vue'
+import AIAssistant from '@/components/AIAssistant.vue'
 import { userApi } from '@/api/user-api'
 import type { Product } from '@/types'
 

@@ -1,5 +1,5 @@
 import { productService } from '@/utils/request'
-import type { Product, Category } from '@/types'
+import type { Product, Category, PageResult } from '@/types'
 
 /**
  * 商品搜索查询参数
@@ -38,4 +38,18 @@ export const productApi = {
    */
   getCategories: (level: number = 1): Promise<Category[]> =>
     productService.get<Category[]>(`/category/${level}`) as unknown as Promise<Category[]>,
+
+  /**
+   * 搜索商品（支持分页）
+   * @param params 搜索参数（关键词、分页参数）
+   * @returns 分页响应数据
+   */
+  searchProducts: (params: ProductSearchParams): Promise<PageResult<Product[]>> =>
+    productService.get<PageResult<Product[]>>('/products/search', {
+      params: {
+        keyword: params.keyword,
+        pageNumber: params.pageNumber ?? 1,
+        pageSize: params.pageSize ?? 10,
+      },
+    }) as unknown as Promise<PageResult<Product[]>>,
 }

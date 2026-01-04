@@ -68,8 +68,8 @@ export const useProductStore = defineStore('product', () => {
   ): Promise<PageResult<Product[]>> => {
     try {
       isLoading.value = true
-      // 搜索统一使用推荐服务的搜索接口
-      const data = await recommendationApi.searchProducts({
+      // 搜索统一使用商品服务的搜索接口
+      const data = await productApi.searchProducts({
         keyword,
         pageNumber,
         pageSize,
