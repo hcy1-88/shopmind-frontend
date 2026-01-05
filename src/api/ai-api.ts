@@ -2,6 +2,7 @@ import { aiService } from '@/utils/request'
 import type {
   AIAskRequest,
   AIAskResponse,
+  AIHistoryMessage,
   TitleCheckRequest,
   TitleCheckResponse,
   ImageCheckRequest,
@@ -115,6 +116,26 @@ export const aiApi = {
    */
   ask: (request: AIAskRequest): Promise<AIAskResponse> =>
     aiService.post<AIAskResponse>('/ai/ask', request) as unknown as Promise<AIAskResponse>,
+
+  /**
+   * 获取对话历史
+   * @param sessionId 会话ID
+   * @returns 历史消息列表
+   */
+  getHistory: (sessionId: string): Promise<AIHistoryMessage[]> =>
+    aiService.get<AIHistoryMessage[]>(`/ai/chat/history/${sessionId}`) as unknown as Promise<
+      AIHistoryMessage[]
+    >,
+
+  /**
+   * 清除对话历史
+   * @param sessionId 会话ID
+   * @returns 清除结果
+   */
+  clearHistory: (sessionId: string): Promise<{ cleared: boolean }> =>
+    aiService.post<{ cleared: boolean }>('/ai/chat/clear-history', {
+      sessionId,
+    }) as unknown as Promise<{ cleared: boolean }>,
 
   // ========== 商品合规检查 ==========
 

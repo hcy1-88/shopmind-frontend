@@ -604,6 +604,21 @@ export interface AIAskResponse {
 }
 
 /**
+ * 清除历史请求
+ */
+export interface AIClearHistoryRequest {
+  sessionId: string
+}
+
+/**
+ * 历史消息项
+ */
+export interface AIHistoryMessage {
+  role: 'user' | 'assistant'
+  content: string
+}
+
+/**
  * 推荐服务相关
  */
 export interface RecommendationResponse {

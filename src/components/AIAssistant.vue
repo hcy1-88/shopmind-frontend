@@ -112,12 +112,12 @@ const hasOpenedDialog = ref(false) // 用户是否打开过对话
 // 提示间隔时间（毫秒）：5分钟 = 300000ms
 const PROMPT_INTERVAL = 5 * 60 * 1000
 
-onMounted(() => {
+onMounted(async () => {
   // 初始化会话 ID（如果不存在则创建）
   chatStore.initializeSessionId()
 
-  // 加载聊天历史
-  chatStore.loadHistory()
+  // 从后端加载聊天历史
+  await chatStore.loadHistory()
 
   // 从 localStorage 读取状态
   const closedStatus = localStorage.getItem('ai-prompt-closed')
@@ -253,9 +253,14 @@ const sendMessage = async () => {
   }
 }
 
-const clearChat = () => {
-  chatStore.clearMessages()
-  ElMessage.success('对话已清空')
+const clearChat = async () => {
+  try {
+    await chatStore.clearMessages()
+    ElMessage.success('对话已清空')
+  } catch (error) {
+    console.error('清空对话失败:', error)
+    ElMessage.error('清空对话失败')
+  }
 }
 
 const scrollToBottom = () => {

@@ -174,10 +174,11 @@
                   </div>
                   <div class="order-actions">
                     <el-button size="small" @click="goToDetail(order)">查看详情</el-button>
-                    <el-button size="small" type="primary" @click="handleConsult(order.id)">
+                    <!-- 暂时不做咨询订单功能 -->
+                    <!-- <el-button size="small" type="primary" @click="handleConsult(order.id)">
                       <el-icon><ChatDotRound /></el-icon>
                       咨询订单
-                    </el-button>
+                    </el-button> -->
                   </div>
                 </div>
               </div>
@@ -221,10 +222,11 @@
                   </div>
                   <div class="order-actions">
                     <el-button size="small" @click="goToDetail(order)">查看详情</el-button>
-                    <el-button size="small" type="primary" @click="handleConsult(order.id)">
+                    <!-- 暂时不做咨询订单功能 -->
+                    <!-- <el-button size="small" type="primary" @click="handleConsult(order.id)">
                       <el-icon><ChatDotRound /></el-icon>
                       咨询订单
-                    </el-button>
+                    </el-button> -->
                   </div>
                 </div>
               </div>
@@ -268,10 +270,11 @@
                   </div>
                   <div class="order-actions">
                     <el-button size="small" @click="goToDetail(order)">查看详情</el-button>
-                    <el-button size="small" type="primary" @click="handleConsult(order.id)">
+                    <!-- 暂时不做咨询订单功能 -->
+                    <!-- <el-button size="small" type="primary" @click="handleConsult(order.id)">
                       <el-icon><ChatDotRound /></el-icon>
                       咨询订单
-                    </el-button>
+                    </el-button> -->
                   </div>
                 </div>
               </div>
@@ -315,10 +318,11 @@
                   </div>
                   <div class="order-actions">
                     <el-button size="small" @click="goToDetail(order)">查看详情</el-button>
-                    <el-button size="small" type="primary" @click="handleConsult(order.id)">
+                    <!-- 暂时不做咨询订单功能 -->
+                    <!-- <el-button size="small" type="primary" @click="handleConsult(order.id)">
                       <el-icon><ChatDotRound /></el-icon>
                       咨询订单
-                    </el-button>
+                    </el-button> -->
                   </div>
                 </div>
               </div>
@@ -362,10 +366,11 @@
                   </div>
                   <div class="order-actions">
                     <el-button size="small" @click="goToDetail(order)">查看详情</el-button>
-                    <el-button size="small" type="primary" @click="handleConsult(order.id)">
+                    <!-- 暂时不做咨询订单功能 -->
+                    <!-- <el-button size="small" type="primary" @click="handleConsult(order.id)">
                       <el-icon><ChatDotRound /></el-icon>
                       咨询订单
-                    </el-button>
+                    </el-button> -->
                   </div>
                 </div>
               </div>

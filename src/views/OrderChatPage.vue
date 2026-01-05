@@ -126,7 +126,7 @@ onMounted(async () => {
 
   // 加载订单信息和聊天历史
   await loadOrder()
-  chatStore.loadHistory()
+  await chatStore.loadHistory()
 
   nextTick(() => {
     scrollToBottom()

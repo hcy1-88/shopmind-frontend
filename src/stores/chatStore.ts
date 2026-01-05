@@ -133,8 +133,7 @@ export const useChatStore = defineStore('chat', () => {
         finalMessage.content = finalMessage.content.trim()
       }
 
-      // 7. 自动保存聊天历史
-      autoSave()
+      // 7. 后端已自动保存历史，无需手动保存
 
       return { answer: finalMessage?.content || '' }
     } catch (error) {
@@ -171,43 +170,74 @@ export const useChatStore = defineStore('chat', () => {
   }
 
   /**
-   * 清空聊天记录
+   * 清空聊天记录（同时清除后端历史）
    */
-  const clearMessages = () => {
-    messages.value = []
-    currentContext.value = ''
+  const clearMessages = async () => {
+    try {
+      // 确保有 sessionId
+      if (!sessionId.value) {
+        initializeSessionId()
+      }
+
+      // 调用后端清除历史
+      await aiApi.clearHistory(sessionId.value)
+
+      // 清空前端消息
+      messages.value = []
+      currentContext.value = ''
+
+      console.log('✅ 对话历史已清除（前端 + 后端）')
+    } catch (error) {
+      console.error('清空聊天历史失败:', error)
+      // 即使后端失败，也清空前端
+      messages.value = []
+      currentContext.value = ''
+    }
   }
 
   /**
-   * 从本地存储加载聊天历史
+   * 从后端加载聊天历史
    */
-  const loadHistory = () => {
+  const loadHistory = async () => {
     try {
-      const saved = localStorage.getItem('chat_history')
-      if (saved) {
-        messages.value = JSON.parse(saved)
+      // 确保有 sessionId
+      if (!sessionId.value) {
+        initializeSessionId()
       }
+
+      // 从后端获取历史
+      const history = await aiApi.getHistory(sessionId.value)
+
+      // 转换为前端消息格式
+      messages.value = history.map((msg, index) => ({
+        id: `msg_${Date.now()}_${index}`,
+        role: msg.role,
+        content: msg.content,
+        timestamp: Date.now() - (history.length - index) * 1000, // 模拟时间戳
+      }))
+
+      console.log(`✅ 已从后端加载 ${history.length} 条历史消息`)
     } catch (error) {
       console.error('加载聊天历史失败:', error)
+      // 失败时保持空消息列表
+      messages.value = []
     }
   }
 
   /**
-   * 保存聊天历史到本地存储
+   * 保存聊天历史到本地存储（已废弃，历史由后端管理）
+   * @deprecated 历史现在由后端 Redis 管理，无需手动保存
    */
   const saveHistory = () => {
-    try {
-      localStorage.setItem('chat_history', JSON.stringify(messages.value))
-    } catch (error) {
-      console.error('保存聊天历史失败:', error)
-    }
+    // 不再需要，后端自动保存
   }
 
   /**
-   * 自动保存聊天历史
+   * 自动保存聊天历史（已废弃，历史由后端管理）
+   * @deprecated 历史现在由后端 Redis 管理，无需手动保存
    */
   const autoSave = () => {
-    saveHistory()
+    // 不再需要，后端自动保存
   }
 
   return {

@@ -70,8 +70,8 @@ const chatStore = useChatStore()
 const inputMessage = ref('')
 const messagesContainer = ref<HTMLElement>()
 
-onMounted(() => {
-  chatStore.loadHistory()
+onMounted(async () => {
+  await chatStore.loadHistory()
   nextTick(() => {
     scrollToBottom()
   })
