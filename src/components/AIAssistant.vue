@@ -1,5 +1,15 @@
 <template>
   <div class="ai-assistant">
+    <!-- 主动提示文字 -->
+    <transition name="prompt-fade">
+      <div v-if="!dialogVisible && showPrompt" class="ai-prompt" @click="handlePromptClick">
+        <span class="prompt-text">还没有找到想要的商品？告诉我你需要什么。</span>
+        <el-icon class="close-icon" @click.stop="handleClosePrompt">
+          <Close />
+        </el-icon>
+      </div>
+    </transition>
+
     <el-button
       v-if="!dialogVisible"
       class="ai-float-button"
@@ -29,7 +39,11 @@
               <el-avatar v-else :icon="Service" style="background-color: #7c3aed" />
             </div>
             <div class="message-content">
-              <div class="message-text">{{ message.content }}</div>
+              <div
+                class="message-text"
+                v-html="parseProductLinks(message.content)"
+                @click="handleLinkClick"
+              ></div>
               <div class="message-time">{{ formatTime(message.timestamp) }}</div>
             </div>
           </div>
@@ -67,10 +81,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, nextTick, onMounted } from 'vue'
-import { ChatDotRound, User, Service, Promotion } from '@element-plus/icons-vue'
+import { ref, nextTick, onMounted, onUnmounted, watch } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+import { ChatDotRound, User, Service, Promotion, Close } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { useChatStore } from '@/stores/chatStore'
+import { parseProductLinks } from '@/utils/chat-utils'
 
 interface Props {
   context?: {
@@ -81,16 +97,111 @@ interface Props {
 
 const props = defineProps<Props>()
 
+const router = useRouter()
+const route = useRoute()
 const chatStore = useChatStore()
 const dialogVisible = ref(false)
 const inputMessage = ref('')
 const messagesContainer = ref<HTMLElement>()
 
+// 主动提示相关状态
+const showPrompt = ref(false)
+const promptTimer = ref<number | null>(null)
+const hasClosedPrompt = ref(false) // 用户是否手动关闭过提示
+const hasOpenedDialog = ref(false) // 用户是否打开过对话
+
+// 提示间隔时间（毫秒）：5分钟 = 300000ms
+const PROMPT_INTERVAL = 5 * 60 * 1000
+
 onMounted(() => {
   chatStore.loadHistory()
+
+  // 从 localStorage 读取状态
+  const closedStatus = localStorage.getItem('ai-prompt-closed')
+  if (closedStatus === 'true') {
+    hasClosedPrompt.value = true
+  }
+
+  // 启动定时器
+  startPromptTimer()
 })
 
+onUnmounted(() => {
+  clearPromptTimer()
+})
+
+// 监听路由变化，重置定时器
+watch(
+  () => route.path,
+  () => {
+    if (!hasClosedPrompt.value && !hasOpenedDialog.value) {
+      resetPromptTimer()
+    }
+  },
+)
+
+// 启动提示定时器
+const startPromptTimer = () => {
+  if (hasClosedPrompt.value || hasOpenedDialog.value) {
+    return
+  }
+
+  clearPromptTimer()
+
+  promptTimer.value = window.setTimeout(() => {
+    showPrompt.value = true
+  }, PROMPT_INTERVAL)
+}
+
+// 清除定时器
+const clearPromptTimer = () => {
+  if (promptTimer.value) {
+    clearTimeout(promptTimer.value)
+    promptTimer.value = null
+  }
+}
+
+// 重置定时器
+const resetPromptTimer = () => {
+  showPrompt.value = false
+  clearPromptTimer()
+  startPromptTimer()
+}
+
+// 点击提示文字，打开对话
+const handlePromptClick = () => {
+  showPrompt.value = false
+  hasOpenedDialog.value = true
+  clearPromptTimer()
+  openDialog()
+}
+
+// 关闭提示
+const handleClosePrompt = () => {
+  showPrompt.value = false
+  hasClosedPrompt.value = true
+  clearPromptTimer()
+  // 保存到 localStorage
+  localStorage.setItem('ai-prompt-closed', 'true')
+}
+
+// 处理消息中的商品链接点击
+const handleLinkClick = (event: Event) => {
+  const target = event.target as HTMLElement
+  const productLink = target.closest('.product-link') as HTMLAnchorElement
+  if (productLink) {
+    event.preventDefault()
+    const productId = productLink.getAttribute('data-product-id')
+    if (productId) {
+      router.push({ name: 'product', params: { id: productId } })
+      dialogVisible.value = false // 关闭对话框
+    }
+  }
+}
+
 const openDialog = () => {
+  hasOpenedDialog.value = true
+  clearPromptTimer()
   dialogVisible.value = true
   nextTick(() => {
     scrollToBottom()
@@ -201,6 +312,25 @@ const formatTime = (timestamp: number) => {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   word-wrap: break-word;
 }
+
+.message-text :deep(.product-link) {
+  color: #7c3aed;
+  text-decoration: underline;
+  cursor: pointer;
+  transition: color 0.3s;
+}
+
+.message-text :deep(.product-link:hover) {
+  color: #6d28d9;
+}
+
+.message-item.user .message-text :deep(.product-link) {
+  color: #e9d5ff;
+}
+
+.message-item.user .message-text :deep(.product-link:hover) {
+  color: #f3e8ff;
+}
 .message-item.user .message-text {
   background-color: #7c3aed;
   color: white;
@@ -224,5 +354,66 @@ const formatTime = (timestamp: number) => {
 }
 .chat-input :deep(.el-input-group__append .el-button) {
   margin: 0;
+}
+
+/* 主动提示样式 */
+.ai-prompt {
+  position: fixed;
+  bottom: 110px;
+  right: 40px;
+  background: white;
+  padding: 12px 16px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 999;
+  cursor: pointer;
+  transition: all 0.3s;
+  max-width: 300px;
+}
+
+.ai-prompt:hover {
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+  transform: translateY(-2px);
+}
+
+.prompt-text {
+  font-size: 13px;
+  color: #ff4444;
+  text-decoration: underline;
+  line-height: 1.4;
+  flex: 1;
+}
+
+.close-icon {
+  flex-shrink: 0;
+  font-size: 16px;
+  color: #999;
+  cursor: pointer;
+  transition: color 0.3s;
+}
+
+.close-icon:hover {
+  color: #333;
+}
+
+/* 提示动画 */
+.prompt-fade-enter-active,
+.prompt-fade-leave-active {
+  transition:
+    opacity 0.3s,
+    transform 0.3s;
+}
+
+.prompt-fade-enter-from {
+  opacity: 0;
+  transform: translateX(20px);
+}
+
+.prompt-fade-leave-to {
+  opacity: 0;
+  transform: translateX(20px);
 }
 </style>

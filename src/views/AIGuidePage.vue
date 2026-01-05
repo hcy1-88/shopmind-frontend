@@ -125,7 +125,13 @@ const formatTime = (timestamp: number) => {
 }
 
 const goBack = () => {
-  router.back()
+  // 检查是否有历史记录
+  if (window.history.length > 1) {
+    router.back()
+  } else {
+    // 没有历史记录时，导航到首页
+    router.push({ name: 'home' })
+  }
 }
 </script>
 

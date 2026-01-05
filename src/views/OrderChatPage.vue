@@ -67,7 +67,11 @@
             <el-avatar v-else :icon="Service" style="background-color: #7c3aed" />
           </div>
           <div class="message-content">
-            <div class="message-text">{{ message.content }}</div>
+            <div
+              class="message-text"
+              v-html="parseProductLinks(message.content)"
+              @click="handleLinkClick"
+            ></div>
             <div class="message-time">{{ formatTime(message.timestamp) }}</div>
           </div>
         </div>
@@ -109,6 +113,7 @@ import { ElMessage } from 'element-plus'
 import { useChatStore } from '@/stores/chatStore'
 import { useUserStore } from '@/stores/userStore'
 import type { Order, OrderStatus } from '@/types'
+import { parseProductLinks } from '@/utils/chat-utils'
 
 const route = useRoute()
 const router = useRouter()
@@ -201,7 +206,26 @@ const getStatusTagType = (status: OrderStatus) => {
 }
 
 const goBack = () => {
-  router.back()
+  // 检查是否有历史记录
+  if (window.history.length > 1) {
+    router.back()
+  } else {
+    // 没有历史记录时，导航到个人中心
+    router.push({ name: 'profile' })
+  }
+}
+
+// 处理消息中的商品链接点击
+const handleLinkClick = (event: Event) => {
+  const target = event.target as HTMLElement
+  const productLink = target.closest('.product-link') as HTMLAnchorElement
+  if (productLink) {
+    event.preventDefault()
+    const productId = productLink.getAttribute('data-product-id')
+    if (productId) {
+      router.push({ name: 'product', params: { id: productId } })
+    }
+  }
 }
 </script>
 
@@ -336,9 +360,29 @@ const goBack = () => {
   word-wrap: break-word;
   line-height: 1.6;
 }
+
+.message-text :deep(.product-link) {
+  color: #7c3aed;
+  text-decoration: underline;
+  cursor: pointer;
+  transition: color 0.3s;
+}
+
+.message-text :deep(.product-link:hover) {
+  color: #6d28d9;
+}
+
 .message-item.user .message-text {
   background-color: #7c3aed;
   color: white;
+}
+
+.message-item.user .message-text :deep(.product-link) {
+  color: #e9d5ff;
+}
+
+.message-item.user .message-text :deep(.product-link:hover) {
+  color: #f3e8ff;
 }
 .message-text.loading {
   display: flex;

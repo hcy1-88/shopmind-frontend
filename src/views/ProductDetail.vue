@@ -1,8 +1,34 @@
 <template>
   <div class="product-detail" v-loading="productStore.isLoading">
     <div class="header">
-      <el-button :icon="ArrowLeft" circle @click="goBack" />
-      <span class="header-title">商品详情</span>
+      <div class="header-left">
+        <el-button :icon="ArrowLeft" circle @click="goBack" />
+        <span class="header-title">商品详情</span>
+      </div>
+
+      <div class="header-actions">
+        <el-link v-if="!userStore.isLoggedIn" type="primary" @click="loginVisible = true">
+          登录
+        </el-link>
+        <template v-else>
+          <el-link type="primary" @click="goToMerchant">
+            <el-icon><Shop /></el-icon>
+            免费开店
+          </el-link>
+          <el-dropdown @command="handleCommand">
+            <span class="user-info">
+              <el-avatar :src="userStore.user?.avatar" :icon="User" />
+              <span class="user-nickname">{{ userStore.user?.nickname || '用户' }}</span>
+            </span>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item command="profile">个人中心</el-dropdown-item>
+                <el-dropdown-item command="logout" divided>退出登录</el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
+        </template>
+      </div>
     </div>
 
     <div v-if="product" class="content">
@@ -202,6 +228,7 @@
     </div>
 
     <AIAssistant :context="{ productId: productId }" />
+    <LoginDialog v-model:visible="loginVisible" />
 
     <!-- 订单确认弹窗 -->
     <el-dialog v-model="orderDialogVisible" title="确认订单" width="500px">
@@ -244,13 +271,14 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ArrowLeft, Picture, MagicStick, User } from '@element-plus/icons-vue'
+import { ArrowLeft, Picture, MagicStick, User, Shop } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useProductStore } from '@/stores/productStore'
 import { useUserStore } from '@/stores/userStore'
 import { orderApi } from '@/api/order-api'
 import { userApi } from '@/api/user-api'
 import AIAssistant from '@/components/AIAssistant.vue'
+import LoginDialog from '@/components/LoginDialog.vue'
 import type {
   Product,
   ProductSku,
@@ -272,6 +300,7 @@ const buyingLoading = ref(false)
 const quantity = ref(1) // 购买数量
 const orderDialogVisible = ref(false) // 订单确认弹窗
 const defaultAddress = ref<Address | null>(null) // 用户的默认地址
+const loginVisible = ref(false) // 登录弹窗
 
 // 当前显示的图片列表（包含预览图和 SKU 图片）
 const displayImages = computed(() => {
@@ -577,11 +606,30 @@ const confirmOrder = async () => {
 }
 
 const goBack = () => {
-  router.back()
+  // 检查是否有历史记录
+  if (window.history.length > 1) {
+    router.back()
+  } else {
+    // 没有历史记录时，导航到首页
+    router.push({ name: 'home' })
+  }
 }
 
 const goToProduct = (id: string) => {
   router.push({ name: 'product', params: { id } })
+}
+
+const goToMerchant = () => {
+  router.push({ name: 'merchant-portal' })
+}
+
+const handleCommand = (command: string) => {
+  if (command === 'profile') {
+    router.push({ name: 'profile' })
+  } else if (command === 'logout') {
+    userStore.logout()
+    ElMessage.success('已退出登录')
+  }
 }
 
 const formatDate = (dateString: string) => {
@@ -604,12 +652,51 @@ const formatDate = (dateString: string) => {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   display: flex;
   align-items: center;
-  gap: 12px;
+  justify-content: space-between;
   z-index: 100;
 }
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .header-title {
   font-size: 16px;
   font-weight: 500;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.header-actions .el-link {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 14px;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 4px 12px;
+  border-radius: 4px;
+  transition: background-color 0.3s;
+}
+
+.user-info:hover {
+  background-color: #f5f7fa;
+}
+
+.user-nickname {
+  font-size: 14px;
+  color: #303133;
 }
 .content {
   max-width: 1200px;
