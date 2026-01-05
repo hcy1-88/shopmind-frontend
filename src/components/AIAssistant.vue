@@ -35,7 +35,11 @@
             :class="['message-item', message.role]"
           >
             <div class="message-avatar">
-              <el-avatar v-if="message.role === 'user'" :icon="User" />
+              <el-avatar
+                v-if="message.role === 'user'"
+                :src="userStore.user?.avatar"
+                :icon="User"
+              />
               <el-avatar v-else :icon="Service" style="background-color: #7c3aed" />
             </div>
             <div class="message-content">
@@ -79,6 +83,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { ChatDotRound, User, Service, Promotion, Close } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { useChatStore } from '@/stores/chatStore'
+import { useUserStore } from '@/stores/userStore'
 import { parseProductLinks } from '@/utils/chat-utils'
 
 interface Props {
@@ -93,6 +98,7 @@ const props = defineProps<Props>()
 const router = useRouter()
 const route = useRoute()
 const chatStore = useChatStore()
+const userStore = useUserStore()
 const dialogVisible = ref(false)
 const inputMessage = ref('')
 const messagesContainer = ref<HTMLElement>()
