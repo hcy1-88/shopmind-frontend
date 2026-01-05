@@ -68,23 +68,16 @@
           </div>
           <div class="message-content">
             <div
+              v-if="message.content"
               class="message-text"
               v-html="parseProductLinks(message.content)"
               @click="handleLinkClick"
             ></div>
-            <div class="message-time">{{ formatTime(message.timestamp) }}</div>
-          </div>
-        </div>
-
-        <div v-if="chatStore.isLoading" class="message-item assistant">
-          <div class="message-avatar">
-            <el-avatar :icon="Service" style="background-color: #7c3aed" />
-          </div>
-          <div class="message-content">
-            <div class="message-text loading">
+            <div v-else class="message-text loading">
               <el-icon class="is-loading"><Loading /></el-icon>
-              正在查询中...
+              正在输入...
             </div>
+            <div class="message-time">{{ formatTime(message.timestamp) }}</div>
           </div>
         </div>
       </div>
@@ -128,8 +121,13 @@ const messagesContainer = ref<HTMLElement>()
 const quickQuestions = ['订单什么时候发货？', '物流信息查询', '如何申请退款？', '售后服务说明']
 
 onMounted(async () => {
+  // 初始化会话 ID（第一次打开对话时）
+  chatStore.initializeSessionId()
+
+  // 加载订单信息和聊天历史
   await loadOrder()
   chatStore.loadHistory()
+
   nextTick(() => {
     scrollToBottom()
   })
@@ -159,8 +157,10 @@ const sendMessage = async () => {
   inputMessage.value = ''
 
   try {
+    // 调用 chatStore 的方法，内部会自动保存
     await chatStore.askOrder(orderId.value, message)
-    chatStore.autoSave()
+
+    // 滚动到底部显示最新消息
     nextTick(() => {
       scrollToBottom()
     })

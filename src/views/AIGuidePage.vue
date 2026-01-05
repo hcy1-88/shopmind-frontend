@@ -23,20 +23,12 @@
             <el-avatar v-else :icon="Service" style="background-color: #7c3aed" />
           </div>
           <div class="message-content">
-            <div class="message-text">{{ message.content }}</div>
-            <div class="message-time">{{ formatTime(message.timestamp) }}</div>
-          </div>
-        </div>
-
-        <div v-if="chatStore.isLoading" class="message-item assistant">
-          <div class="message-avatar">
-            <el-avatar :icon="Service" style="background-color: #7c3aed" />
-          </div>
-          <div class="message-content">
-            <div class="message-text loading">
+            <div v-if="message.content" class="message-text">{{ message.content }}</div>
+            <div v-else class="message-text loading">
               <el-icon class="is-loading"><Loading /></el-icon>
-              AI 正在思考中...
+              正在输入...
             </div>
+            <div class="message-time">{{ formatTime(message.timestamp) }}</div>
           </div>
         </div>
       </div>

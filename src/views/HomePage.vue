@@ -36,7 +36,7 @@
     <el-main class="main-content">
       <div class="welcome-section">
         <div class="welcome-icon">
-          <el-icon :size="60" color="#7c3aed">
+          <el-icon :size="60" color="#7c3aed" @click="openAIDialog">
             <ChatDotRound />
           </el-icon>
         </div>
@@ -109,7 +109,7 @@
       </div>
     </el-main>
 
-    <AIAssistant />
+    <AIAssistant ref="aiAssistantRef" />
     <LoginDialog v-model:visible="loginVisible" />
   </div>
 </template>
@@ -133,6 +133,7 @@ const productStore = useProductStore()
 const loginVisible = ref(false)
 const searchQuery = ref('')
 const products = ref<Product[]>([])
+const aiAssistantRef = ref<InstanceType<typeof AIAssistant> | null>(null)
 
 const quickQuestions = [
   'pyhton从入门到入坟',
@@ -206,6 +207,11 @@ const handleCommand = (command: string) => {
     userStore.logout()
     ElMessage.success('已退出登录')
   }
+}
+
+// 打开 AI 对话对话框
+const openAIDialog = () => {
+  aiAssistantRef.value?.openDialog()
 }
 </script>
 
@@ -281,6 +287,15 @@ const handleCommand = (command: string) => {
 }
 .welcome-icon {
   margin-bottom: 20px;
+}
+
+.welcome-icon .el-icon {
+  cursor: pointer;
+  transition: transform 0.3s;
+}
+
+.welcome-icon .el-icon:hover {
+  transform: scale(1.1);
 }
 .welcome-title {
   font-size: 32px;

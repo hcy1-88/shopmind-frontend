@@ -40,20 +40,13 @@
             </div>
             <div class="message-content">
               <div
+                v-if="message.content"
                 class="message-text"
                 v-html="parseProductLinks(message.content)"
                 @click="handleLinkClick"
               ></div>
+              <div v-else class="message-text loading">正在输入...</div>
               <div class="message-time">{{ formatTime(message.timestamp) }}</div>
-            </div>
-          </div>
-
-          <div v-if="chatStore.isLoading" class="message-item assistant">
-            <div class="message-avatar">
-              <el-avatar :icon="Service" style="background-color: #7c3aed" />
-            </div>
-            <div class="message-content">
-              <div class="message-text loading">AI 正在思考中...</div>
             </div>
           </div>
         </div>
@@ -114,6 +107,10 @@ const hasOpenedDialog = ref(false) // 用户是否打开过对话
 const PROMPT_INTERVAL = 5 * 60 * 1000
 
 onMounted(() => {
+  // 初始化会话 ID（如果不存在则创建）
+  chatStore.initializeSessionId()
+
+  // 加载聊天历史
   chatStore.loadHistory()
 
   // 从 localStorage 读取状态
@@ -129,6 +126,17 @@ onMounted(() => {
 onUnmounted(() => {
   clearPromptTimer()
 })
+
+// 监听消息变化，自动滚动到底部（支持流式输出时的实时滚动）
+watch(
+  () => chatStore.messages,
+  () => {
+    nextTick(() => {
+      scrollToBottom()
+    })
+  },
+  { deep: true },
+)
 
 // 监听路由变化，重置定时器
 watch(
@@ -200,6 +208,9 @@ const handleLinkClick = (event: Event) => {
 }
 
 const openDialog = () => {
+  // 确保会话 ID 已初始化
+  chatStore.initializeSessionId()
+
   hasOpenedDialog.value = true
   clearPromptTimer()
   dialogVisible.value = true
@@ -217,6 +228,7 @@ const sendMessage = async () => {
   inputMessage.value = ''
 
   try {
+    // 调用 chatStore 的方法，内部会自动保存
     if (props.context?.productId) {
       await chatStore.askProduct(props.context.productId, message)
     } else if (props.context?.orderId) {
@@ -225,7 +237,7 @@ const sendMessage = async () => {
       await chatStore.askAI(message)
     }
 
-    chatStore.autoSave()
+    // 滚动到底部显示最新消息
     nextTick(() => {
       scrollToBottom()
     })
@@ -252,6 +264,11 @@ const formatTime = (timestamp: number) => {
   const minutes = date.getMinutes().toString().padStart(2, '0')
   return `${hours}:${minutes}`
 }
+
+// 暴露方法供父组件调用
+defineExpose({
+  openDialog,
+})
 </script>
 
 <style scoped>

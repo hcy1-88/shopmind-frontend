@@ -587,15 +587,20 @@ export interface ChatMessage {
 
 export interface AIAskRequest {
   question: string
+  sessionId: string
   userId?: string
   productId?: string
   orderId?: string
-  context?: string
+  /**
+   * 额外的上下文信息（辅助 AI 理解上下文）
+   * 键值对形式，可以传递任意结构化数据
+   * 例如：{ pageType: 'product-detail', userPreferences: {...}, sessionInfo: {...} }
+   */
+  context?: Record<string, string | number | boolean | object | null>
 }
 
 export interface AIAskResponse {
   answer: string
-  recommendations?: Product[]
 }
 
 /**
