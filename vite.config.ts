@@ -21,8 +21,6 @@ export default defineConfig({
         target: 'http://localhost:8080', // 👈 你的 Spring Cloud Gateway 或后端地址
         changeOrigin: true, // 必须为 true，否则 Host 不匹配
         rewrite: (path) => path, // 默认不重写路径（/api/xxx → /api/xxx）
-        // 如果你的网关不需要 /api 前缀，可以重写：
-        // rewrite: (path) => path.replace(/^\/api/, ''),
       },
     },
   },
