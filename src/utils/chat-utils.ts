@@ -9,17 +9,17 @@ const md = new MarkdownIt({
 
 /**
  * 解析 Markdown 内容并处理商品链接
- * 
+ *
  * 处理流程：
  * 1. 先将商品链接 [文本](product:id) 替换为占位符
  * 2. 使用 markdown-it 解析 Markdown 语法
  * 3. 在解析后的 HTML 中恢复商品链接为可点击的格式
- * 
+ *
  * 支持格式：
  * 1. Markdown 格式: [商品名称](product:商品ID)
  * 2. 标准 Markdown: [商品名称](/product/商品ID)
  * 3. 标准 Markdown 语法: **加粗**、*斜体*、列表、代码块等
- * 
+ *
  * @param content 原始消息内容（支持 Markdown + 商品链接）
  * @returns 解析后的 HTML 字符串
  */
@@ -32,14 +32,14 @@ export function parseProductLinks(content: string): string {
 
   // 第1步：将商品链接替换为占位符（使用特殊格式防止 markdown-it 处理）
   // 匹配 [文本](product:id) 或 [文本](/product/id)
-  let processedContent = content.replace(
+  const processedContent = content.replace(
     /\[([^\]]+?)\]\((product:|\/product\/)([a-zA-Z0-9]+)\)/g,
     (match, text, prefix, id) => {
       const placeholder = `{{PRODUCTLINK:${linkCounter}}}`
       productLinks[placeholder] = { text, id }
       linkCounter++
       return placeholder
-    }
+    },
   )
 
   // 第2步：使用 markdown-it 解析 Markdown
@@ -47,7 +47,10 @@ export function parseProductLinks(content: string): string {
 
   // 第3步：将占位符替换为实际的商品链接
   Object.keys(productLinks).forEach((placeholder) => {
-    const { text, id } = productLinks[placeholder]
+    const linkInfo = productLinks[placeholder]
+    if (!linkInfo) return // 防御性检查
+
+    const { text, id } = linkInfo
     const productLinkHtml = `<a href="javascript:void(0);" class="product-link" data-product-id="${id}">${text}</a>`
     // 需要转义占位符中的特殊字符
     const escapedPlaceholder = placeholder.replace(/[{}:]/g, '\\$&')
@@ -55,7 +58,10 @@ export function parseProductLinks(content: string): string {
   })
 
   // 第4步：处理普通的外部链接（markdown-it 已经处理过了，但我们需要添加 target="_blank"）
-  html = html.replace(/<a href="(https?:\/\/[^"]+)"/g, '<a href="$1" target="_blank" class="external-link"')
+  html = html.replace(
+    /<a href="(https?:\/\/[^"]+)"/g,
+    '<a href="$1" target="_blank" class="external-link"',
+  )
 
   return html
 }

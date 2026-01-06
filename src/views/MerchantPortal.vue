@@ -337,7 +337,7 @@ const handleEditProduct = async (product: Product) => {
 
       // 转换为 skuItems 格式
       skuItems = productDetail.skus.map((sku) => ({
-        id: sku.id,
+        id: sku.id ?? undefined, // 将 null 转换为 undefined
         specs: sku.attributes,
         price: sku.price,
         stock: sku.stock,

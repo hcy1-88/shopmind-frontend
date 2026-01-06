@@ -497,7 +497,9 @@
           <el-descriptions-item label="订单金额">
             <span class="amount">¥{{ viewingOrder.totalAmount }}</span>
           </el-descriptions-item>
-          <el-descriptions-item label="创建时间">{{ formatOrderTime(viewingOrder.createdAt) }}</el-descriptions-item>
+          <el-descriptions-item label="创建时间">{{
+            formatOrderTime(viewingOrder.createdAt)
+          }}</el-descriptions-item>
         </el-descriptions>
 
         <!-- 收货信息 -->
@@ -553,15 +555,7 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted, watch, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import {
-  ArrowLeft,
-  User,
-  Setting,
-  Document,
-  ChatDotRound,
-  Location,
-  Edit,
-} from '@element-plus/icons-vue'
+import { ArrowLeft, User, Setting, Document, Location, Edit } from '@element-plus/icons-vue'
 import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
 import { useUserStore } from '@/stores/userStore'
 import AddressSelector from '@/components/AddressSelector.vue'
@@ -821,18 +815,18 @@ const getStatusText = (status: OrderStatus) => {
 // 格式化订单时间：从 "2026-01-02 08:16:06" 格式化为 "2026年1月2日 08:16"（年月日 时:分）
 const formatOrderTime = (timeStr: string | undefined | null): string => {
   if (!timeStr) return ''
-  
+
   // 格式：YYYY-MM-DD HH:MM:SS 或 YYYY-MM-DDTHH:MM:SS
   // 目标格式：YYYY年M月D日 HH:MM（年月日 时:分）
   const match = timeStr.match(/^(\d{4})-(\d{1,2})-(\d{1,2})[T ](\d{2}:\d{2})/)
-  if (match) {
+  if (match && match[1] && match[2] && match[3] && match[4]) {
     const year = match[1]
     const month = parseInt(match[2], 10).toString() // 去掉前导0
     const day = parseInt(match[3], 10).toString() // 去掉前导0
     const time = match[4]
     return `${year}年${month}月${day}日 ${time}`
   }
-  
+
   // 如果匹配失败，返回原字符串
   return timeStr
 }
