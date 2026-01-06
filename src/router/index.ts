@@ -24,16 +24,6 @@ const router = createRouter({
       component: () => import('@/views/ProfilePage.vue')
     },
     {
-      path: '/ai-guide',
-      name: 'ai-guide',
-      component: () => import('@/views/AIGuidePage.vue')
-    },
-    {
-      path: '/order/:orderId/chat',
-      name: 'order-chat',
-      component: () => import('@/views/OrderChatPage.vue')
-    },
-    {
       path: '/merchant',
       name: 'merchant-portal',
       component: () => import('@/views/MerchantPortal.vue')

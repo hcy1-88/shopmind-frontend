@@ -89,7 +89,6 @@ import { parseProductLinks } from '@/utils/chat-utils'
 interface Props {
   context?: {
     productId?: string
-    orderId?: string
   }
 }
 
@@ -213,9 +212,12 @@ const handleLinkClick = (event: Event) => {
   }
 }
 
-const openDialog = () => {
+const openDialog = async () => {
   // 确保会话 ID 已初始化
   chatStore.initializeSessionId()
+
+  // 重新加载历史记录（确保显示最新对话）
+  await chatStore.loadHistory()
 
   hasOpenedDialog.value = true
   clearPromptTimer()
@@ -237,8 +239,6 @@ const sendMessage = async () => {
     // 调用 chatStore 的方法，内部会自动保存
     if (props.context?.productId) {
       await chatStore.askProduct(props.context.productId, message)
-    } else if (props.context?.orderId) {
-      await chatStore.askOrder(props.context.orderId, message)
     } else {
       await chatStore.askAI(message)
     }
@@ -358,6 +358,126 @@ defineExpose({
 
 .message-item.user .message-text :deep(.product-link:hover) {
   color: #f3e8ff;
+}
+
+/* Markdown 渲染样式 */
+.message-text :deep(h1),
+.message-text :deep(h2),
+.message-text :deep(h3) {
+  margin-top: 16px;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.message-text :deep(h1) {
+  font-size: 1.5em;
+}
+
+.message-text :deep(h2) {
+  font-size: 1.3em;
+}
+
+.message-text :deep(h3) {
+  font-size: 1.1em;
+}
+
+.message-text :deep(p) {
+  margin: 8px 0;
+  line-height: 1.6;
+}
+
+.message-text :deep(ul),
+.message-text :deep(ol) {
+  margin: 8px 0;
+  padding-left: 24px;
+}
+
+.message-text :deep(li) {
+  margin: 4px 0;
+  line-height: 1.6;
+}
+
+.message-text :deep(strong) {
+  font-weight: 600;
+  color: inherit;
+}
+
+.message-text :deep(em) {
+  font-style: italic;
+}
+
+.message-text :deep(code) {
+  background: rgba(0, 0, 0, 0.05);
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-family: 'Consolas', 'Monaco', monospace;
+  font-size: 0.9em;
+}
+
+.message-text :deep(pre) {
+  background: rgba(0, 0, 0, 0.05);
+  padding: 12px;
+  border-radius: 6px;
+  overflow-x: auto;
+  margin: 8px 0;
+}
+
+.message-text :deep(pre code) {
+  background: none;
+  padding: 0;
+}
+
+.message-text :deep(blockquote) {
+  border-left: 4px solid #7c3aed;
+  padding-left: 12px;
+  margin: 8px 0;
+  color: #666;
+}
+
+.message-text :deep(hr) {
+  border: none;
+  border-top: 1px solid #e5e7eb;
+  margin: 16px 0;
+}
+
+.message-text :deep(a.external-link) {
+  color: #3b82f6;
+  text-decoration: underline;
+}
+
+.message-text :deep(a.external-link:hover) {
+  color: #2563eb;
+}
+
+.message-text :deep(img) {
+  max-width: 100%;
+  max-height: 200px;
+  width: auto;
+  height: auto;
+  border-radius: 8px;
+  margin: 8px 0;
+  display: block;
+  object-fit: contain;
+  cursor: pointer;
+  transition: transform 0.3s;
+}
+
+.message-text :deep(img:hover) {
+  transform: scale(1.02);
+}
+
+/* 用户消息中的 Markdown 样式调整 */
+.message-item.user .message-text :deep(code) {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.message-item.user .message-text :deep(pre) {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.message-item.user .message-text :deep(blockquote) {
+  border-left-color: rgba(255, 255, 255, 0.5);
+  color: rgba(255, 255, 255, 0.9);
 }
 .message-item.user .message-text {
   background-color: #7c3aed;

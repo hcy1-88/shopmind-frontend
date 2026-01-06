@@ -76,7 +76,7 @@ export const useChatStore = defineStore('chat', () => {
   /**
    * AI 问答（流式输出）
    */
-  const askAI = async (question: string, context?: { productId?: string; orderId?: string }) => {
+  const askAI = async (question: string, context?: { productId?: string }) => {
     try {
       isLoading.value = true
 
@@ -162,14 +162,6 @@ export const useChatStore = defineStore('chat', () => {
   }
 
   /**
-   * 咨询订单相关问题
-   */
-  const askOrder = async (orderId: string, question: string) => {
-    currentContext.value = `order:${orderId}`
-    return askAI(question, { orderId })
-  }
-
-  /**
    * 清空聊天记录（同时清除后端历史）
    */
   const clearMessages = async () => {
@@ -208,15 +200,43 @@ export const useChatStore = defineStore('chat', () => {
       // 从后端获取历史
       const history = await aiApi.getHistory(sessionId.value)
 
-      // 转换为前端消息格式
-      messages.value = history.map((msg, index) => ({
-        id: `msg_${Date.now()}_${index}`,
-        role: msg.role,
-        content: msg.content,
-        timestamp: Date.now() - (history.length - index) * 1000, // 模拟时间戳
-      }))
+      // 过滤并转换为前端消息格式
+      messages.value = history
+        .filter((msg) => {
+          // 1. 过滤空消息（AI tool_call 消息，content 为空但携带 tool_call 信息）
+          if (!msg.content || msg.content.trim() === '') {
+            console.warn('⚠️ 过滤掉空消息（可能是 tool_call）')
+            return false
+          }
 
-      console.log(`✅ 已从后端加载 ${history.length} 条历史消息`)
+          // 2. 过滤 ToolMessage（工具执行结果，包含原始 Python 对象字符串）
+          // 特征：包含 Python 对象如 ProductResponseDto、PriceRange、TagInfo 等
+          const isToolMessage =
+            msg.content.includes('ProductResponseDto(') ||
+            msg.content.includes('PriceRange(') ||
+            msg.content.includes('TagInfo(') ||
+            // 其他可能的工具结果特征
+            (msg.content.startsWith('[') && msg.content.includes('ResponseDto(')) ||
+            msg.content.includes("id='") // Python 对象的典型特征
+
+          if (isToolMessage) {
+            console.warn('⚠️ 过滤掉 ToolMessage:', msg.content.substring(0, 100) + '...')
+            return false
+          }
+
+          // 3. 保留用户消息和 AI 的最终回复
+          return true
+        })
+        .map((msg, index) => ({
+          id: `msg_${Date.now()}_${index}`,
+          role: msg.role,
+          content: msg.content,
+          timestamp: Date.now() - (history.length - index) * 1000, // 模拟时间戳
+        }))
+
+      console.log(
+        `✅ 已从后端加载 ${messages.value.length} 条历史消息（原始 ${history.length} 条）`,
+      )
     } catch (error) {
       console.error('加载聊天历史失败:', error)
       // 失败时保持空消息列表
@@ -253,7 +273,6 @@ export const useChatStore = defineStore('chat', () => {
     getCurrentUserId,
     askAI,
     askProduct,
-    askOrder,
     clearMessages,
     loadHistory,
     saveHistory,

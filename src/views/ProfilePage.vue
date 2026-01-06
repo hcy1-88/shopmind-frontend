@@ -797,10 +797,6 @@ const savePreferences = async () => {
   }
 }
 
-const handleConsult = (orderId: string) => {
-  router.push({ name: 'order-chat', params: { orderId } })
-}
-
 // 查看订单详情
 const goToDetail = (order: Order) => {
   viewingOrder.value = order
