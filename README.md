@@ -51,3 +51,26 @@ npm run dev
 
 npm run build
 ```
+
+## 部署（Nginx）
+
+### 构建
+
+```bash
+npm run build
+# 在项目根目录执行
+docker build -t shopmind-frontend:latest .
+```
+
+### 运行容器
+
+```bash
+# 假设你用的 wls2 ，你要执行以下命令，关闭 Apach2 服务，因为它占用了 80 端口
+sudo systemctl stop apache2
+# 假设网络名为 shopmind-network
+docker run -d \
+  --name shopmind-frontend \
+  --network shopmind-dev-net \
+  -p 80:80 \
+  shopmind-frontend:latest
+```
