@@ -13,9 +13,6 @@ COPY dist/ /usr/share/nginx/html/
 # 复制 RAG 管理页面到 /rag 路径
 COPY rag_html/ /usr/share/nginx/html/rag/
 
-# 复制 SSL 证书到 /etc/nginx 下（如果使用 https）
-COPY ssl/ /etc/nginx/
-
 # 暴露 80 端口
 EXPOSE 80
 
