@@ -3,7 +3,6 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# 复制 package*.json（利用 Docker 层缓存）
 COPY package*.json ./
 
 # 安装依赖
@@ -27,7 +26,7 @@ COPY nginx.conf /etc/nginx/nginx.conf
 # 从 builder 阶段复制构建产物
 COPY --from=builder /app/dist/ /usr/share/nginx/html/
 
-# 复制 RAG 管理页面（假设它也在源码中，不是构建产物）
+# 复制 RAG 管理页面
 COPY rag_html/ /usr/share/nginx/html/rag/
 
 EXPOSE 80
