@@ -75,11 +75,21 @@
 
           <div class="product-price-box">
             <div class="price-row">
-              <span class="current-price">¥{{ currentPrice }}</span>
-              <span v-if="!selectedSkuObj && product.priceRange" class="price-range-hint">
+              <span v-if="currentPrice > 0" class="current-price">¥{{ currentPrice }}</span>
+              <span
+                v-if="
+                  !selectedSkuObj &&
+                  product.priceRange &&
+                  !(product.priceRange.min === 0 && product.priceRange.max === 0) &&
+                  (product.priceRange.min > 0 || product.priceRange.max > 0)
+                "
+                class="price-range-hint"
+              >
                 (¥{{ product.priceRange.min }} ~ {{ product.priceRange.max }}元)
               </span>
-              <span v-if="product.originalPrice" class="original-price"
+              <span
+                v-if="product.originalPrice && product.originalPrice > 0"
+                class="original-price"
                 >¥{{ product.originalPrice }}</span
               >
             </div>
