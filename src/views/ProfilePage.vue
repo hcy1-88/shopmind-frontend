@@ -1113,10 +1113,17 @@ watch(showProfileDialog, (newVal) => {
   gap: 8px;
   font-size: 16px;
   font-weight: 600;
+}
+
+.card-header > span {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+}
+
+.card-header > .el-icon {
+  color: #667eea;
 }
 .preferences-form {
   margin-bottom: 20px;
