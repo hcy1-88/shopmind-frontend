@@ -1036,18 +1036,21 @@ watch(showProfileDialog, (newVal) => {
 <style scoped>
 .profile-page {
   min-height: 100vh;
-  background-color: #f5f5f5;
+  background: transparent;
+  animation: fadeIn 0.6s ease-out;
 }
 .header {
   position: sticky;
   top: 0;
-  background: white;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
   padding: 16px 20px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
   display: flex;
   align-items: center;
   gap: 12px;
   z-index: 100;
+  border-bottom: 1px solid rgba(124, 58, 237, 0.1);
 }
 .header-title {
   font-size: 16px;
@@ -1060,6 +1063,13 @@ watch(showProfileDialog, (newVal) => {
 }
 .user-card {
   margin-bottom: 20px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  border: 1px solid rgba(124, 58, 237, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  animation: fadeInUp 0.8s ease-out;
+  overflow: hidden;
 }
 .user-info {
   display: flex;
@@ -1089,13 +1099,24 @@ watch(showProfileDialog, (newVal) => {
 .address-card,
 .orders-card {
   margin-bottom: 20px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  border: 1px solid rgba(124, 58, 237, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  animation: fadeInUp 1s ease-out 0.2s both;
+  overflow: hidden;
 }
 .card-header {
   display: flex;
   align-items: center;
   gap: 8px;
   font-size: 16px;
-  font-weight: 500;
+  font-weight: 600;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 .preferences-form {
   margin-bottom: 20px;
@@ -1105,9 +1126,17 @@ watch(showProfileDialog, (newVal) => {
 }
 .order-item {
   padding: 16px;
-  background: #f8f9fa;
-  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(248, 249, 250, 0.8) 0%, rgba(255, 255, 255, 0.6) 100%);
+  border-radius: 12px;
   margin-bottom: 12px;
+  border: 1px solid rgba(124, 58, 237, 0.08);
+  transition: all 0.3s;
+}
+
+.order-item:hover {
+  box-shadow: 0 4px 16px rgba(124, 58, 237, 0.12);
+  transform: translateY(-2px);
+  border-color: rgba(124, 58, 237, 0.2);
 }
 .order-header {
   display: flex;
@@ -1179,12 +1208,20 @@ watch(showProfileDialog, (newVal) => {
 }
 .address-item {
   padding: 16px;
-  background: #f8f9fa;
-  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(248, 249, 250, 0.8) 0%, rgba(255, 255, 255, 0.6) 100%);
+  border-radius: 12px;
   margin-bottom: 12px;
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
+  border: 1px solid rgba(124, 58, 237, 0.08);
+  transition: all 0.3s;
+}
+
+.address-item:hover {
+  box-shadow: 0 4px 16px rgba(124, 58, 237, 0.12);
+  transform: translateY(-2px);
+  border-color: rgba(124, 58, 237, 0.2);
 }
 .address-content {
   flex: 1;
@@ -1235,7 +1272,10 @@ watch(showProfileDialog, (newVal) => {
   margin-top: 8px;
 }
 .avatar-uploader:hover .avatar-upload-hint {
-  color: #7c3aed;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .loading-interests {
@@ -1258,16 +1298,19 @@ watch(showProfileDialog, (newVal) => {
 
 .interest-item {
   padding: 12px 20px;
-  border: 1px solid #e4e7ed;
-  border-radius: 8px;
-  transition: all 0.3s;
-  min-width: 110px; /* 设置最小宽度，确保对齐 */
-  text-align: center; /* 文字居中 */
+  border: 2px solid #e4e7ed;
+  border-radius: 12px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  min-width: 110px;
+  text-align: center;
+  background: white;
 }
 
 .interest-item:hover {
-  border-color: #7c3aed;
-  background-color: #f5f3ff;
+  border-color: #667eea;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.15);
 }
 
 .interest-content {

@@ -519,15 +519,18 @@ const getStatusText = (status?: ProductStatus) => {
 <style scoped>
 .merchant-portal {
   min-height: 100vh;
-  background-color: #f5f7fa;
+  background: transparent;
   display: flex;
   flex-direction: column;
+  animation: fadeIn 0.6s ease-out;
 }
 
 .portal-header {
-  background-color: #fff;
-  border-bottom: 1px solid #e4e7ed;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(124, 58, 237, 0.1);
   padding: 0;
+  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
 }
 
 .header-content {
@@ -549,7 +552,12 @@ const getStatusText = (status?: ProductStatus) => {
 .logo-section h1 {
   margin: 0;
   font-size: 20px;
-  color: #303133;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: bold;
+  letter-spacing: 0.5px;
 }
 
 .header-actions {
@@ -569,37 +577,52 @@ const getStatusText = (status?: ProductStatus) => {
 }
 
 .user-info:hover {
-  background-color: #f5f7fa;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
 }
 
 .portal-content {
   max-width: 1400px;
   width: 100%;
   margin: 20px auto;
-  background-color: #fff;
-  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  border: 1px solid rgba(124, 58, 237, 0.1);
   flex: 1;
+  animation: fadeInUp 0.8s ease-out;
 }
 
 .portal-aside {
-  border-right: 1px solid #e4e7ed;
-  background-color: #fff;
+  border-right: 1px solid rgba(124, 58, 237, 0.1);
+  background: transparent;
 }
 
 .ai-tip {
   padding: 20px;
   margin: 20px;
-  background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%);
-  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+  border-radius: 12px;
   text-align: center;
+  border: 1px solid rgba(124, 58, 237, 0.15);
+  box-shadow: 0 4px 16px rgba(124, 58, 237, 0.1);
+  transition: all 0.3s;
+}
+
+.ai-tip:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(124, 58, 237, 0.15);
 }
 
 .ai-tip h4 {
   margin: 12px 0 8px;
-  color: #7c3aed;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   font-size: 16px;
+  font-weight: bold;
 }
 
 .ai-tip p {
@@ -610,7 +633,7 @@ const getStatusText = (status?: ProductStatus) => {
 }
 
 .portal-main {
-  background-color: #fff;
+  background: transparent;
   padding: 24px;
 }
 
@@ -639,7 +662,11 @@ const getStatusText = (status?: ProductStatus) => {
 .upload-header h2 {
   margin: 0;
   font-size: 24px;
-  color: #303133;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: bold;
 }
 
 .product-detail-dialog {
@@ -667,24 +694,30 @@ const getStatusText = (status?: ProductStatus) => {
 
 .ai-summary-box {
   padding: 16px;
-  background-color: #f5f3ff;
-  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+  border-radius: 12px;
   display: flex;
   align-items: center;
   gap: 12px;
   color: #606266;
   line-height: 1.6;
+  border: 1px solid rgba(124, 58, 237, 0.15);
 }
 
 .description-box {
   padding: 16px;
-  background-color: #f5f7fa;
-  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(245, 247, 250, 0.8) 0%, rgba(255, 255, 255, 0.6) 100%);
+  border-radius: 12px;
+  border: 1px solid rgba(124, 58, 237, 0.08);
 }
 
 .description-box h4 {
   margin: 0 0 12px;
-  color: #303133;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 600;
 }
 
 .description-box p {
@@ -700,6 +733,10 @@ const getStatusText = (status?: ProductStatus) => {
 
 .sku-list-box h4 {
   margin: 0 0 12px;
-  color: #303133;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 600;
 }
 </style>

@@ -218,15 +218,18 @@ const openAIDialog = () => {
 <style scoped>
 .home-page {
   min-height: 100vh;
-  background: linear-gradient(to bottom, #f8f9ff, #ffffff);
+  background: transparent;
+  animation: fadeIn 0.6s ease-out;
 }
 .header {
-  background: white;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
   height: 64px;
   display: flex;
   align-items: center;
   padding: 0;
+  border-bottom: 1px solid rgba(124, 58, 237, 0.1);
 }
 .header-content {
   width: 100%;
@@ -240,8 +243,12 @@ const openAIDialog = () => {
 .logo h1 {
   margin: 0;
   font-size: 24px;
-  color: #7c3aed;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   font-weight: bold;
+  letter-spacing: 0.5px;
 }
 .logo-subtitle {
   font-size: 12px;
@@ -269,7 +276,7 @@ const openAIDialog = () => {
   transition: background-color 0.3s;
 }
 .user-info:hover {
-  background-color: #f5f5f5;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
 }
 .user-nickname {
   font-size: 14px;
@@ -284,6 +291,12 @@ const openAIDialog = () => {
 .welcome-section {
   text-align: center;
   margin-bottom: 60px;
+  padding: 40px 20px;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  border-radius: 24px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  animation: fadeInUp 0.8s ease-out;
 }
 .welcome-icon {
   margin-bottom: 20px;
@@ -295,13 +308,18 @@ const openAIDialog = () => {
 }
 
 .welcome-icon .el-icon:hover {
-  transform: scale(1.1);
+  transform: scale(1.1) rotate(5deg);
+  filter: drop-shadow(0 4px 12px rgba(124, 58, 237, 0.4));
 }
 .welcome-title {
   font-size: 32px;
   font-weight: bold;
-  color: #333;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   margin: 0 0 12px 0;
+  letter-spacing: 0.5px;
 }
 .welcome-desc {
   font-size: 16px;
@@ -314,6 +332,14 @@ const openAIDialog = () => {
 }
 .search-box :deep(.el-input__wrapper) {
   border-radius: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 2px solid transparent;
+  transition: all 0.3s ease;
+}
+
+.search-box :deep(.el-input__wrapper):hover {
+  box-shadow: 0 6px 24px rgba(124, 58, 237, 0.15);
+  border-color: rgba(124, 58, 237, 0.3);
 }
 .quick-questions {
   display: flex;
@@ -321,25 +347,78 @@ const openAIDialog = () => {
   gap: 12px;
   flex-wrap: wrap;
 }
+
+.quick-questions .el-button {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+  border: 1px solid rgba(124, 58, 237, 0.2);
+  color: #667eea;
+  font-weight: 500;
+}
+
+.quick-questions .el-button:hover {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-color: transparent;
+}
 .products-section {
   margin-top: 40px;
+  animation: fadeInUp 1s ease-out 0.2s both;
 }
 .section-title {
   font-size: 24px;
   font-weight: bold;
-  color: #333;
+  color: white;
   margin: 0 0 24px 0;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  position: relative;
+  padding-left: 16px;
+}
+
+.section-title::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 24px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 2px;
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.4);
 }
 .product-card {
   cursor: pointer;
   margin-bottom: 20px;
-  transition: transform 0.3s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 16px;
+  overflow: hidden;
+  background: white;
+  border: 1px solid rgba(124, 58, 237, 0.1);
 }
 .product-card:hover {
-  transform: translateY(-4px);
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 12px 40px rgba(124, 58, 237, 0.2);
+  border-color: rgba(124, 58, 237, 0.3);
 }
 .product-image {
   overflow: hidden;
+  position: relative;
+}
+
+.product-image::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.05) 100%);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.product-card:hover .product-image::after {
+  opacity: 1;
 }
 .image-error {
   display: flex;
@@ -384,11 +463,18 @@ const openAIDialog = () => {
   align-items: center;
   gap: 6px;
   padding: 8px 12px;
-  background: linear-gradient(135deg, #f8f9ff, #f0e7ff);
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
   border-radius: 8px;
   font-size: 13px;
-  color: #7c3aed;
+  color: #667eea;
   line-height: 1.4;
+  border: 1px solid rgba(124, 58, 237, 0.15);
+  transition: all 0.3s;
+}
+
+.product-card:hover .ai-summary {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%);
+  border-color: rgba(124, 58, 237, 0.3);
 }
 .ai-summary span {
   flex: 1;

@@ -641,19 +641,22 @@ const formatDate = (dateString: string) => {
 <style scoped>
 .product-detail {
   min-height: 100vh;
-  background-color: #f5f5f5;
+  background: transparent;
   padding-bottom: 80px;
+  animation: fadeIn 0.6s ease-out;
 }
 .header {
   position: sticky;
   top: 0;
-  background: white;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
   padding: 16px 20px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
   display: flex;
   align-items: center;
   justify-content: space-between;
   z-index: 100;
+  border-bottom: 1px solid rgba(124, 58, 237, 0.1);
 }
 
 .header-left {
@@ -691,7 +694,7 @@ const formatDate = (dateString: string) => {
 }
 
 .user-info:hover {
-  background-color: #f5f7fa;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
 }
 
 .user-nickname {
@@ -707,22 +710,27 @@ const formatDate = (dateString: string) => {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 30px;
-  background: white;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
   padding: 30px;
-  border-radius: 12px;
+  border-radius: 20px;
   margin-bottom: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(124, 58, 237, 0.1);
+  animation: fadeInUp 0.8s ease-out;
 }
 .product-images {
-  border-radius: 12px;
+  border-radius: 16px;
   overflow: hidden;
   position: relative;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
 }
 .preview-image {
   transition: transform 0.3s ease;
-  border-radius: 12px;
+  border-radius: 16px;
 }
 .preview-image:hover {
-  transform: scale(1.02);
+  transform: scale(1.03);
 }
 .image-hint {
   position: absolute;
@@ -763,8 +771,10 @@ const formatDate = (dateString: string) => {
 }
 .product-price-box {
   padding: 16px;
-  background: linear-gradient(135deg, #fff5f5, #ffe5e5);
-  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(255, 245, 245, 0.8), rgba(255, 229, 229, 0.8));
+  border-radius: 12px;
+  border: 1px solid rgba(255, 68, 68, 0.1);
+  box-shadow: 0 2px 12px rgba(255, 68, 68, 0.08);
 }
 .price-row {
   display: flex;
@@ -808,11 +818,13 @@ const formatDate = (dateString: string) => {
   align-items: center;
   gap: 8px;
   padding: 16px;
-  background: linear-gradient(135deg, #f8f9ff, #f0e7ff);
-  border-radius: 8px;
-  color: #7c3aed;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+  border-radius: 12px;
+  color: #667eea;
   font-size: 14px;
   line-height: 1.6;
+  border: 1px solid rgba(124, 58, 237, 0.15);
+  box-shadow: 0 2px 12px rgba(124, 58, 237, 0.08);
 }
 .sku-selector {
   display: flex;
@@ -832,18 +844,22 @@ const formatDate = (dateString: string) => {
 .sku-option {
   padding: 12px 16px;
   border: 2px solid #e4e7ed;
-  border-radius: 8px;
+  border-radius: 12px;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   min-width: 120px;
+  background: white;
 }
 .sku-option:hover:not(.disabled) {
-  border-color: #7c3aed;
-  background-color: #f8f9ff;
+  border-color: #667eea;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.15);
 }
 .sku-option.active {
-  border-color: #7c3aed;
-  background-color: #f0e7ff;
+  border-color: #667eea;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%);
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.2);
 }
 .sku-option.disabled {
   cursor: not-allowed;
@@ -893,18 +909,41 @@ const formatDate = (dateString: string) => {
 .product-description-section,
 .reviews-section,
 .recommendations-section {
-  background: white;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
   padding: 30px;
-  border-radius: 12px;
+  border-radius: 20px;
   margin-bottom: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(124, 58, 237, 0.1);
+  animation: fadeInUp 1s ease-out 0.2s both;
 }
 .section-title {
   font-size: 20px;
   font-weight: bold;
-  color: #333;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   margin: 0 0 20px 0;
   padding-bottom: 12px;
-  border-bottom: 2px solid #7c3aed;
+  border-bottom: 2px solid transparent;
+  border-image: linear-gradient(90deg, #667eea 0%, #764ba2 100%) 1;
+  position: relative;
+  padding-left: 16px;
+}
+
+.section-title::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 2px;
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.4);
 }
 .description-content {
   font-size: 14px;
@@ -918,8 +957,15 @@ const formatDate = (dateString: string) => {
 }
 .review-item {
   padding: 20px;
-  background: #f8f9fa;
-  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(248, 249, 250, 0.8) 0%, rgba(255, 255, 255, 0.6) 100%);
+  border-radius: 12px;
+  border: 1px solid rgba(124, 58, 237, 0.08);
+  transition: all 0.3s;
+}
+
+.review-item:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
 }
 .review-header {
   display: flex;
@@ -955,10 +1001,15 @@ const formatDate = (dateString: string) => {
 .recommend-card {
   cursor: pointer;
   margin-bottom: 16px;
-  transition: transform 0.3s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(124, 58, 237, 0.1);
 }
 .recommend-card:hover {
-  transform: translateY(-4px);
+  transform: translateY(-6px) scale(1.02);
+  box-shadow: 0 8px 24px rgba(124, 58, 237, 0.15);
+  border-color: rgba(124, 58, 237, 0.3);
 }
 .image-error-small {
   display: flex;
@@ -1004,18 +1055,21 @@ const formatDate = (dateString: string) => {
   width: 60px;
   height: 60px;
   border: 2px solid #e4e7ed;
-  border-radius: 4px;
+  border-radius: 8px;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   flex-shrink: 0;
   overflow: hidden;
 }
 .thumbnail-item:hover {
-  border-color: #7c3aed;
+  border-color: #667eea;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.2);
 }
 .thumbnail-item.active {
-  border-color: #7c3aed;
-  box-shadow: 0 0 8px rgba(124, 58, 237, 0.3);
+  border-color: #667eea;
+  box-shadow: 0 4px 16px rgba(124, 58, 237, 0.4);
+  transform: scale(1.05);
 }
 .thumbnail-error {
   display: flex;

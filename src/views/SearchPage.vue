@@ -238,19 +238,22 @@ const handleCommand = (command: string) => {
 <style scoped>
 .search-page {
   min-height: 100vh;
-  background-color: #f5f5f5;
+  background: transparent;
+  animation: fadeIn 0.6s ease-out;
 }
 .search-header {
   position: sticky;
   top: 0;
-  background: white;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
   padding: 16px 20px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
   z-index: 100;
+  border-bottom: 1px solid rgba(124, 58, 237, 0.1);
 }
 
 .header-left {
@@ -282,7 +285,7 @@ const handleCommand = (command: string) => {
 }
 
 .user-info:hover {
-  background-color: #f5f7fa;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
 }
 
 .user-nickname {
@@ -291,6 +294,14 @@ const handleCommand = (command: string) => {
 }
 .search-input :deep(.el-input__wrapper) {
   border-radius: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 2px solid transparent;
+  transition: all 0.3s ease;
+}
+
+.search-input :deep(.el-input__wrapper):hover {
+  box-shadow: 0 6px 24px rgba(124, 58, 237, 0.15);
+  border-color: rgba(124, 58, 237, 0.3);
 }
 .search-content {
   max-width: 1200px;
@@ -302,7 +313,9 @@ const handleCommand = (command: string) => {
 }
 .result-count {
   font-size: 14px;
-  color: #666;
+  color: white;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  font-weight: 500;
 }
 .result-list {
   min-height: 400px;
@@ -310,21 +323,32 @@ const handleCommand = (command: string) => {
 .product-item {
   display: flex;
   gap: 16px;
-  background: white;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
   padding: 16px;
   margin-bottom: 12px;
-  border-radius: 8px;
+  border-radius: 16px;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid rgba(124, 58, 237, 0.1);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  animation: fadeInUp 0.6s ease-out;
 }
 .product-item:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(124, 58, 237, 0.2);
+  transform: translateY(-4px);
+  border-color: rgba(124, 58, 237, 0.3);
 }
 .product-image {
   flex-shrink: 0;
-  border-radius: 8px;
+  border-radius: 12px;
   overflow: hidden;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  transition: transform 0.3s;
+}
+
+.product-item:hover .product-image {
+  transform: scale(1.05);
 }
 .image-error {
   display: flex;
@@ -371,10 +395,17 @@ const handleCommand = (command: string) => {
   align-items: center;
   gap: 6px;
   padding: 8px 12px;
-  background: linear-gradient(135deg, #f8f9ff, #f0e7ff);
-  border-radius: 6px;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+  border-radius: 8px;
   font-size: 13px;
-  color: #7c3aed;
+  color: #667eea;
+  border: 1px solid rgba(124, 58, 237, 0.15);
+  transition: all 0.3s;
+}
+
+.product-item:hover .ai-summary {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%);
+  border-color: rgba(124, 58, 237, 0.3);
 }
 .product-price {
   margin-top: auto;
@@ -395,7 +426,12 @@ const handleCommand = (command: string) => {
   display: flex;
   justify-content: center;
   margin-top: 20px;
-  padding: 20px 0;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(124, 58, 237, 0.1);
 }
 
 @media (max-width: 768px) {
