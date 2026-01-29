@@ -90,3 +90,7 @@ docker run -d \
   -p 80:80 \
   shopmind-frontend:latest
 ```
+
+## 📚 项目笔记
+
+详细的项目开发笔记和技术文档请查看：[《ShopMind 项目笔记》](https://www.yuque.com/zhonghuajiadexiaoh/vl8u6g/xqqbgo6c9rygfh9t?singleDoc# 《项目笔记》)
