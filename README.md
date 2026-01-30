@@ -91,6 +91,38 @@ docker run -d \
   shopmind-frontend:latest
 ```
 
-## 📚 项目笔记
+# ShopMind - AI 智能电商平台（后端）
+后端使用 Java + Python 混合架构，各自负责不同的服务功能划分，共享中间件和数据库的使用：
+
+![后端架构图](imgs/后端架构图.png)
+
+### 架构说明
+
+#### 基础设施层
+- **Nginx**：部署前端，作为整个项目的统一入口
+- **网关**：Java Spring Cloud Gateway，负责具体的服务 IP 路由、统一服务异常处理等
+
+#### 业务服务层
+
+| 服务 | 技术栈 | 功能描述 | 详细文档 |
+|------|--------|----------|----------|
+| **推荐服务** | Python | 从多个维度对用户进行首页个性化商品推荐以及商品详情页"猜您喜欢"推荐 | [查看详情](https://github.com/hcy1-88/shopmind-recommendation-service) |
+| **AI 服务** | Python | 负责大模型相关的交互任务，支持 AI chat、文本嵌入、RAG、商品标题图片智能审核、AI 商品文案生成 | [查看详情](https://github.com/hcy1-88/shopmind-ai-service) |
+| **用户服务** | Java | 负责处理用户相关信息，如用户个人资料、用户收货地址、兴趣爱好、行为历史，用于个性化推荐 | [查看详情](https://github.com/hcy1-88/shopmind-user-service) |
+| **认证服务** | Java | 作为整个项目的统一 token 权限认证，负责注册、登录、短信验证码、公钥发布 | [查看详情](https://github.com/hcy1-88/shopmind-auth-service) |
+| **商品服务** | Java | 商品的智能搜索、商家服务 | [查看详情](https://github.com/hcy1-88/shopmind-product-service) |
+| **订单服务** | Java | 下单、查询订单（暂未实现支付、物流等复杂业务） | [查看详情](https://github.com/hcy1-88/shopmind-order-service) |
+
+#### 底层框架
+- **公共框架**：基于 Spring Cloud 和 Spring Boot，为上游业务提供统一的公共能力
+  - 功能包括：统一的 trace id 追踪、用户上下文、异常处理、中间件集成、token 检验、负载均衡、远程服务调用等
+  - 方便业务人员聚焦于业务实现，节省心智模型
+  - 📖 [详细说明](https://github.com/hcy1-88/shopmind-commen-starter)
+
+项目在线访问地址：http://124.223.73.34/
+
+详细笔记请参阅【项目详细笔记】。
+
+# 📚 项目详细笔记
 
 详细的项目开发笔记和技术文档请查看：[《ShopMind 项目笔记》](https://www.yuque.com/zhonghuajiadexiaoh/vl8u6g/xqqbgo6c9rygfh9t?singleDoc# 《项目笔记》)
