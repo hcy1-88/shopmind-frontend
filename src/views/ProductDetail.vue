@@ -75,20 +75,27 @@
 
           <div class="product-price-box">
             <div class="price-row">
-              <!-- 如果选中了 SKU 或只有单一价格，显示单一价格 -->
-              <span v-if="selectedSkuObj || !product.priceRange" class="current-price">
+              <!-- 如果选中了 SKU，显示 SKU 价格 -->
+              <span v-if="selectedSkuObj" class="current-price">
                 ¥{{ currentPrice }}
               </span>
-              <!-- 如果没选中 SKU 且有价格范围，显示价格范围 -->
+              <!-- 如果没选中 SKU 且有有效的价格范围，显示价格范围 -->
               <span
                 v-else-if="
                   product.priceRange &&
-                  !(product.priceRange.min === 0 && product.priceRange.max === 0)
+                  product.priceRange.min > 0 &&
+                  product.priceRange.max > 0
                 "
                 class="current-price"
               >
                 ¥{{ product.priceRange.min }} - ¥{{ product.priceRange.max }}
               </span>
+              <!-- 否则显示单一价格 -->
+              <span v-else-if="product.price && product.price > 0" class="current-price">
+                ¥{{ product.price }}
+              </span>
+              <!-- 都没有，显示价格面议 -->
+              <span v-else class="current-price" style="color: #999">价格面议</span>
               <!-- 如果有原价，用删除线显示 -->
               <span
                 v-if="product.originalPrice && product.originalPrice > 0"
@@ -226,14 +233,21 @@
               <div class="recommend-info">
                 <div class="recommend-name">{{ item.name }}</div>
                 <div class="recommend-price">
-                  <!-- 优先显示价格范围，否则显示单一价格 -->
-                  <span v-if="item.priceRange">
+                  <!-- 优先显示价格范围（必须大于0），否则显示单一价格 -->
+                  <span
+                    v-if="
+                      item.priceRange &&
+                      item.priceRange.min > 0 &&
+                      item.priceRange.max > 0
+                    "
+                  >
                     ¥{{ item.priceRange.min }} - ¥{{ item.priceRange.max }}
                   </span>
-                  <span v-else>¥{{ item.price }}</span>
+                  <span v-else-if="item.price && item.price > 0">¥{{ item.price }}</span>
+                  <span v-else style="color: #999; font-size: 12px">价格面议</span>
                 </div>
                 <!-- 如果有原价，用删除线显示 -->
-                <div v-if="item.originalPrice" class="recommend-original-price">
+                <div v-if="item.originalPrice && item.originalPrice > 0" class="recommend-original-price">
                   ¥{{ item.originalPrice }}
                 </div>
               </div>
@@ -359,12 +373,16 @@ const currentPrice = computed(() => {
   if (selectedSkuObj.value) {
     return selectedSkuObj.value.price
   }
-  // 如果有价格范围，优先使用价格范围的最小值
-  if (product.value?.priceRange) {
+  // 如果有有效的价格范围（min>0 && max>0），优先使用价格范围的最小值
+  if (
+    product.value?.priceRange &&
+    product.value.priceRange.min > 0 &&
+    product.value.priceRange.max > 0
+  ) {
     return product.value.priceRange.min
   }
   // 否则使用单一价格
-  if (product.value?.price != null) {
+  if (product.value?.price != null && product.value.price > 0) {
     return product.value.price
   }
   return 0

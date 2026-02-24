@@ -93,13 +93,23 @@
               <div class="product-info">
                 <h4 class="product-name">{{ product.name }}</h4>
                 <div class="product-price">
-                  <!-- 优先显示价格范围，否则显示单一价格 -->
-                  <span v-if="product.priceRange" class="current-price">
+                  <!-- 优先显示价格范围（必须大于0），否则显示单一价格 -->
+                  <span
+                    v-if="
+                      product.priceRange &&
+                      product.priceRange.min > 0 &&
+                      product.priceRange.max > 0
+                    "
+                    class="current-price"
+                  >
                     ¥{{ product.priceRange.min }} - ¥{{ product.priceRange.max }}
                   </span>
-                  <span v-else class="current-price">¥{{ product.price }}</span>
+                  <span v-else-if="product.price && product.price > 0" class="current-price">
+                    ¥{{ product.price }}
+                  </span>
+                  <span v-else class="current-price" style="color: #999">价格面议</span>
                   <!-- 如果有原价，用删除线显示 -->
-                  <span v-if="product.originalPrice" class="original-price">
+                  <span v-if="product.originalPrice && product.originalPrice > 0" class="original-price">
                     ¥{{ product.originalPrice }}
                   </span>
                 </div>
