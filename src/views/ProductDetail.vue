@@ -107,7 +107,7 @@
           </div>
 
           <div class="ai-recommendation">
-            <el-icon color="#7c3aed" :size="20"><MagicStick /></el-icon>
+            <el-icon color="#ff6034" :size="20"><MagicStick /></el-icon>
             <span>{{ product.aiSummary }}</span>
           </div>
 
@@ -191,7 +191,7 @@
             </div>
             <div class="review-content">{{ review.content }}</div>
             <div v-if="review.aiTags && review.aiTags.length > 0" class="ai-tags">
-              <el-icon color="#7c3aed"><MagicStick /></el-icon>
+              <el-icon color="#ff6034"><MagicStick /></el-icon>
               <el-tag
                 v-for="tag in review.aiTags"
                 :key="tag"
@@ -675,7 +675,7 @@ const formatDate = (dateString: string) => {
   align-items: center;
   justify-content: space-between;
   z-index: 100;
-  border-bottom: 1px solid rgba(124, 58, 237, 0.1);
+  border-bottom: 1px solid rgba(255, 96, 52, 0.1);
 }
 
 .header-left {
@@ -713,7 +713,7 @@ const formatDate = (dateString: string) => {
 }
 
 .user-info:hover {
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+  background: linear-gradient(135deg, rgba(255, 96, 52, 0.1) 0%, rgba(255, 144, 104, 0.1) 100%);
 }
 
 .user-nickname {
@@ -735,7 +735,7 @@ const formatDate = (dateString: string) => {
   border-radius: 20px;
   margin-bottom: 20px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(124, 58, 237, 0.1);
+  border: 1px solid #f0f0f0;
   animation: fadeInUp 0.8s ease-out;
 }
 .product-images {
@@ -818,7 +818,7 @@ const formatDate = (dateString: string) => {
 .selected-sku-info {
   margin-top: 8px;
   font-size: 14px;
-  color: #7c3aed;
+  color: #ff6034;
   font-weight: 500;
 }
 .total-price-row {
@@ -837,13 +837,13 @@ const formatDate = (dateString: string) => {
   align-items: center;
   gap: 8px;
   padding: 16px;
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+  background: linear-gradient(135deg, rgba(255, 96, 52, 0.1) 0%, rgba(255, 144, 104, 0.1) 100%);
   border-radius: 12px;
-  color: #667eea;
+  color: #ff6034;
   font-size: 14px;
   line-height: 1.6;
-  border: 1px solid rgba(124, 58, 237, 0.15);
-  box-shadow: 0 2px 12px rgba(124, 58, 237, 0.08);
+  border: 1px solid rgba(255, 96, 52, 0.15);
+  box-shadow: 0 2px 12px rgba(255, 96, 52, 0.08);
 }
 .sku-selector {
   display: flex;
@@ -870,15 +870,15 @@ const formatDate = (dateString: string) => {
   background: white;
 }
 .sku-option:hover:not(.disabled) {
-  border-color: #667eea;
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+  border-color: #ff6034;
+  background: linear-gradient(135deg, rgba(255, 96, 52, 0.1) 0%, rgba(255, 144, 104, 0.1) 100%);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.15);
+  box-shadow: 0 4px 12px rgba(255, 96, 52, 0.15);
 }
 .sku-option.active {
-  border-color: #667eea;
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%);
-  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.2);
+  border-color: #ff6034;
+  background: linear-gradient(135deg, rgba(255, 96, 52, 0.15) 0%, rgba(255, 144, 104, 0.15) 100%);
+  box-shadow: 0 4px 12px rgba(255, 96, 52, 0.2);
 }
 .sku-option.disabled {
   cursor: not-allowed;
@@ -934,20 +934,20 @@ const formatDate = (dateString: string) => {
   border-radius: 20px;
   margin-bottom: 20px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(124, 58, 237, 0.1);
+  border: 1px solid #f0f0f0;
   animation: fadeInUp 1s ease-out 0.2s both;
 }
 .section-title {
   font-size: 20px;
   font-weight: bold;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #ff6034 0%, #ff9068 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
   margin: 0 0 20px 0;
   padding-bottom: 12px;
   border-bottom: 2px solid transparent;
-  border-image: linear-gradient(90deg, #667eea 0%, #764ba2 100%) 1;
+  border-image: linear-gradient(90deg, #ff6034 0%, #ff9068 100%) 1;
   position: relative;
   padding-left: 16px;
 }
@@ -960,9 +960,9 @@ const formatDate = (dateString: string) => {
   transform: translateY(-50%);
   width: 4px;
   height: 20px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #ff6034 0%, #ff9068 100%);
   border-radius: 2px;
-  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.4);
+  box-shadow: 0 2px 8px rgba(255, 96, 52, 0.4);
 }
 .description-content {
   font-size: 14px;
@@ -978,7 +978,7 @@ const formatDate = (dateString: string) => {
   padding: 20px;
   background: linear-gradient(135deg, rgba(248, 249, 250, 0.8) 0%, rgba(255, 255, 255, 0.6) 100%);
   border-radius: 12px;
-  border: 1px solid rgba(124, 58, 237, 0.08);
+  border: 1px solid rgba(255, 96, 52, 0.08);
   transition: all 0.3s;
 }
 
@@ -1023,12 +1023,12 @@ const formatDate = (dateString: string) => {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   border-radius: 12px;
   overflow: hidden;
-  border: 1px solid rgba(124, 58, 237, 0.1);
+  border: 1px solid #f0f0f0;
 }
 .recommend-card:hover {
   transform: translateY(-6px) scale(1.02);
-  box-shadow: 0 8px 24px rgba(124, 58, 237, 0.15);
-  border-color: rgba(124, 58, 237, 0.3);
+  box-shadow: 0 8px 24px rgba(255, 96, 52, 0.15);
+  border-color: rgba(255, 96, 52, 0.3);
 }
 .image-error-small {
   display: flex;
@@ -1081,13 +1081,13 @@ const formatDate = (dateString: string) => {
   overflow: hidden;
 }
 .thumbnail-item:hover {
-  border-color: #667eea;
+  border-color: #ff6034;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.2);
+  box-shadow: 0 4px 12px rgba(255, 96, 52, 0.2);
 }
 .thumbnail-item.active {
-  border-color: #667eea;
-  box-shadow: 0 4px 16px rgba(124, 58, 237, 0.4);
+  border-color: #ff6034;
+  box-shadow: 0 4px 16px rgba(255, 96, 52, 0.4);
   transform: scale(1.05);
 }
 .thumbnail-error {

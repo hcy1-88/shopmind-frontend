@@ -85,7 +85,7 @@
             </div>
 
             <div class="ai-summary">
-              <el-icon color="#7c3aed"><MagicStick /></el-icon>
+              <el-icon color="#ff6034"><MagicStick /></el-icon>
               <span>{{ product.aiSummary }}</span>
             </div>
 
@@ -255,7 +255,7 @@ const handleCommand = (command: string) => {
   justify-content: space-between;
   gap: 12px;
   z-index: 100;
-  border-bottom: 1px solid rgba(124, 58, 237, 0.1);
+  border-bottom: 1px solid rgba(255, 96, 52, 0.1);
 }
 
 .header-left {
@@ -287,7 +287,7 @@ const handleCommand = (command: string) => {
 }
 
 .user-info:hover {
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+  background: linear-gradient(135deg, rgba(255, 96, 52, 0.1) 0%, rgba(255, 144, 104, 0.1) 100%);
 }
 
 .user-nickname {
@@ -302,8 +302,8 @@ const handleCommand = (command: string) => {
 }
 
 .search-input :deep(.el-input__wrapper):hover {
-  box-shadow: 0 6px 24px rgba(124, 58, 237, 0.15);
-  border-color: rgba(124, 58, 237, 0.3);
+  box-shadow: 0 6px 24px rgba(255, 96, 52, 0.15);
+  border-color: rgba(255, 96, 52, 0.3);
 }
 .search-content {
   max-width: 1200px;
@@ -332,14 +332,14 @@ const handleCommand = (command: string) => {
   border-radius: 16px;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border: 1px solid rgba(124, 58, 237, 0.1);
+  border: 1px solid #f0f0f0;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
   animation: fadeInUp 0.6s ease-out;
 }
 .product-item:hover {
-  box-shadow: 0 8px 28px rgba(124, 58, 237, 0.2);
+  box-shadow: 0 8px 28px rgba(255, 96, 52, 0.15);
   transform: translateY(-4px);
-  border-color: rgba(124, 58, 237, 0.3);
+  border-color: rgba(255, 96, 52, 0.3);
 }
 .product-image {
   flex-shrink: 0;
@@ -397,17 +397,17 @@ const handleCommand = (command: string) => {
   align-items: center;
   gap: 6px;
   padding: 8px 12px;
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+  background: linear-gradient(135deg, rgba(255, 96, 52, 0.08) 0%, rgba(255, 144, 104, 0.08) 100%);
   border-radius: 8px;
   font-size: 13px;
-  color: #667eea;
-  border: 1px solid rgba(124, 58, 237, 0.15);
+  color: #ff6034;
+  border: 1px solid rgba(255, 96, 52, 0.15);
   transition: all 0.3s;
 }
 
 .product-item:hover .ai-summary {
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%);
-  border-color: rgba(124, 58, 237, 0.3);
+  background: linear-gradient(135deg, rgba(255, 96, 52, 0.12) 0%, rgba(255, 144, 104, 0.12) 100%);
+  border-color: rgba(255, 96, 52, 0.3);
 }
 .product-price {
   margin-top: auto;
@@ -433,7 +433,7 @@ const handleCommand = (command: string) => {
   backdrop-filter: blur(10px);
   border-radius: 16px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  border: 1px solid rgba(124, 58, 237, 0.1);
+  border: 1px solid #f0f0f0;
 }
 
 @media (max-width: 768px) {

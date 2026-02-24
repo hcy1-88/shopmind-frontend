@@ -36,11 +36,11 @@
     <el-main class="main-content">
       <div class="welcome-section">
         <div class="welcome-icon">
-          <el-icon :size="60" color="#7c3aed" @click="openAIDialog">
+          <el-icon :size="60" color="#ff6034" @click="openAIDialog">
             <ChatDotRound />
           </el-icon>
         </div>
-        <h2 class="welcome-title">您好！我是 ShopMind AI 助手</h2>
+        <h2 class="welcome-title">您好！我是 ShopMind 智能导购助手</h2>
         <p class="welcome-desc">让我帮您找到心仪的商品，用自然语言告诉我您的需求吧</p>
 
         <div class="search-box">
@@ -72,7 +72,7 @@
       </div>
 
       <div class="products-section">
-        <h3 class="section-title">AI 为您推荐</h3>
+        <h3 class="section-title">热门推荐商品</h3>
         <el-row :gutter="20" v-loading="productStore.isLoading">
           <el-col v-for="product in products" :key="product.id" :xs="24" :sm="12" :md="8" :lg="6">
             <el-card
@@ -104,7 +104,7 @@
                   </span>
                 </div>
                 <div class="ai-summary">
-                  <el-icon color="#7c3aed"><MagicStick /></el-icon>
+                  <el-icon color="#ff6034"><MagicStick /></el-icon>
                   <span>{{ product.aiSummary }}</span>
                 </div>
               </div>
@@ -234,7 +234,7 @@ const openAIDialog = () => {
   display: flex;
   align-items: center;
   padding: 0;
-  border-bottom: 1px solid rgba(124, 58, 237, 0.1);
+  border-bottom: 1px solid rgba(255, 96, 52, 0.1);
 }
 .header-content {
   width: 100%;
@@ -248,7 +248,7 @@ const openAIDialog = () => {
 .logo h1 {
   margin: 0;
   font-size: 24px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #ff6034 0%, #ff9068 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -281,7 +281,7 @@ const openAIDialog = () => {
   transition: background-color 0.3s;
 }
 .user-info:hover {
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+  background: linear-gradient(135deg, rgba(255, 96, 52, 0.1) 0%, rgba(255, 144, 104, 0.1) 100%);
 }
 .user-nickname {
   font-size: 14px;
@@ -314,12 +314,12 @@ const openAIDialog = () => {
 
 .welcome-icon .el-icon:hover {
   transform: scale(1.1) rotate(5deg);
-  filter: drop-shadow(0 4px 12px rgba(124, 58, 237, 0.4));
+  filter: drop-shadow(0 4px 12px rgba(255, 96, 52, 0.4));
 }
 .welcome-title {
   font-size: 32px;
   font-weight: bold;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #ff6034 0%, #ff9068 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -343,8 +343,8 @@ const openAIDialog = () => {
 }
 
 .search-box :deep(.el-input__wrapper):hover {
-  box-shadow: 0 6px 24px rgba(124, 58, 237, 0.15);
-  border-color: rgba(124, 58, 237, 0.3);
+  box-shadow: 0 6px 24px rgba(255, 96, 52, 0.15);
+  border-color: rgba(255, 96, 52, 0.3);
 }
 .quick-questions {
   display: flex;
@@ -354,14 +354,14 @@ const openAIDialog = () => {
 }
 
 .quick-questions .el-button {
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
-  border: 1px solid rgba(124, 58, 237, 0.2);
-  color: #667eea;
+  background: linear-gradient(135deg, rgba(255, 96, 52, 0.1) 0%, rgba(255, 144, 104, 0.1) 100%);
+  border: 1px solid rgba(255, 96, 52, 0.2);
+  color: #ff6034;
   font-weight: 500;
 }
 
 .quick-questions .el-button:hover {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #ff6034 0%, #ff9068 100%);
   color: white;
   border-color: transparent;
 }
@@ -372,9 +372,9 @@ const openAIDialog = () => {
 .section-title {
   font-size: 24px;
   font-weight: bold;
-  color: white;
+  color: #ff6034;
   margin: 0 0 24px 0;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  text-shadow: 0 2px 8px rgba(255, 96, 52, 0.3);
   position: relative;
   padding-left: 16px;
 }
@@ -387,9 +387,9 @@ const openAIDialog = () => {
   transform: translateY(-50%);
   width: 4px;
   height: 24px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #ff6034 0%, #ff9068 100%);
   border-radius: 2px;
-  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.4);
+  box-shadow: 0 2px 8px rgba(255, 96, 52, 0.4);
 }
 .product-card {
   cursor: pointer;
@@ -398,12 +398,12 @@ const openAIDialog = () => {
   border-radius: 16px;
   overflow: hidden;
   background: white;
-  border: 1px solid rgba(124, 58, 237, 0.1);
+  border: 1px solid #f0f0f0;
 }
 .product-card:hover {
   transform: translateY(-8px) scale(1.02);
-  box-shadow: 0 12px 40px rgba(124, 58, 237, 0.2);
-  border-color: rgba(124, 58, 237, 0.3);
+  box-shadow: 0 12px 40px rgba(255, 96, 52, 0.15);
+  border-color: rgba(255, 96, 52, 0.3);
 }
 .product-image {
   overflow: hidden;
@@ -468,18 +468,18 @@ const openAIDialog = () => {
   align-items: center;
   gap: 6px;
   padding: 8px 12px;
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+  background: linear-gradient(135deg, rgba(255, 96, 52, 0.08) 0%, rgba(255, 144, 104, 0.08) 100%);
   border-radius: 8px;
   font-size: 13px;
-  color: #667eea;
+  color: #ff6034;
   line-height: 1.4;
-  border: 1px solid rgba(124, 58, 237, 0.15);
+  border: 1px solid rgba(255, 96, 52, 0.15);
   transition: all 0.3s;
 }
 
 .product-card:hover .ai-summary {
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%);
-  border-color: rgba(124, 58, 237, 0.3);
+  background: linear-gradient(135deg, rgba(255, 96, 52, 0.12) 0%, rgba(255, 144, 104, 0.12) 100%);
+  border-color: rgba(255, 96, 52, 0.3);
 }
 .ai-summary span {
   flex: 1;

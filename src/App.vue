@@ -14,6 +14,36 @@ onMounted(async () => {
 </script>
 
 <style>
+/* CSS 变量 - 统一主题色管理 */
+:root {
+  /* 主题色 - 活力橙红 */
+  --primary-color: #ff6034;
+  --primary-hover: #ff7a52;
+  --primary-light: rgba(255, 96, 52, 0.1);
+  --primary-lighter: rgba(255, 96, 52, 0.05);
+  --primary-gradient: linear-gradient(135deg, #ff6034 0%, #ff9068 100%);
+  
+  /* 文本色 */
+  --text-primary: #333333;
+  --text-secondary: #666666;
+  --text-tertiary: #999999;
+  
+  /* 边框色 */
+  --border-color: #e8e8e8;
+  --border-light: #f0f0f0;
+  
+  /* 背景色 */
+  --bg-white: #ffffff;
+  --bg-gray: #fafafa;
+  --bg-light: #f5f5f5;
+  
+  /* 阴影 */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.1);
+  --shadow-primary: 0 4px 16px rgba(255, 96, 52, 0.15);
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -24,7 +54,7 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #ffffff;
   background-attachment: fixed;
 }
 
@@ -37,9 +67,8 @@ body::before {
   width: 100%;
   height: 100%;
   background-image: 
-    radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.05) 0%, transparent 50%),
-    radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.05) 0%, transparent 50%),
-    radial-gradient(circle at 40% 20%, rgba(124, 58, 237, 0.1) 0%, transparent 50%);
+    radial-gradient(circle at 20% 50%, rgba(255, 96, 52, 0.02) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(255, 96, 52, 0.02) 0%, transparent 50%);
   pointer-events: none;
   z-index: 0;
 }
@@ -58,18 +87,18 @@ body::before {
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.1);
+  background: #f5f5f5;
   border-radius: 5px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #ff6034 0%, #ff9068 100%);
   border-radius: 5px;
   transition: background 0.3s;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+  background: linear-gradient(135deg, #ff9068 0%, #ff6034 100%);
 }
 
 /* 全局按钮悬浮效果增强 */
@@ -79,7 +108,7 @@ body::before {
 
 .el-button:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+  box-shadow: 0 4px 12px rgba(255, 96, 52, 0.3);
 }
 
 .el-button:active {
@@ -112,7 +141,7 @@ body::before {
 }
 
 .el-input__wrapper:focus-within {
-  box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.2);
+  box-shadow: 0 0 0 2px rgba(255, 96, 52, 0.2);
 }
 
 /* 标签动画 */
