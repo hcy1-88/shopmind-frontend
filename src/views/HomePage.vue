@@ -93,10 +93,15 @@
               <div class="product-info">
                 <h4 class="product-name">{{ product.name }}</h4>
                 <div class="product-price">
-                  <span class="current-price">¥{{ product.price }}</span>
-                  <span v-if="product.originalPrice" class="original-price"
-                    >¥{{ product.originalPrice }}</span
-                  >
+                  <!-- 优先显示价格范围，否则显示单一价格 -->
+                  <span v-if="product.priceRange" class="current-price">
+                    ¥{{ product.priceRange.min }} - ¥{{ product.priceRange.max }}
+                  </span>
+                  <span v-else class="current-price">¥{{ product.price }}</span>
+                  <!-- 如果有原价，用删除线显示 -->
+                  <span v-if="product.originalPrice" class="original-price">
+                    ¥{{ product.originalPrice }}
+                  </span>
                 </div>
                 <div class="ai-summary">
                   <el-icon color="#7c3aed"><MagicStick /></el-icon>

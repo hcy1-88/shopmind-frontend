@@ -75,23 +75,27 @@
 
           <div class="product-price-box">
             <div class="price-row">
-              <span v-if="currentPrice > 0" class="current-price">¥{{ currentPrice }}</span>
-              <span
-                v-if="
-                  !selectedSkuObj &&
-                  product.priceRange &&
-                  !(product.priceRange.min === 0 && product.priceRange.max === 0) &&
-                  (product.priceRange.min > 0 || product.priceRange.max > 0)
-                "
-                class="price-range-hint"
-              >
-                (¥{{ product.priceRange.min }} ~ {{ product.priceRange.max }}元)
+              <!-- 如果选中了 SKU 或只有单一价格，显示单一价格 -->
+              <span v-if="selectedSkuObj || !product.priceRange" class="current-price">
+                ¥{{ currentPrice }}
               </span>
+              <!-- 如果没选中 SKU 且有价格范围，显示价格范围 -->
+              <span
+                v-else-if="
+                  product.priceRange &&
+                  !(product.priceRange.min === 0 && product.priceRange.max === 0)
+                "
+                class="current-price"
+              >
+                ¥{{ product.priceRange.min }} - ¥{{ product.priceRange.max }}
+              </span>
+              <!-- 如果有原价，用删除线显示 -->
               <span
                 v-if="product.originalPrice && product.originalPrice > 0"
                 class="original-price"
-                >¥{{ product.originalPrice }}</span
               >
+                ¥{{ product.originalPrice }}
+              </span>
             </div>
             <!-- 显示选中的 SKU 信息 -->
             <div v-if="selectedSkuObj" class="selected-sku-info">
@@ -222,11 +226,13 @@
               <div class="recommend-info">
                 <div class="recommend-name">{{ item.name }}</div>
                 <div class="recommend-price">
-                  <span v-if="item.price != null">¥{{ item.price }}</span>
-                  <span v-else-if="item.priceRange"
-                    >¥{{ item.priceRange.min }} ~ {{ item.priceRange.max }}元</span
-                  >
+                  <!-- 优先显示价格范围，否则显示单一价格 -->
+                  <span v-if="item.priceRange">
+                    ¥{{ item.priceRange.min }} - ¥{{ item.priceRange.max }}
+                  </span>
+                  <span v-else>¥{{ item.price }}</span>
                 </div>
+                <!-- 如果有原价，用删除线显示 -->
                 <div v-if="item.originalPrice" class="recommend-original-price">
                   ¥{{ item.originalPrice }}
                 </div>
@@ -349,14 +355,17 @@ const getSkuDisplayName = (sku: ProductSku): string => {
 
 // 当前显示的价格（根据是否选中 SKU）
 const currentPrice = computed(() => {
+  // 如果选中了 SKU，显示 SKU 的价格
   if (selectedSkuObj.value) {
     return selectedSkuObj.value.price
   }
-  if (product.value?.price != null) {
-    return product.value.price
-  }
+  // 如果有价格范围，优先使用价格范围的最小值
   if (product.value?.priceRange) {
     return product.value.priceRange.min
+  }
+  // 否则使用单一价格
+  if (product.value?.price != null) {
+    return product.value.price
   }
   return 0
 })
