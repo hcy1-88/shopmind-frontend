@@ -578,11 +578,76 @@ export type OrderStatus =
   | 'refund'
 
 // AI 对话相关类型
+
+/**
+ * 工具调用信息
+ */
+export interface ToolCall {
+  tool_name: string
+  arguments: Record<string, any>
+  status?: 'pending' | 'executing' | 'completed' | 'error'
+  result?: string
+  progress?: string[]
+}
+
+/**
+ * AI 思考过程步骤
+ */
+export interface ThinkingStep {
+  id: string
+  message: string
+  timestamp: number
+}
+
+/**
+ * AI 消息块类型
+ */
+export type MessageBlockType = 'thinking' | 'tool'
+
+/**
+ * AI 消息块（动态创建的展示块）
+ */
+export interface MessageBlock {
+  id: string
+  type: MessageBlockType
+  title: string  // 块标题，如 "思考过程"、"工具执行"
+  steps: MessageBlockStep[]  // 块内的步骤
+  isExpanded: boolean  // 是否展开
+}
+
+/**
+ * 消息块内的步骤
+ */
+export interface MessageBlockStep {
+  id: string
+  message: string
+  timestamp: number
+  // 工具相关字段
+  toolName?: string
+  toolArgs?: Record<string, any>
+  toolResult?: string
+  toolStatus?: 'pending' | 'executing' | 'completed' | 'error'
+  toolProgress?: string[]
+}
+
+/**
+ * AI 消息（扩展版，包含动态块）
+ */
 export interface ChatMessage {
   id: string
   role: 'user' | 'assistant'
   content: string
   timestamp: number
+  // 扩展字段：动态创建的消息块（按时间顺序）
+  blocks?: MessageBlock[]
+  // 兼容旧字段：AI 思考过程（保留用于历史消息）
+  thinking?: ThinkingStep[]
+  // 兼容旧字段：工具调用列表
+  toolCalls?: ToolCall[]
+  // 扩展字段：当前正在执行的工具
+  currentToolCall?: ToolCall | null
+  // 扩展字段：是否有待执行的工具（用于控制内容显示时机）
+  hasPendingTools?: boolean
 }
 
 export interface AIAskRequest {

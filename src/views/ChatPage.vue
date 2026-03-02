@@ -83,13 +83,63 @@
             <el-avatar v-else :icon="Service" style="background-color: #ff6b35" />
           </div>
           <div class="message-content">
+            <!-- AI 消息块（动态创建：思考块、工具块） -->
+            <template v-if="message.role === 'assistant' && message.blocks && message.blocks.length > 0">
+              <div
+                v-for="block in message.blocks"
+                :key="block.id"
+                :class="['message-block', block.type === 'thinking' ? 'thinking-section' : 'tool-section']"
+              >
+                <div class="section-header" @click="toggleBlock(message.id, block.id)">
+                  <el-icon v-if="isBlockExpanded(message.id, block.id)"><ArrowDown /></el-icon>
+                  <el-icon v-else><ArrowRight /></el-icon>
+                  <span>{{ block.title }}</span>
+                  <el-tag size="small" :type="block.type === 'thinking' ? 'info' : 'warning'">
+                    {{ block.steps.length }} 步
+                  </el-tag>
+                </div>
+                <div v-show="isBlockExpanded(message.id, block.id)" class="block-steps">
+                  <div
+                    v-for="step in block.steps"
+                    :key="step.id"
+                    :class="['block-step', block.type === 'tool' && step.toolStatus ? `tool-${step.toolStatus}` : '']"
+                  >
+                    <template v-if="block.type === 'thinking'">
+                      {{ step.message }}
+                    </template>
+                    <template v-else-if="block.type === 'tool'">
+                      <div class="tool-step-header">
+                        <span class="tool-status-icon">
+                          {{ step.toolStatus === 'completed' ? '✅' : step.toolStatus === 'executing' ? '🔄' : '⏳' }}
+                        </span>
+                        <span class="tool-step-message">{{ step.message }}</span>
+                      </div>
+                      <!-- 工具参数 -->
+                      <div v-if="step.toolArgs && Object.keys(step.toolArgs).length > 0" class="tool-step-args">
+                        <span class="label">参数:</span>
+                        <span class="value">{{ formatToolArgs(step.toolArgs) }}</span>
+                      </div>
+                      <!-- 工具结果 -->
+                      <div v-if="step.toolResult" class="tool-step-result">
+                        <span class="label">结果:</span>
+                        <span class="value">{{ truncateResult(step.toolResult) }}</span>
+                      </div>
+                    </template>
+                  </div>
+                </div>
+              </div>
+            </template>
+
+            <!-- 消息内容 -->
             <div
-              v-if="message.content"
+              v-if="message.content && (message.role === 'user' || !message.hasPendingTools)"
               class="message-text"
               v-html="parseProductLinks(message.content)"
               @click="handleLinkClick"
             ></div>
-            <div v-else class="message-text loading">正在输入...</div>
+            <div v-else-if="message.role === 'assistant' && chatStore.isLoading" class="message-text loading">
+              正在输入...
+            </div>
             <div class="message-time">{{ formatTime(message.timestamp) }}</div>
           </div>
         </div>
@@ -120,7 +170,7 @@
 import { ref, onMounted, nextTick, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus, Edit, Delete, User, Service, Promotion, ChatDotRound, Loading } from '@element-plus/icons-vue'
+import { Plus, Edit, Delete, User, Service, Promotion, ChatDotRound, Loading, ArrowRight, ArrowDown } from '@element-plus/icons-vue'
 import { useChatStore } from '@/stores/chatStore'
 import { useUserStore } from '@/stores/userStore'
 import { parseProductLinks } from '@/utils/chat-utils'
@@ -286,6 +336,39 @@ const handleLinkClick = (event: Event) => {
       router.push({ name: 'product', params: { id: productId } })
     }
   }
+}
+
+// 消息块的折叠状态（messageId-blockId => isExpanded）
+const expandedBlocks = ref<Map<string, boolean>>(new Map())
+
+// 切换消息块展开/折叠
+const toggleBlock = (messageId: string, blockId: string) => {
+  const key = `${messageId}-${blockId}`
+  const currentValue = expandedBlocks.value.get(key)
+  // 切换状态：未设置时默认为 true（展开），点击后设为 false（折叠）
+  expandedBlocks.value.set(key, currentValue === false)
+  // 触发响应式更新
+  expandedBlocks.value = new Map(expandedBlocks.value)
+}
+
+// 判断消息块是否展开
+const isBlockExpanded = (messageId: string, blockId: string): boolean => {
+  const key = `${messageId}-${blockId}`
+  // 未设置时默认为 true（展开）
+  return expandedBlocks.value.get(key) !== false
+}
+
+// 格式化工具参数
+const formatToolArgs = (args: Record<string, any>): string => {
+  return Object.entries(args)
+    .map(([key, value]) => `${key}=${JSON.stringify(value)}`)
+    .join(', ')
+}
+
+// 截断工具结果（太长时显示部分）
+const truncateResult = (result: string, maxLength: number = 200): string => {
+  if (result.length <= maxLength) return result
+  return result.substring(0, maxLength) + '...'
 }
 </script>
 
@@ -596,5 +679,148 @@ const handleLinkClick = (event: Event) => {
 
 .chat-input :deep(.el-input-group__append .el-button) {
   margin: 0;
+}
+
+/* AI 思考过程和工具调用区域样式 */
+.thinking-section,
+.tool-section {
+  margin-bottom: 12px;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.thinking-section {
+  background: linear-gradient(135deg, #e8f4ff 0%, #f0f7ff 100%);
+  border: 1px solid #d0e8ff;
+}
+
+.tool-section {
+  background: linear-gradient(135deg, #fff8e8 0%, #fff5e0 100%);
+  border: 1px solid #ffe0b2;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  transition: background-color 0.2s;
+}
+
+.thinking-section .section-header {
+  color: #1976d2;
+}
+
+.tool-section .section-header {
+  color: #f57c00;
+}
+
+.section-header:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.section-header .el-icon {
+  font-size: 14px;
+}
+
+.section-header .el-tag {
+  margin-left: auto;
+}
+
+/* Thinking 步骤样式 */
+.thinking-steps {
+  padding: 0 12px 12px;
+}
+
+.thinking-step {
+  padding: 6px 10px;
+  margin-top: 8px;
+  background: white;
+  border-radius: 6px;
+  font-size: 12px;
+  color: #555;
+  line-height: 1.5;
+}
+
+/* 工具调用样式 */
+.tool-items {
+  padding: 0 12px 12px;
+}
+
+.tool-item {
+  padding: 10px;
+  margin-top: 8px;
+  background: white;
+  border-radius: 6px;
+  border-left: 3px solid #ff9800;
+}
+
+.tool-item .tool-name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  color: #333;
+  font-size: 13px;
+  margin-bottom: 6px;
+}
+
+.tool-item .tool-icon {
+  font-size: 14px;
+}
+
+.tool-item .tool-args,
+.tool-item .tool-result {
+  font-size: 12px;
+  color: #666;
+  margin-top: 6px;
+  padding-left: 20px;
+}
+
+.tool-item .tool-args .label,
+.tool-item .tool-result .label {
+  font-weight: 500;
+  color: #888;
+}
+
+.tool-item .tool-args .value {
+  color: #1976d2;
+  font-family: 'Consolas', 'Monaco', monospace;
+  word-break: break-all;
+}
+
+.tool-item .tool-result .value {
+  color: #4caf50;
+  display: block;
+  margin-top: 4px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 100px;
+  overflow-y: auto;
+}
+
+/* 工具执行进度 */
+.tool-progress {
+  margin-top: 8px;
+  padding-left: 20px;
+}
+
+.progress-step {
+  font-size: 11px;
+  color: #999;
+  padding: 2px 0;
+}
+
+/* 工具执行后的思考区域 */
+.thinking-after-tools {
+  background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%);
+  border: 1px solid #c8e6c9;
+}
+
+.thinking-after-tools .section-header {
+  color: #388e3c;
 }
 </style>

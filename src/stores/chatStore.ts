@@ -1,7 +1,8 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import type { ChatMessage, AIAskRequest, Conversation } from '@/types'
+import type { ChatMessage, AIAskRequest, Conversation, ToolCall, ThinkingStep, MessageBlock, MessageBlockStep } from '@/types'
 import { aiApi } from '@/api/ai-api'
+import type { AIEvent } from '@/api/ai-api'
 import { useUserStore } from './userStore'
 import { generateSessionId } from '@/utils/session-utils'
 
@@ -224,7 +225,8 @@ export const useChatStore = defineStore('chat', () => {
   }
 
   /**
-   * AI 问答（流式输出）
+   * AI 问答（流式输出 - 完整事件流版本）
+   * 支持处理 thinking、tool调用、tool结果等完整事件
    */
   const askAI = async (question: string, context?: { productId?: string }) => {
     try {
@@ -259,14 +261,19 @@ export const useChatStore = defineStore('chat', () => {
         content: question,
       })
 
-      // 4. 创建助手消息（初始为空）
-      addMessage({
+      // 4. 创建助手消息（初始为空，包含扩展字段）
+      const assistantMessage = addMessage({
         role: 'assistant',
         content: '',
+        thinking: [],
+        toolCalls: [],
+        currentToolCall: null,
+        hasPendingTools: false,
+        blocks: [],  // 动态创建的消息块
       })
 
-      // 获取刚添加的消息索引（最后一个）
-      const messageIndex = messages.value.length - 1
+      // 当前活动块的引用
+      let currentBlock: MessageBlock | null = null
 
       // 5. 构建请求（包含 sessionId 和 userId）
       const request: AIAskRequest = {
@@ -276,30 +283,153 @@ export const useChatStore = defineStore('chat', () => {
         ...context,
       }
 
-      // 6. 使用流式 API，通过数组索引直接更新（触发响应式）
-      let hasStarted = false // 标记是否已经开始接收内容
-
-      await aiApi.askStream(request, (chunk: string) => {
-        const message = messages.value[messageIndex]
+      // 6. 使用流式 API 处理完整事件流
+      await aiApi.askStream(request, (event: AIEvent) => {
+        const message = messages.value.find(m => m.id === assistantMessage.id)
         if (!message) return
 
-        // 首次接收到有效内容时，去掉前导空白
-        if (!hasStarted) {
-          const trimmedChunk = chunk.trimStart()
-          if (trimmedChunk) {
-            message.content = trimmedChunk
-            hasStarted = true
-          }
-        } else {
-          // 后续内容直接追加（直接修改数组元素属性，触发响应式更新）
-          message.content += chunk
+        // 确保 blocks 数组存在
+        if (!message.blocks) {
+          message.blocks = []
+        }
+
+        switch (event.type) {
+          case 'thinking_start':
+            // 创建新的思考块
+            currentBlock = {
+              id: `block_${Date.now()}`,
+              type: 'thinking',
+              title: '🤔 思考过程',
+              steps: [],
+              isExpanded: true,
+            }
+            message.blocks.push(currentBlock)
+
+            // 添加思考开始步骤
+            currentBlock.steps.push({
+              id: `step_${Date.now()}`,
+              message: event.data.message || '🤔 AI 正在思考...',
+              timestamp: Date.now(),
+            })
+            break
+
+          case 'thinking_end':
+            // 更新当前思考块
+            if (currentBlock && currentBlock.type === 'thinking') {
+              currentBlock.steps.push({
+                id: `step_${Date.now()}`,
+                message: `✅ ${event.data.message || '思考完成'}`,
+                timestamp: Date.now(),
+              })
+            } else {
+              // 如果没有活动块，创建一个新的
+              currentBlock = {
+                id: `block_${Date.now()}`,
+                type: 'thinking',
+                title: '🤔 思考过程',
+                steps: [{
+                  id: `step_${Date.now()}`,
+                  message: `✅ ${event.data.message || '思考完成'}`,
+                  timestamp: Date.now(),
+                }],
+                isExpanded: true,
+              }
+              message.blocks.push(currentBlock)
+            }
+            break
+
+          case 'tool_calls_detected':
+            // 检测到工具调用，不单独显示，留到 tool_start 时处理
+            break
+
+          case 'tool_start':
+            // 创建新的工具块
+            currentBlock = {
+              id: `block_${Date.now()}`,
+              type: 'tool',
+              title: '🛠️ 工具执行',
+              steps: [],
+              isExpanded: true,
+            }
+            message.blocks.push(currentBlock)
+
+            // 添加工具开始步骤
+            currentBlock.steps.push({
+              id: `step_${Date.now()}`,
+              message: `🔄 正在执行工具: ${event.data.tool_name}`,
+              timestamp: Date.now(),
+              toolName: event.data.tool_name,
+              toolArgs: event.data.tool_args || {},
+              toolStatus: 'executing',
+            })
+            break
+
+          case 'tool_progress':
+            // 工具执行进度
+            if (currentBlock && currentBlock.type === 'tool') {
+              currentBlock.steps.push({
+                id: `step_${Date.now()}`,
+                message: `⏳ ${event.data.message}`,
+                timestamp: Date.now(),
+              })
+            }
+            break
+
+          case 'tool_complete':
+            // 工具执行完成，更新工具块的最后步骤
+            if (currentBlock && currentBlock.type === 'tool') {
+              const lastStep = currentBlock.steps[currentBlock.steps.length - 1]
+              if (lastStep && lastStep.toolName) {
+                lastStep.toolStatus = 'completed'
+                lastStep.toolResult = event.data.result
+              }
+              // 添加完成步骤
+              currentBlock.steps.push({
+                id: `step_${Date.now()}`,
+                message: `✅ 工具执行完成: ${event.data.tool_name}`,
+                timestamp: Date.now(),
+                toolName: event.data.tool_name,
+                toolStatus: 'completed',
+                toolResult: event.data.result,
+              })
+            }
+            break
+
+          case 'token_stream':
+            // AI 回复的流式文本
+            const content = event.data.content
+            if (content) {
+              // 首次接收到有效内容时，去掉前导空白
+              if (!message.content) {
+                const trimmedContent = content.trimStart()
+                if (trimmedContent) {
+                  message.content = trimmedContent
+                }
+              } else {
+                message.content += content
+              }
+            }
+            break
+
+          case 'complete':
+            // 流式结束
+            console.log('✅ AI 回复完成')
+            break
+
+          case 'error':
+            // 发生错误
+            console.error('❌ AI 回复错误:', event.data.message)
+            break
         }
       })
 
       // 7. 清理尾部空白
-      const finalMessage = messages.value[messageIndex]
+      const finalMessage = messages.value.find(m => m.id === assistantMessage.id)
       if (finalMessage) {
         finalMessage.content = finalMessage.content.trim()
+        // 清理 currentToolCall 和 hasPendingTools
+        finalMessage.currentToolCall = null
+        finalMessage.hasPendingTools = false
       }
 
       // 8. 后端已自动保存历史，无需手动保存

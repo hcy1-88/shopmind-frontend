@@ -25,26 +25,12 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { ChatDotRound, User, Service, Promotion, Close } from '@element-plus/icons-vue'
-import { ElMessage } from 'element-plus'
+import { ChatDotRound, Close } from '@element-plus/icons-vue'
 import { useChatStore } from '@/stores/chatStore'
-import { useUserStore } from '@/stores/userStore'
-import { parseProductLinks } from '@/utils/chat-utils'
-
-interface Props {
-  context?: {
-    productId?: string
-  }
-}
-
-const props = defineProps<Props>()
 
 const router = useRouter()
 const route = useRoute()
 const chatStore = useChatStore()
-const userStore = useUserStore()
-const inputMessage = ref('')
-const messagesContainer = ref<HTMLElement>()
 
 // 主动提示相关状态
 const showPrompt = ref(false)

@@ -36,16 +36,34 @@ const getHeaders = () => {
  * 对应后端 ai-service 微服务
  * 包含：智能问答、商品标题/图片审核、商品描述生成
  */
+
+/**
+ * AI 事件类型定义
+ */
+export interface AIEvent {
+  type: string
+  data: Record<string, any>
+}
+
+/**
+ * AI 事件回调函数类型
+ */
+export type AIEventCallback = (event: AIEvent) => void
+
 export const aiApi = {
-  // ========== 智能问答 ==========
+  // ========== 智能问答（带完整事件流）==========
 
   /**
-   * AI 智能问答（流式输出）
+   * AI 智能问答（完整事件流版本）
+   * 支持接收 thinking、tool调用、tool结果等完整事件
    * @param request 请求参数
-   * @param onChunk 接收数据块的回调函数
+   * @param onEvent 接收事件的回调函数
    * @returns Promise，resolve 时返回完整答案
    */
-  askStream: async (request: AIAskRequest, onChunk: (chunk: string) => void): Promise<string> => {
+  askStream: async (
+    request: AIAskRequest,
+    onEvent: AIEventCallback,
+  ): Promise<string> => {
     const baseURL = '/api/shopmind-ai-service'
     let response: Response
 
@@ -91,15 +109,66 @@ export const aiApi = {
         chunkCount++
         // 解码数据块（stream: true 表示可能还有更多数据）
         const chunk = decoder.decode(value, { stream: true })
-        fullText += chunk
-        onChunk(chunk)
+        
+        // 解析 SSE 格式的事件
+        const lines = chunk.split('\n')
+        for (const line of lines) {
+          if (!line.trim()) continue
+          
+          if (line.startsWith('data: ')) {
+            const data = line.slice(6)
+            
+            if (data === '[DONE]') {
+              continue
+            }
+            
+            try {
+              const event = JSON.parse(data) as AIEvent
+              
+              // 如果是 token_stream 事件，累积文本
+              if (event.type === 'token_stream' && event.data.content) {
+                fullText += event.data.content
+              }
+              
+              // 回调所有事件
+              onEvent(event)
+            } catch (e) {
+              // JSON 解析失败，尝试提取事件类型和原始数据
+              // 工具返回的结果可能包含单引号（Python对象格式），不是标准JSON
+              console.warn('JSON解析失败，尝试降级处理:', data.substring(0, 100))
+              
+              // 尝试用正则提取事件类型
+              const typeMatch = data.match(/"type"\s*:\s*"([^"]+)"/)
+              const toolNameMatch = data.match(/"tool_name"\s*:\s*"([^"]+)"/)
+              
+              if (typeMatch && toolNameMatch) {
+                const eventType = typeMatch[1]
+                const toolName = toolNameMatch[1]
+                
+                // 提取 result 字段（可能包含单引号字符串）
+                const resultMatch = data.match(/"result"\s*:\s*"([^"]*(?:'[^"]*)*[^"]*)"/)
+                const result = resultMatch ? resultMatch[1] : ''
+                
+                // 对于 tool_complete 事件，手动构造事件对象
+                if (eventType === 'tool_complete') {
+                  onEvent({
+                    type: 'tool_complete',
+                    data: {
+                      tool_name: toolName,
+                      result: result
+                    }
+                  })
+                }
+              }
+            }
+          }
+        }
       }
 
       // 刷新解码器，确保所有数据都被解码
       const remaining = decoder.decode()
       if (remaining) {
         fullText += remaining
-        onChunk(remaining)
       }
     } catch (error) {
       reader.releaseLock()
