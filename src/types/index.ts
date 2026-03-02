@@ -619,6 +619,14 @@ export interface AIHistoryMessage {
 }
 
 /**
+ * 对话项（包含 session_id 和 name）
+ */
+export interface Conversation {
+  session_id: string
+  name: string
+}
+
+/**
  * 推荐服务相关
  */
 export interface RecommendationResponse {

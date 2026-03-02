@@ -27,6 +27,11 @@ const router = createRouter({
       path: '/merchant',
       name: 'merchant-portal',
       component: () => import('@/views/MerchantPortal.vue')
+    },
+    {
+      path: '/chat',
+      name: 'chat',
+      component: () => import('@/views/ChatPage.vue')
     }
   ]
 })

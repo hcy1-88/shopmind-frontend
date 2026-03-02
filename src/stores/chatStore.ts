@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
-import type { ChatMessage, AIAskRequest } from '@/types'
+import { ref, computed } from 'vue'
+import type { ChatMessage, AIAskRequest, Conversation } from '@/types'
 import { aiApi } from '@/api/ai-api'
 import { useUserStore } from './userStore'
 import { generateSessionId } from '@/utils/session-utils'
@@ -11,12 +11,170 @@ export const useChatStore = defineStore('chat', () => {
   const currentContext = ref<string>('')
   const sessionId = ref<string>('') // 当前会话 ID
 
+  // 对话列表
+  const conversations = ref<Conversation[]>([])
+  // 当前选中的对话
+  const currentConversation = ref<Conversation | null>(null)
+
   // 短期记忆配置：最多保留最近的消息对数（用户+助手为一对）
   const MAX_MEMORY_PAIRS = 10 // 保留最近 10 轮对话
   const MAX_MEMORY_MESSAGES = MAX_MEMORY_PAIRS * 2 // 20 条消息
 
-  // 会话 ID 的 localStorage key
+  // localStorage keys
   const SESSION_ID_KEY = 'ai_chat_session_id'
+  const DEVICE_ID_KEY = 'ai_chat_device_id'
+
+  /**
+   * 获取或生成设备 ID（用于匿名用户）
+   * 每个浏览器设备唯一对应一个 deviceId
+   */
+  const getDeviceId = (): string => {
+    let deviceId = localStorage.getItem(DEVICE_ID_KEY)
+    if (!deviceId) {
+      // 生成一个唯一的设备 ID
+      deviceId = `device_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`
+      localStorage.setItem(DEVICE_ID_KEY, deviceId)
+      console.log('🆕 生成新设备 ID:', deviceId)
+    }
+    return deviceId
+  }
+
+  /**
+   * 获取当前用户 ID
+   * - 已登录用户：使用真实的 userId
+   * - 匿名用户：使用 deviceId（每个浏览器设备唯一）
+   */
+  const getCurrentUserId = (): string => {
+    const userStore = useUserStore()
+    if (userStore.user?.id) {
+      return userStore.user.id.toString()
+    }
+    // 未登录用户使用 deviceId
+    return getDeviceId()
+  }
+
+  // 加载对话列表
+  const loadConversations = async () => {
+    try {
+      const userId = getCurrentUserId()
+      const list = await aiApi.getConversations(userId)
+      conversations.value = list
+      console.log(`✅ 已加载 ${list.length} 个对话`)
+    } catch (error) {
+      console.error('加载对话列表失败:', error)
+      conversations.value = []
+    }
+  }
+
+  // 创建新对话
+  // @param name 对话名称
+  // @param createInBackend 是否在后端创建（发送第一条消息时为 true）
+  const createConversation = async (name: string = '', createInBackend: boolean = false) => {
+    const newSessionId = generateSessionId()
+
+    // 如果没有提供名称，使用默认名称
+    const conversationName = name || '新对话'
+
+    // 在本地创建对话对象
+    const newConversation: Conversation = {
+      session_id: newSessionId,
+      name: conversationName,
+    }
+
+    // 添加到本地列表
+    conversations.value.unshift(newConversation)
+
+    // 如果需要，在后端创建对话
+    if (createInBackend) {
+      await createConversationInBackend(newSessionId, conversationName)
+    }
+
+    // 切换到新对话（会加载历史）
+    await switchConversation(newConversation)
+
+    return newConversation
+  }
+
+  // 在后端创建对话记录（用户发送第一条消息时调用）
+  const createConversationInBackend = async (sessionId: string, name: string) => {
+    const userId = getCurrentUserId()
+
+    try {
+      await aiApi.updateConversationName(userId, sessionId, name)
+      console.log(`✅ 后端对话已创建: ${sessionId}`)
+    } catch (error) {
+      console.error('在后端创建对话失败:', error)
+    }
+  }
+
+  // 检查当前对话是否已在后端创建
+  const isConversationCreatedInBackend = (sessionId: string): boolean => {
+    return conversations.value.some((c) => c.session_id === sessionId)
+  }
+
+  // 切换到指定对话
+  const switchConversation = async (conversation: Conversation) => {
+    // 保存当前对话的 sessionId
+    sessionId.value = conversation.session_id
+    currentConversation.value = conversation
+
+    // 保存到 localStorage
+    localStorage.setItem(SESSION_ID_KEY, conversation.session_id)
+
+    // 加载该对话的历史消息
+    await loadHistory()
+  }
+
+  // 更新对话名称
+  const updateConversationName = async (sessionId: string, name: string) => {
+    const userId = getCurrentUserId()
+
+    try {
+      await aiApi.updateConversationName(userId, sessionId, name)
+
+      // 更新本地列表
+      const conversation = conversations.value.find((c) => c.session_id === sessionId)
+      if (conversation) {
+        conversation.name = name
+      }
+
+      // 如果是当前对话，也更新当前对话的名称
+      if (currentConversation.value?.session_id === sessionId) {
+        currentConversation.value.name = name
+      }
+    } catch (error) {
+      console.error('更新对话名称失败:', error)
+      throw error
+    }
+  }
+
+  // 删除对话
+  const deleteConversation = async (sessionId: string) => {
+    const userId = getCurrentUserId()
+
+    try {
+      await aiApi.deleteConversation(userId, sessionId)
+
+      // 从本地列表中移除
+      const index = conversations.value.findIndex((c) => c.session_id === sessionId)
+      if (index > -1) {
+        conversations.value.splice(index, 1)
+      }
+
+      // 如果删除的是当前对话，切换到第一个对话或创建新对话
+      if (currentConversation.value?.session_id === sessionId) {
+        if (conversations.value.length > 0) {
+          await switchConversation(conversations.value[0])
+        } else {
+          // 创建新对话
+          await createConversation()
+        }
+      }
+    } catch (error) {
+      console.error('删除对话失败:', error)
+      throw error
+    }
+  }
 
   /**
    * 初始化或获取会话 ID
@@ -42,14 +200,6 @@ export const useChatStore = defineStore('chat', () => {
 
     console.log('🆕 创建新会话 ID:', newSessionId)
     return newSessionId
-  }
-
-  /**
-   * 获取当前用户 ID，未登录返回 'anonymous'
-   */
-  const getCurrentUserId = (): string => {
-    const userStore = useUserStore()
-    return userStore.user?.id?.toString() || 'anonymous'
   }
 
   /**
@@ -84,13 +234,32 @@ export const useChatStore = defineStore('chat', () => {
       const currentSessionId = initializeSessionId()
       const currentUserId = getCurrentUserId()
 
-      // 2. 添加用户消息
+      // 2. 如果是当前对话的第一条消息，需要在后端创建对话
+      if (messages.value.length === 0 && currentConversation.value) {
+        // 检查对话是否已在后端创建
+        const existsInBackend = conversations.value.some(
+          (c) => c.session_id === currentSessionId,
+        )
+
+        if (!existsInBackend) {
+          // 使用用户的第一条问题作为对话名称（截取前20个字符）
+          const name = question.length > 20 ? question.substring(0, 20) + '...' : question
+
+          // 在后端创建对话
+          await createConversationInBackend(currentSessionId, name)
+
+          // 更新本地对话名称
+          currentConversation.value.name = name
+        }
+      }
+
+      // 3. 添加用户消息
       addMessage({
         role: 'user',
         content: question,
       })
 
-      // 3. 创建助手消息（初始为空）
+      // 4. 创建助手消息（初始为空）
       addMessage({
         role: 'assistant',
         content: '',
@@ -99,7 +268,7 @@ export const useChatStore = defineStore('chat', () => {
       // 获取刚添加的消息索引（最后一个）
       const messageIndex = messages.value.length - 1
 
-      // 4. 构建请求（包含 sessionId 和 userId）
+      // 5. 构建请求（包含 sessionId 和 userId）
       const request: AIAskRequest = {
         question,
         sessionId: currentSessionId,
@@ -107,7 +276,7 @@ export const useChatStore = defineStore('chat', () => {
         ...context,
       }
 
-      // 5. 使用流式 API，通过数组索引直接更新（触发响应式）
+      // 6. 使用流式 API，通过数组索引直接更新（触发响应式）
       let hasStarted = false // 标记是否已经开始接收内容
 
       await aiApi.askStream(request, (chunk: string) => {
@@ -127,13 +296,13 @@ export const useChatStore = defineStore('chat', () => {
         }
       })
 
-      // 6. 清理尾部空白
+      // 7. 清理尾部空白
       const finalMessage = messages.value[messageIndex]
       if (finalMessage) {
         finalMessage.content = finalMessage.content.trim()
       }
 
-      // 7. 后端已自动保存历史，无需手动保存
+      // 8. 后端已自动保存历史，无需手动保存
 
       return { answer: finalMessage?.content || '' }
     } catch (error) {
@@ -266,6 +435,8 @@ export const useChatStore = defineStore('chat', () => {
     isLoading,
     currentContext,
     sessionId,
+    conversations,
+    currentConversation,
 
     // 方法
     addMessage,
@@ -277,5 +448,10 @@ export const useChatStore = defineStore('chat', () => {
     loadHistory,
     saveHistory,
     autoSave,
+    loadConversations,
+    createConversation,
+    switchConversation,
+    updateConversationName,
+    deleteConversation,
   }
 })

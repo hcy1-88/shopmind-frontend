@@ -3,6 +3,7 @@ import type {
   AIAskRequest,
   AIAskResponse,
   AIHistoryMessage,
+  Conversation,
   TitleCheckRequest,
   TitleCheckResponse,
   ImageCheckRequest,
@@ -167,4 +168,49 @@ export const aiApi = {
       '/ai/product/description-generate',
       request,
     ) as unknown as Promise<DescriptionGenerateResponse>,
+
+  // ========== 对话列表管理 ==========
+
+  /**
+   * 获取用户对话列表
+   * @param userId 用户ID
+   * @returns 对话列表
+   */
+  getConversations: (userId: string): Promise<Conversation[]> =>
+    aiService.get<Conversation[]>(`/ai/chat/conversations/${userId}`) as unknown as Promise<
+      Conversation[]
+    >,
+
+  /**
+   * 更新对话名称
+   * @param userId 用户ID
+   * @param sessionId 会话ID
+   * @param name 新对话名称
+   * @returns 更新结果
+   */
+  updateConversationName: (
+    userId: string,
+    sessionId: string,
+    name: string,
+  ): Promise<{ updated: boolean }> =>
+    aiService.post<{ updated: boolean }>('/ai/chat/conversations/update-name', {
+      userId,
+      sessionId,
+      name,
+    }) as unknown as Promise<{ updated: boolean }>,
+
+  /**
+   * 删除对话
+   * @param userId 用户ID
+   * @param sessionId 会话ID
+   * @returns 删除结果
+   */
+  deleteConversation: (
+    userId: string,
+    sessionId: string,
+  ): Promise<{ deleted: boolean }> =>
+    aiService.post<{ deleted: boolean }>('/ai/chat/conversations/delete', {
+      userId,
+      sessionId,
+    }) as unknown as Promise<{ deleted: boolean }>,
 }

@@ -8,6 +8,11 @@
         </div>
 
         <div class="header-actions">
+          <!-- AI 对话入口 -->
+          <el-link type="primary" @click="goToChat" class="chat-link">
+            <el-icon><ChatDotRound /></el-icon>
+            AI 对话
+          </el-link>
           <el-link v-if="!userStore.isLoggedIn" type="primary" @click="loginVisible = true">
             登录
           </el-link>
@@ -36,7 +41,7 @@
     <el-main class="main-content">
       <div class="welcome-section">
         <div class="welcome-icon">
-          <el-icon :size="60" color="#ff6034" @click="openAIDialog">
+          <el-icon :size="60" color="#ff6034" @click="goToChat">
             <ChatDotRound />
           </el-icon>
         </div>
@@ -124,7 +129,7 @@
       </div>
     </el-main>
 
-    <AIAssistant ref="aiAssistantRef" />
+    <AIAssistant />
     <LoginDialog v-model:visible="loginVisible" />
   </div>
 </template>
@@ -148,7 +153,6 @@ const productStore = useProductStore()
 const loginVisible = ref(false)
 const searchQuery = ref('')
 const products = ref<Product[]>([])
-const aiAssistantRef = ref<InstanceType<typeof AIAssistant> | null>(null)
 
 const quickQuestions = [
   'pyhton从入门到入坟',
@@ -215,6 +219,11 @@ const goToMerchant = () => {
   router.push({ name: 'merchant-portal' })
 }
 
+// 跳转到 AI 对话页面
+const goToChat = () => {
+  router.push({ name: 'chat' })
+}
+
 const handleCommand = (command: string) => {
   if (command === 'profile') {
     router.push({ name: 'profile' })
@@ -222,11 +231,6 @@ const handleCommand = (command: string) => {
     userStore.logout()
     ElMessage.success('已退出登录')
   }
-}
-
-// 打开 AI 对话对话框
-const openAIDialog = () => {
-  aiAssistantRef.value?.openDialog()
 }
 </script>
 
@@ -280,6 +284,22 @@ const openAIDialog = () => {
   align-items: center;
   gap: 4px;
   font-size: 14px;
+}
+.chat-link {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  background: linear-gradient(135deg, #ff6034 0%, #ff9068 100%);
+  color: white !important;
+  border-radius: 20px;
+  font-weight: 500;
+  transition: all 0.3s;
+}
+.chat-link:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 96, 52, 0.4);
+  color: white !important;
 }
 .user-info {
   display: flex;
