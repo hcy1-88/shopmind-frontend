@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
-import type { ChatMessage, AIAskRequest, Conversation, ToolCall, ThinkingStep, MessageBlock, MessageBlockStep } from '@/types'
+import { ref } from 'vue'
+import type { ChatMessage, AIAskRequest, Conversation, MessageBlock } from '@/types'
 import { aiApi } from '@/api/ai-api'
 import type { AIEvent } from '@/api/ai-api'
 import { useUserStore } from './userStore'
@@ -108,11 +108,6 @@ export const useChatStore = defineStore('chat', () => {
     }
   }
 
-  // 检查当前对话是否已在后端创建
-  const isConversationCreatedInBackend = (sessionId: string): boolean => {
-    return conversations.value.some((c) => c.session_id === sessionId)
-  }
-
   // 切换到指定对话
   const switchConversation = async (conversation: Conversation) => {
     // 保存当前对话的 sessionId
@@ -165,7 +160,10 @@ export const useChatStore = defineStore('chat', () => {
       // 如果删除的是当前对话，切换到第一个对话或创建新对话
       if (currentConversation.value?.session_id === sessionId) {
         if (conversations.value.length > 0) {
-          await switchConversation(conversations.value[0])
+          const firstConversation = conversations.value[0]
+          if (firstConversation) {
+            await switchConversation(firstConversation)
+          }
         } else {
           // 创建新对话
           await createConversation()

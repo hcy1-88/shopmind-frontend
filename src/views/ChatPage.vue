@@ -208,7 +208,10 @@ onMounted(async () => {
 
   // 如果已有对话，加载最近的一个
   if (chatStore.conversations.length > 0) {
-    await chatStore.switchConversation(chatStore.conversations[0])
+    const firstConv = chatStore.conversations[0]
+    if (firstConv) {
+      await chatStore.switchConversation(firstConv)
+    }
   }
 
   nextTick(() => {
@@ -235,7 +238,7 @@ const handleNewChat = async () => {
     // 点击"新对话"按钮时，立即在后端创建对话
     await chatStore.createConversation('新对话', true)
     scrollToBottom()
-  } catch (error) {
+  } catch {
     ElMessage.error('创建对话失败')
   }
 }
@@ -271,7 +274,7 @@ const handleFinishEdit = async (sessionId: string) => {
     try {
       await chatStore.updateConversationName(sessionId, name)
       ElMessage.success('对话名称已更新')
-    } catch (error) {
+    } catch {
       ElMessage.error('更新对话名称失败')
     }
   }
@@ -290,7 +293,7 @@ const handleDeleteConversation = async (conversation: Conversation) => {
 
     await chatStore.deleteConversation(conversation.session_id)
     ElMessage.success('对话已删除')
-  } catch (error) {
+  } catch {
     // 用户取消删除
   }
 }
@@ -359,7 +362,7 @@ const isBlockExpanded = (messageId: string, blockId: string): boolean => {
 }
 
 // 格式化工具参数
-const formatToolArgs = (args: Record<string, any>): string => {
+const formatToolArgs = (args: Record<string, unknown>): string => {
   return Object.entries(args)
     .map(([key, value]) => `${key}=${JSON.stringify(value)}`)
     .join(', ')
