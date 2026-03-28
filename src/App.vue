@@ -56,6 +56,10 @@ body {
   -moz-osx-font-smoothing: grayscale;
   background: #ffffff;
   background-attachment: fixed;
+  background-image: url('@/assets/images/bg-home.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
 /* 添加微妙的背景图案 */
@@ -78,6 +82,8 @@ body::before {
   min-height: 100vh;
   position: relative;
   z-index: 1;
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(8px);
 }
 
 /* 美化滚动条 */
