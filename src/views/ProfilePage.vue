@@ -26,7 +26,7 @@
       <el-card class="preferences-card">
         <template #header>
           <div class="card-header">
-            <el-icon color="#7c3aed"><Setting /></el-icon>
+            <el-icon color="var(--primary-color)"><Setting /></el-icon>
             <span>我的购物偏好</span>
           </div>
         </template>
@@ -72,7 +72,7 @@
       <el-card class="address-card">
         <template #header>
           <div class="card-header">
-            <el-icon color="#7c3aed"><Location /></el-icon>
+            <el-icon color="var(--primary-color)"><Location /></el-icon>
             <span>收货地址管理</span>
             <el-button
               type="primary"
@@ -133,7 +133,7 @@
       <el-card class="orders-card">
         <template #header>
           <div class="card-header">
-            <el-icon color="#7c3aed"><Document /></el-icon>
+            <el-icon color="var(--primary-color)"><Document /></el-icon>
             <span>我的订单</span>
           </div>
         </template>
@@ -1042,88 +1042,103 @@ watch(showProfileDialog, (newVal) => {
 .header {
   position: sticky;
   top: 0;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
+  background: var(--bg-white);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   padding: 16px 20px;
-  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
   display: flex;
   align-items: center;
   gap: 12px;
   z-index: 100;
-  border-bottom: 1px solid rgba(124, 58, 237, 0.1);
+  border-bottom: 1px solid var(--border-light);
 }
 .header-title {
   font-size: 16px;
-  font-weight: 500;
+  font-weight: 600;
+  color: var(--text-primary);
 }
 .content {
   max-width: 1000px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 40px 20px;
 }
 .user-card {
-  margin-bottom: 20px;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  border-radius: 16px;
-  border: 1px solid rgba(124, 58, 237, 0.1);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  animation: fadeInUp 0.8s ease-out;
+  margin-bottom: 32px;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 32px;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.04), inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+  animation: fadeInUp 0.8s cubic-bezier(0.25, 0.8, 0.25, 1);
   overflow: hidden;
 }
 .user-info {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 24px;
+}
+.user-info :deep(.el-avatar) {
+  border: 4px solid white;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.08);
 }
 .user-details {
   flex: 1;
 }
 .user-details h3 {
   margin: 0 0 8px 0;
-  font-size: 20px;
-  color: #333;
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--text-primary);
 }
 .user-details p {
-  margin: 0 0 4px 0;
-  font-size: 14px;
-  color: #999;
+  margin: 0 0 8px 0;
+  font-size: 15px;
+  color: var(--text-secondary);
+  font-weight: 500;
 }
 .user-meta {
   display: flex;
-  gap: 12px;
+  gap: 16px;
   font-size: 14px;
-  color: #666;
+  color: var(--text-tertiary);
+  font-weight: 600;
+  background: var(--bg-white);
+  padding: 6px 16px;
+  border-radius: 20px;
+  display: inline-flex;
 }
 .preferences-card,
 .address-card,
 .orders-card {
-  margin-bottom: 20px;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  border-radius: 16px;
-  border: 1px solid rgba(124, 58, 237, 0.1);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  animation: fadeInUp 1s ease-out 0.2s both;
+  margin-bottom: 32px;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 32px;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.04), inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+  animation: fadeInUp 1s cubic-bezier(0.25, 0.8, 0.25, 1) 0.2s both;
   overflow: hidden;
 }
 .card-header {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 16px;
-  font-weight: 600;
+  gap: 10px;
+  font-size: 18px;
+  font-weight: 800;
 }
 
 .card-header > span {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--primary-gradient);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .card-header > .el-icon {
-  color: #667eea;
+  color: var(--primary-color);
 }
 .preferences-form {
   margin-bottom: 20px;
@@ -1132,154 +1147,161 @@ watch(showProfileDialog, (newVal) => {
   min-height: 200px;
 }
 .order-item {
-  padding: 16px;
-  background: linear-gradient(135deg, rgba(248, 249, 250, 0.8) 0%, rgba(255, 255, 255, 0.6) 100%);
-  border-radius: 12px;
-  margin-bottom: 12px;
-  border: 1px solid rgba(124, 58, 237, 0.08);
-  transition: all 0.3s;
+  padding: 24px;
+  background: var(--bg-white);
+  border-radius: 24px;
+  margin-bottom: 16px;
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-sm);
+  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
 .order-item:hover {
-  box-shadow: 0 4px 16px rgba(124, 58, 237, 0.12);
-  transform: translateY(-2px);
-  border-color: rgba(124, 58, 237, 0.2);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-4px);
+  border-color: var(--primary-light);
 }
 .order-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border-light);
 }
 .order-no {
-  font-size: 13px;
-  color: #666;
+  font-size: 14px;
+  color: var(--text-secondary);
+  font-weight: 600;
 }
 .order-body {
-  margin-bottom: 12px;
+  margin-bottom: 16px;
 }
 .order-main-info {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
 }
 .order-info-item {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
   font-size: 14px;
 }
 .order-info-item .label {
-  color: #666;
+  color: var(--text-tertiary);
   min-width: 80px;
+  font-weight: 500;
 }
 .order-info-item .value {
-  color: #333;
+  color: var(--text-primary);
+  font-weight: 600;
 }
 .order-info-item .value.amount {
-  color: #f56c6c;
-  font-weight: 600;
-  font-size: 16px;
+  color: var(--primary-color);
+  font-weight: 800;
+  font-size: 20px;
 }
 .order-info {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 .product-name {
-  font-size: 14px;
-  font-weight: 500;
-  color: #333;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
 }
 .order-meta {
   display: flex;
   gap: 12px;
   font-size: 14px;
-  color: #ff4444;
+  color: var(--primary-color);
   font-weight: bold;
 }
 .order-time {
-  font-size: 12px;
-  color: #999;
+  font-size: 13px;
+  color: var(--text-tertiary);
 }
 .order-actions {
   display: flex;
   justify-content: flex-end;
-  gap: 8px;
+  gap: 12px;
 }
 .address-list {
   min-height: 100px;
 }
 .address-item {
-  padding: 16px;
-  background: linear-gradient(135deg, rgba(248, 249, 250, 0.8) 0%, rgba(255, 255, 255, 0.6) 100%);
-  border-radius: 12px;
-  margin-bottom: 12px;
+  padding: 24px;
+  background: var(--bg-white);
+  border-radius: 20px;
+  margin-bottom: 16px;
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  border: 1px solid rgba(124, 58, 237, 0.08);
-  transition: all 0.3s;
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-sm);
+  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
 .address-item:hover {
-  box-shadow: 0 4px 16px rgba(124, 58, 237, 0.12);
-  transform: translateY(-2px);
-  border-color: rgba(124, 58, 237, 0.2);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-4px);
+  border-color: var(--primary-light);
 }
 .address-content {
   flex: 1;
 }
 .address-header {
   display: flex;
-  gap: 8px;
-  margin-bottom: 8px;
+  gap: 12px;
+  margin-bottom: 12px;
 }
 .address-detail {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 .address-region {
   margin: 0;
-  font-size: 14px;
-  font-weight: 500;
-  color: #333;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
 }
 .address-full {
   margin: 0;
-  font-size: 13px;
-  color: #666;
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.5;
 }
 .address-contact {
   margin: 0;
-  font-size: 13px;
-  color: #999;
+  font-size: 14px;
+  color: var(--text-tertiary);
   display: flex;
-  gap: 12px;
+  gap: 16px;
+  font-weight: 500;
 }
 .address-actions {
   display: flex;
-  gap: 8px;
+  gap: 12px;
   flex-shrink: 0;
 }
 .avatar-uploader {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
   cursor: pointer;
 }
 .avatar-upload-hint {
-  font-size: 12px;
-  color: #909399;
-  margin-top: 8px;
+  font-size: 13px;
+  color: var(--text-tertiary);
+  font-weight: 500;
 }
 .avatar-uploader:hover .avatar-upload-hint {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--primary-gradient);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -1288,78 +1310,95 @@ watch(showProfileDialog, (newVal) => {
 .loading-interests {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 20px 0;
-  color: #606266;
+  gap: 12px;
+  padding: 24px 0;
+  color: var(--text-secondary);
+  font-weight: 500;
 }
 
 .loading-interests .el-icon {
-  font-size: 16px;
+  font-size: 20px;
 }
 
 .interests-group {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 16px;
 }
 
 .interest-item {
-  padding: 12px 20px;
-  border: 2px solid #e4e7ed;
-  border-radius: 12px;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  min-width: 110px;
+  padding: 16px 24px;
+  border: 2px solid var(--border-color);
+  border-radius: 20px;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  min-width: 120px;
   text-align: center;
-  background: white;
+  background: var(--bg-white);
+  box-shadow: var(--shadow-sm);
 }
 
 .interest-item:hover {
-  border-color: #667eea;
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.15);
+  border-color: var(--primary-light);
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
 }
 
 .interest-content {
   display: flex;
   align-items: center;
-  justify-content: center; /* 内容居中 */
+  justify-content: center;
   gap: 8px;
-  white-space: nowrap; /* 防止换行 */
+  white-space: nowrap;
 }
 
 .interest-icon {
-  font-size: 18px;
-  flex-shrink: 0; /* 图标不收缩 */
+  font-size: 20px;
+  flex-shrink: 0;
 }
 
 .interest-name {
-  font-size: 14px;
-  color: #303133;
-  min-width: 3em; /* 设置最小宽度（约3个字符），确保对齐 */
-  text-align: center; /* 文字居中对齐 */
-  display: inline-block; /* 确保宽度生效 */
+  font-size: 15px;
+  color: var(--text-primary);
+  font-weight: 600;
+  min-width: 3em;
+  text-align: center;
+  display: inline-block;
+}
+
+/* Tabs overriding */
+:deep(.el-tabs__item.is-active) {
+  background: var(--primary-lighter) !important;
+  color: var(--primary-color) !important;
+  border-radius: 20px !important;
+  padding: 0 24px !important;
+  font-weight: 600;
+}
+:deep(.el-tabs__active-bar) {
+  display: none !important;
+}
+:deep(.el-tabs__nav-wrap::after) {
+  display: none !important;
 }
 
 .order-detail-dialog {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 24px;
 }
 
 .order-detail-dialog h4 {
-  margin: 0 0 12px 0;
-  font-size: 16px;
-  font-weight: 500;
-  color: #303133;
+  margin: 0 0 16px 0;
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text-primary);
 }
 
 .order-items-section {
-  margin-top: 20px;
+  margin-top: 24px;
 }
 
 .amount {
-  color: #f56c6c;
-  font-weight: 600;
+  color: var(--primary-color);
+  font-weight: 800;
 }
 </style>

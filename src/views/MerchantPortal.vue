@@ -4,7 +4,7 @@
     <el-header class="portal-header">
       <div class="header-content">
         <div class="logo-section">
-          <el-icon :size="32" color="#7c3aed"><Shop /></el-icon>
+          <el-icon :size="32" color="var(--primary-color)"><Shop /></el-icon>
           <h1>ShopMind 商家入驻</h1>
         </div>
         <div class="header-actions">
@@ -42,7 +42,7 @@
 
         <!-- AI 助手提示 -->
         <div class="ai-tip">
-          <el-icon :size="40" color="#7c3aed"><MagicStick /></el-icon>
+          <el-icon :size="40" color="var(--primary-color)"><MagicStick /></el-icon>
           <h4>AI 智能助手</h4>
           <p>我们的 AI 会自动检查标题、图片合规性，并帮您生成优质的商品描述</p>
         </div>
@@ -138,7 +138,7 @@
 
           <!-- AI 总结 -->
           <div v-if="viewingProduct.aiSummary" class="ai-summary-box">
-            <el-icon color="#7c3aed"><MagicStick /></el-icon>
+            <el-icon color="var(--primary-color)"><MagicStick /></el-icon>
             <span>{{ viewingProduct.aiSummary }}</span>
           </div>
 
@@ -526,11 +526,12 @@ const getStatusText = (status?: ProductStatus) => {
 }
 
 .portal-header {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(124, 58, 237, 0.1);
+  background: var(--bg-white);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border-light);
   padding: 0;
-  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
 }
 
 .header-content {
@@ -552,11 +553,11 @@ const getStatusText = (status?: ProductStatus) => {
 .logo-section h1 {
   margin: 0;
   font-size: 20px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--primary-gradient);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  font-weight: bold;
+  font-weight: 800;
   letter-spacing: 0.5px;
 }
 
@@ -569,162 +570,190 @@ const getStatusText = (status?: ProductStatus) => {
 .user-info {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
   cursor: pointer;
-  padding: 4px 12px;
-  border-radius: 4px;
-  transition: background-color 0.3s;
+  padding: 6px 16px;
+  border-radius: 20px;
+  transition: all 0.3s;
+  background: var(--bg-white);
+  border: 1px solid transparent;
+  font-weight: 600;
+  color: var(--text-primary);
 }
 
 .user-info:hover {
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+  background: var(--primary-lighter);
+  border-color: var(--primary-light);
 }
 
 .portal-content {
   max-width: 1400px;
   width: 100%;
-  margin: 20px auto;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  border-radius: 20px;
+  margin: 40px auto;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 32px;
   overflow: hidden;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-  border: 1px solid rgba(124, 58, 237, 0.1);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.04), inset 0 0 0 1px rgba(255, 255, 255, 0.5);
   flex: 1;
-  animation: fadeInUp 0.8s ease-out;
+  animation: fadeInUp 0.8s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
 .portal-aside {
-  border-right: 1px solid rgba(124, 58, 237, 0.1);
+  border-right: 1px solid var(--border-light);
   background: transparent;
+  display: flex;
+  flex-direction: column;
+}
+
+.portal-aside :deep(.el-menu) {
+  background: transparent;
+  border-right: none;
+}
+
+.portal-aside :deep(.el-menu-item.is-active) {
+  background: var(--primary-lighter);
+  color: var(--primary-color);
+  font-weight: 600;
+  border-radius: 16px;
+  margin: 8px 16px;
+}
+
+.portal-aside :deep(.el-menu-item) {
+  transition: all 0.3s;
+  border-radius: 16px;
+  margin: 8px 16px;
+}
+.portal-aside :deep(.el-menu-item:hover) {
+  background: var(--bg-white);
 }
 
 .ai-tip {
-  padding: 20px;
-  margin: 20px;
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
-  border-radius: 12px;
+  padding: 24px 20px;
+  margin: auto 20px 20px;
+  background: var(--bg-white);
+  border-radius: 24px;
   text-align: center;
-  border: 1px solid rgba(124, 58, 237, 0.15);
-  box-shadow: 0 4px 16px rgba(124, 58, 237, 0.1);
-  transition: all 0.3s;
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-sm);
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
 .ai-tip:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(124, 58, 237, 0.15);
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--primary-light);
 }
 
 .ai-tip h4 {
-  margin: 12px 0 8px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  margin: 16px 0 8px;
+  background: var(--primary-gradient);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
   font-size: 16px;
-  font-weight: bold;
+  font-weight: 800;
 }
 
 .ai-tip p {
   margin: 0;
   font-size: 13px;
-  color: #606266;
+  color: var(--text-secondary);
   line-height: 1.6;
+  font-weight: 500;
 }
 
 .portal-main {
   background: transparent;
-  padding: 24px;
+  padding: 32px;
 }
 
 .tab-content {
   animation: fadeIn 0.3s;
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 .upload-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
+  margin-bottom: 32px;
 }
 
 .upload-header h2 {
   margin: 0;
-  font-size: 24px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  font-size: 28px;
+  background: var(--primary-gradient);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  font-weight: bold;
+  font-weight: 800;
 }
 
 .product-detail-dialog {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 24px;
 }
 
 .product-info-section {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 20px;
 }
 
 .price {
-  font-size: 20px;
-  font-weight: 600;
-  color: #f56c6c;
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--primary-color);
 }
 
 .original-price {
-  color: #909399;
+  color: var(--text-tertiary);
   text-decoration: line-through;
+  font-size: 15px;
+  font-weight: 500;
 }
 
 .ai-summary-box {
-  padding: 16px;
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
-  border-radius: 12px;
+  padding: 20px;
+  background: var(--primary-lighter);
+  border-radius: 16px;
   display: flex;
   align-items: center;
   gap: 12px;
-  color: #606266;
+  color: var(--text-secondary);
   line-height: 1.6;
-  border: 1px solid rgba(124, 58, 237, 0.15);
+  border: 1px solid var(--primary-light);
+  box-shadow: var(--shadow-sm);
+  font-weight: 500;
 }
 
 .description-box {
-  padding: 16px;
-  background: linear-gradient(135deg, rgba(245, 247, 250, 0.8) 0%, rgba(255, 255, 255, 0.6) 100%);
-  border-radius: 12px;
-  border: 1px solid rgba(124, 58, 237, 0.08);
+  padding: 24px;
+  background: var(--bg-white);
+  border-radius: 24px;
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-sm);
 }
 
 .description-box h4 {
-  margin: 0 0 12px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  margin: 0 0 16px;
+  background: var(--primary-gradient);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  font-weight: 600;
+  font-weight: 800;
+  font-size: 18px;
 }
 
 .description-box p {
   margin: 0;
-  color: #606266;
+  color: var(--text-secondary);
   line-height: 1.8;
   white-space: pre-wrap;
+  font-size: 15px;
+  font-weight: 500;
 }
 
 .sku-list-box {
@@ -732,11 +761,12 @@ const getStatusText = (status?: ProductStatus) => {
 }
 
 .sku-list-box h4 {
-  margin: 0 0 12px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  margin: 0 0 16px;
+  background: var(--primary-gradient);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  font-weight: 600;
+  font-weight: 800;
+  font-size: 18px;
 }
 </style>

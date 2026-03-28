@@ -41,7 +41,7 @@
     <el-main class="main-content">
       <div class="welcome-section">
         <div class="welcome-icon">
-          <el-icon :size="60" color="#ff6034" @click="goToChat">
+          <el-icon :size="60" color="var(--primary-color)" @click="goToChat">
             <ChatDotRound />
           </el-icon>
         </div>
@@ -119,7 +119,7 @@
                   </span>
                 </div>
                 <div class="ai-summary">
-                  <el-icon color="#ff6034"><MagicStick /></el-icon>
+                  <el-icon color="var(--primary-color)"><MagicStick /></el-icon>
                   <span>{{ product.aiSummary }}</span>
                 </div>
               </div>
@@ -241,14 +241,18 @@ const handleCommand = (command: string) => {
   animation: fadeIn 0.6s ease-out;
 }
 .header {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
+  background: var(--bg-white);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
   height: 64px;
   display: flex;
   align-items: center;
   padding: 0;
-  border-bottom: 1px solid rgba(255, 96, 52, 0.1);
+  border-bottom: 1px solid var(--border-light);
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
 .header-content {
   width: 100%;
@@ -262,17 +266,18 @@ const handleCommand = (command: string) => {
 .logo h1 {
   margin: 0;
   font-size: 24px;
-  background: linear-gradient(135deg, #ff6034 0%, #ff9068 100%);
+  background: var(--primary-gradient);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  font-weight: bold;
+  font-weight: 800;
   letter-spacing: 0.5px;
 }
 .logo-subtitle {
-  font-size: 12px;
-  color: #999;
-  margin-left: 8px;
+  font-size: 13px;
+  color: var(--text-tertiary);
+  margin-left: 10px;
+  font-weight: 500;
 }
 .header-actions {
   display: flex;
@@ -284,21 +289,24 @@ const handleCommand = (command: string) => {
   align-items: center;
   gap: 4px;
   font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary);
 }
 .chat-link {
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 6px 12px;
-  background: linear-gradient(135deg, #ff6034 0%, #ff9068 100%);
+  gap: 6px;
+  padding: 8px 16px !important;
+  background: var(--primary-gradient);
   color: white !important;
   border-radius: 20px;
-  font-weight: 500;
-  transition: all 0.3s;
+  font-weight: 600 !important;
+  box-shadow: 0 4px 12px rgba(221, 36, 118, 0.2);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 .chat-link:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(255, 96, 52, 0.4);
+  box-shadow: var(--shadow-primary);
   color: white !important;
 }
 .user-info {
@@ -306,75 +314,82 @@ const handleCommand = (command: string) => {
   align-items: center;
   gap: 8px;
   cursor: pointer;
-  padding: 4px 8px;
+  padding: 6px 12px;
   border-radius: 20px;
-  transition: background-color 0.3s;
+  transition: all 0.3s;
+  background: var(--bg-white);
+  border: 1px solid transparent;
 }
 .user-info:hover {
-  background: linear-gradient(135deg, rgba(255, 96, 52, 0.1) 0%, rgba(255, 144, 104, 0.1) 100%);
+  background: var(--primary-lighter);
+  border-color: var(--primary-light);
 }
 .user-nickname {
   font-size: 14px;
-  color: #333;
-  font-weight: 500;
+  color: var(--text-primary);
+  font-weight: 600;
 }
 .main-content {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 40px 20px;
+  padding: 40px 20px 80px;
 }
 .welcome-section {
   text-align: center;
-  margin-bottom: 60px;
-  padding: 40px 20px;
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(10px);
-  border-radius: 24px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  animation: fadeInUp 0.8s ease-out;
+  margin-bottom: 80px;
+  padding: 60px 40px;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 32px;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.04), inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+  animation: fadeInUp 0.8s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 .welcome-icon {
-  margin-bottom: 20px;
+  margin-bottom: 24px;
+  animation: float 6s ease-in-out infinite;
 }
-
 .welcome-icon .el-icon {
   cursor: pointer;
-  transition: transform 0.3s;
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
-
 .welcome-icon .el-icon:hover {
-  transform: scale(1.1) rotate(5deg);
-  filter: drop-shadow(0 4px 12px rgba(255, 96, 52, 0.4));
+  transform: scale(1.15) rotate(10deg);
+  filter: drop-shadow(var(--shadow-glow));
 }
 .welcome-title {
-  font-size: 32px;
-  font-weight: bold;
-  background: linear-gradient(135deg, #ff6034 0%, #ff9068 100%);
+  font-size: 38px;
+  font-weight: 800;
+  background: var(--primary-gradient);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  margin: 0 0 12px 0;
-  letter-spacing: 0.5px;
+  margin: 0 0 16px 0;
+  letter-spacing: -0.5px;
 }
 .welcome-desc {
-  font-size: 16px;
-  color: #666;
-  margin: 0 0 30px 0;
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin: 0 0 40px 0;
 }
 .search-box {
-  max-width: 600px;
-  margin: 0 auto 20px;
+  max-width: 680px;
+  margin: 0 auto 30px;
 }
 .search-box :deep(.el-input__wrapper) {
-  border-radius: 24px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  border: 2px solid transparent;
-  transition: all 0.3s ease;
+  border-radius: 30px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  height: 60px;
+  padding: 0 24px;
+  font-size: 16px;
+  background: rgba(255, 255, 255, 0.9);
 }
-
 .search-box :deep(.el-input__wrapper):hover {
-  box-shadow: 0 6px 24px rgba(255, 96, 52, 0.15);
-  border-color: rgba(255, 96, 52, 0.3);
+  box-shadow: 0 12px 40px rgba(221, 36, 118, 0.12);
+  border-color: rgba(221, 36, 118, 0.2);
 }
 .quick-questions {
   display: flex;
@@ -382,64 +397,60 @@ const handleCommand = (command: string) => {
   gap: 12px;
   flex-wrap: wrap;
 }
-
 .quick-questions .el-button {
-  background: linear-gradient(135deg, rgba(255, 96, 52, 0.1) 0%, rgba(255, 144, 104, 0.1) 100%);
-  border: 1px solid rgba(255, 96, 52, 0.2);
-  color: #ff6034;
-  font-weight: 500;
+  background: var(--bg-white);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  font-weight: 600;
+  padding: 10px 20px;
+  border-radius: 20px;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
-
 .quick-questions .el-button:hover {
-  background: linear-gradient(135deg, #ff6034 0%, #ff9068 100%);
+  background: var(--primary-gradient);
   color: white;
   border-color: transparent;
+  box-shadow: var(--shadow-primary);
+  transform: translateY(-2px);
 }
 .products-section {
   margin-top: 40px;
-  animation: fadeInUp 1s ease-out 0.2s both;
+  animation: fadeInUp 1s cubic-bezier(0.25, 0.8, 0.25, 1) 0.2s both;
 }
 .section-title {
-  font-size: 24px;
-  font-weight: bold;
-  color: #ff6034;
-  margin: 0 0 24px 0;
-  text-shadow: 0 2px 8px rgba(255, 96, 52, 0.3);
-  position: relative;
-  padding-left: 16px;
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 0 0 32px 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
-
 .section-title::before {
   content: '';
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 4px;
-  height: 24px;
-  background: linear-gradient(135deg, #ff6034 0%, #ff9068 100%);
-  border-radius: 2px;
-  box-shadow: 0 2px 8px rgba(255, 96, 52, 0.4);
+  display: block;
+  width: 6px;
+  height: 28px;
+  background: var(--primary-gradient);
+  border-radius: 4px;
+  box-shadow: var(--shadow-primary);
 }
 .product-card {
   cursor: pointer;
-  margin-bottom: 20px;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border-radius: 16px;
+  margin-bottom: 24px;
+  border-radius: 24px;
   overflow: hidden;
-  background: white;
-  border: 1px solid #f0f0f0;
+  background: rgba(255, 255, 255, 0.7);
 }
 .product-card:hover {
-  transform: translateY(-8px) scale(1.02);
-  box-shadow: 0 12px 40px rgba(255, 96, 52, 0.15);
-  border-color: rgba(255, 96, 52, 0.3);
+  transform: translateY(-10px);
+  border-color: var(--primary-light);
 }
 .product-image {
   overflow: hidden;
   position: relative;
+  border-radius: 24px 24px 0 0;
 }
-
 .product-image::after {
   content: '';
   position: absolute;
@@ -447,11 +458,10 @@ const handleCommand = (command: string) => {
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.05) 100%);
+  background: linear-gradient(180deg, transparent 50%, rgba(0, 0, 0, 0.08) 100%);
   opacity: 0;
-  transition: opacity 0.3s;
+  transition: opacity 0.4s;
 }
-
 .product-card:hover .product-image::after {
   opacity: 1;
 }
@@ -460,64 +470,65 @@ const handleCommand = (command: string) => {
   justify-content: center;
   align-items: center;
   height: 200px;
-  background-color: #f5f5f5;
-  color: #999;
+  background-color: var(--bg-gray);
+  color: var(--text-tertiary);
   font-size: 48px;
 }
 .product-info {
-  padding: 16px;
+  padding: 20px;
 }
 .product-name {
   font-size: 16px;
-  color: #333;
-  margin: 0 0 12px 0;
+  color: var(--text-primary);
+  font-weight: 600;
+  margin: 0 0 14px 0;
+  line-height: 1.5;
   overflow: hidden;
-  text-overflow: ellipsis;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
-  min-height: 44px;
-  line-clamp: 2;
+  min-height: 48px;
 }
 .product-price {
-  margin-bottom: 12px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
 }
 .current-price {
-  font-size: 20px;
-  color: #ff4444;
-  font-weight: bold;
-  margin-right: 8px;
+  font-size: 22px;
+  color: var(--primary-color);
+  font-weight: 800;
 }
 .original-price {
   font-size: 14px;
-  color: #999;
+  color: var(--text-tertiary);
   text-decoration: line-through;
+  font-weight: 500;
 }
 .ai-summary {
   display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 12px;
-  background: linear-gradient(135deg, rgba(255, 96, 52, 0.08) 0%, rgba(255, 144, 104, 0.08) 100%);
-  border-radius: 8px;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 12px;
+  background: var(--primary-lighter);
+  border-radius: 12px;
   font-size: 13px;
-  color: #ff6034;
-  line-height: 1.4;
-  border: 1px solid rgba(255, 96, 52, 0.15);
+  color: var(--primary-color);
+  line-height: 1.5;
+  border: 1px solid var(--primary-light);
   transition: all 0.3s;
+  font-weight: 500;
 }
-
 .product-card:hover .ai-summary {
-  background: linear-gradient(135deg, rgba(255, 96, 52, 0.12) 0%, rgba(255, 144, 104, 0.12) 100%);
-  border-color: rgba(255, 96, 52, 0.3);
+  background: rgba(255, 81, 47, 0.08);
+  border-color: rgba(255, 81, 47, 0.15);
 }
 .ai-summary span {
   flex: 1;
   overflow: hidden;
-  text-overflow: ellipsis;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
-  line-clamp: 2;
 }
 </style>

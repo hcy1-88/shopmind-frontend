@@ -85,7 +85,7 @@
             </div>
 
             <div class="ai-summary">
-              <el-icon color="#ff6034"><MagicStick /></el-icon>
+              <el-icon color="var(--primary-color)"><MagicStick /></el-icon>
               <span>{{ product.aiSummary }}</span>
             </div>
 
@@ -256,16 +256,17 @@ const handleCommand = (command: string) => {
 .search-header {
   position: sticky;
   top: 0;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
+  background: var(--bg-white);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   padding: 16px 20px;
-  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
   z-index: 100;
-  border-bottom: 1px solid rgba(255, 96, 52, 0.1);
+  border-bottom: 1px solid var(--border-light);
 }
 
 .header-left {
@@ -286,77 +287,88 @@ const handleCommand = (command: string) => {
   gap: 16px;
 }
 
+.header-actions .el-link {
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
 .user-info {
   display: flex;
   align-items: center;
   gap: 8px;
   cursor: pointer;
-  padding: 4px 12px;
-  border-radius: 4px;
-  transition: background-color 0.3s;
+  padding: 6px 12px;
+  border-radius: 20px;
+  transition: all 0.3s;
+  background: var(--bg-white);
+  border: 1px solid transparent;
 }
 
 .user-info:hover {
-  background: linear-gradient(135deg, rgba(255, 96, 52, 0.1) 0%, rgba(255, 144, 104, 0.1) 100%);
+  background: var(--primary-lighter);
+  border-color: var(--primary-light);
 }
 
 .user-nickname {
   font-size: 14px;
-  color: #303133;
+  color: var(--text-primary);
+  font-weight: 600;
 }
 .search-input :deep(.el-input__wrapper) {
   border-radius: 24px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--shadow-sm);
   border: 2px solid transparent;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
-.search-input :deep(.el-input__wrapper):hover {
-  box-shadow: 0 6px 24px rgba(255, 96, 52, 0.15);
-  border-color: rgba(255, 96, 52, 0.3);
+.search-input :deep(.el-input__wrapper):hover,
+.search-input :deep(.el-input__wrapper.is-focus) {
+  box-shadow: 0 0 0 4px rgba(255, 81, 47, 0.15);
+  border-color: var(--primary-light);
 }
 .search-content {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 40px 20px;
 }
 .result-header {
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 .result-count {
-  font-size: 14px;
-  color: white;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-  font-weight: 500;
+  font-size: 15px;
+  color: var(--text-secondary);
+  font-weight: 600;
 }
 .result-list {
   min-height: 400px;
 }
 .product-item {
   display: flex;
-  gap: 16px;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  padding: 16px;
-  margin-bottom: 12px;
-  border-radius: 16px;
+  gap: 20px;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  padding: 24px;
+  margin-bottom: 16px;
+  border-radius: 24px;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border: 1px solid #f0f0f0;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-sm);
   animation: fadeInUp 0.6s ease-out;
 }
 .product-item:hover {
-  box-shadow: 0 8px 28px rgba(255, 96, 52, 0.15);
-  transform: translateY(-4px);
-  border-color: rgba(255, 96, 52, 0.3);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-6px);
+  border-color: var(--primary-light);
+  background: var(--bg-white);
 }
 .product-image {
   flex-shrink: 0;
-  border-radius: 12px;
+  border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-  transition: transform 0.3s;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
 .product-item:hover .product-image {
@@ -368,20 +380,20 @@ const handleCommand = (command: string) => {
   align-items: center;
   width: 120px;
   height: 120px;
-  background-color: #f5f5f5;
-  color: #999;
+  background-color: var(--bg-gray);
+  color: var(--text-tertiary);
   font-size: 32px;
 }
 .product-details {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
 }
 .product-title {
-  font-size: 16px;
-  font-weight: 500;
-  color: #333;
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text-primary);
   margin: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -389,13 +401,15 @@ const handleCommand = (command: string) => {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   line-clamp: 2;
+  line-height: 1.4;
 }
 .product-meta {
   display: flex;
   align-items: center;
   gap: 12px;
-  font-size: 13px;
-  color: #999;
+  font-size: 14px;
+  color: var(--text-secondary);
+  font-weight: 500;
 }
 .location {
   display: flex;
@@ -405,45 +419,48 @@ const handleCommand = (command: string) => {
 .ai-summary {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 12px;
-  background: linear-gradient(135deg, rgba(255, 96, 52, 0.08) 0%, rgba(255, 144, 104, 0.08) 100%);
-  border-radius: 8px;
-  font-size: 13px;
-  color: #ff6034;
-  border: 1px solid rgba(255, 96, 52, 0.15);
+  gap: 8px;
+  padding: 10px 16px;
+  background: var(--primary-lighter);
+  border-radius: 12px;
+  font-size: 14px;
+  color: var(--primary-color);
+  font-weight: 500;
+  border: 1px solid var(--primary-light);
   transition: all 0.3s;
 }
 
 .product-item:hover .ai-summary {
-  background: linear-gradient(135deg, rgba(255, 96, 52, 0.12) 0%, rgba(255, 144, 104, 0.12) 100%);
-  border-color: rgba(255, 96, 52, 0.3);
+  background: rgba(221, 36, 118, 0.08);
+  border-color: rgba(221, 36, 118, 0.2);
 }
 .product-price {
   margin-top: auto;
 }
 .current-price {
-  font-size: 20px;
-  color: #ff4444;
-  font-weight: bold;
-  margin-right: 8px;
+  font-size: 24px;
+  color: var(--primary-color);
+  font-weight: 800;
+  margin-right: 12px;
 }
 .original-price {
-  font-size: 14px;
-  color: #999;
+  font-size: 15px;
+  color: var(--text-tertiary);
   text-decoration: line-through;
+  font-weight: 500;
 }
 
 .pagination-wrapper {
   display: flex;
   justify-content: center;
-  margin-top: 20px;
-  padding: 20px;
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(10px);
-  border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  border: 1px solid #f0f0f0;
+  margin-top: 32px;
+  padding: 24px;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 24px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-light);
 }
 
 @media (max-width: 768px) {
@@ -455,7 +472,7 @@ const handleCommand = (command: string) => {
   }
   .product-image :deep(.el-image) {
     width: 100% !important;
-    height: 200px !important;
+    height: 240px !important;
   }
 }
 </style>
