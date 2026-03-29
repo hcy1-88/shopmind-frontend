@@ -475,6 +475,7 @@ const truncateResult = (result: string, maxLength: number = 200): string => {
   padding: 6px;
   border-radius: 8px;
   transition: all 0.2s;
+  box-sizing: content-box;
 }
 
 .conversation-actions .el-icon:hover {

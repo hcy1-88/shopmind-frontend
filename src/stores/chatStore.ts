@@ -145,28 +145,32 @@ export const useChatStore = defineStore('chat', () => {
   }
 
   // 删除对话
-  const deleteConversation = async (sessionId: string) => {
+  const deleteConversation = async (targetSessionId: string) => {
     const userId = getCurrentUserId()
 
     try {
-      await aiApi.deleteConversation(userId, sessionId)
+      await aiApi.deleteConversation(userId, targetSessionId)
 
       // 从本地列表中移除
-      const index = conversations.value.findIndex((c) => c.session_id === sessionId)
+      const index = conversations.value.findIndex((c) => c.session_id === targetSessionId)
       if (index > -1) {
         conversations.value.splice(index, 1)
       }
 
-      // 如果删除的是当前对话，切换到第一个对话或创建新对话
-      if (currentConversation.value?.session_id === sessionId) {
+      // 如果删除的是当前对话，切换到第一个对话或清空状态
+      if (currentConversation.value?.session_id === targetSessionId) {
         if (conversations.value.length > 0) {
           const firstConversation = conversations.value[0]
           if (firstConversation) {
             await switchConversation(firstConversation)
           }
         } else {
-          // 创建新对话
-          await createConversation()
+          // 清空当前对话状态
+          currentConversation.value = null
+          sessionId.value = ''
+          localStorage.removeItem(SESSION_ID_KEY)
+          messages.value = []
+          currentContext.value = ''
         }
       }
     } catch (error) {
