@@ -1,6 +1,12 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import type { ChatMessage, AIAskRequest, Conversation, MessageBlock } from '@/types'
+import type {
+  ChatMessage,
+  AIAskRequest,
+  Conversation,
+  MessageBlock,
+  MessageBlockStep,
+} from '@/types'
 import { aiApi } from '@/api/ai-api'
 import type { AIEvent } from '@/api/ai-api'
 import { useUserStore } from './userStore'
@@ -241,9 +247,7 @@ export const useChatStore = defineStore('chat', () => {
       // 2. 如果是当前对话的第一条消息，需要在后端创建对话
       if (messages.value.length === 0 && currentConversation.value) {
         // 检查对话是否已在后端创建
-        const existsInBackend = conversations.value.some(
-          (c) => c.session_id === currentSessionId,
-        )
+        const existsInBackend = conversations.value.some((c) => c.session_id === currentSessionId)
 
         if (!existsInBackend) {
           // 使用用户的第一条问题作为对话名称（截取前20个字符）
@@ -271,7 +275,7 @@ export const useChatStore = defineStore('chat', () => {
         toolCalls: [],
         currentToolCall: null,
         hasPendingTools: false,
-        blocks: [],  // 动态创建的消息块
+        blocks: [], // 动态创建的消息块
       })
 
       // 当前活动块的引用
@@ -287,7 +291,7 @@ export const useChatStore = defineStore('chat', () => {
 
       // 6. 使用流式 API 处理完整事件流
       await aiApi.askStream(request, (event: AIEvent) => {
-        const message = messages.value.find(m => m.id === assistantMessage.id)
+        const message = messages.value.find((m) => m.id === assistantMessage.id)
         if (!message) return
 
         // 确保 blocks 数组存在
@@ -297,46 +301,60 @@ export const useChatStore = defineStore('chat', () => {
 
         switch (event.type) {
           case 'thinking_start':
-            // 创建新的思考块
-            currentBlock = {
-              id: `block_${Date.now()}`,
-              type: 'thinking',
-              title: '🤔 思考过程',
-              steps: [],
-              isExpanded: true,
+            // 获取或创建全局唯一的执行块
+            currentBlock = message.blocks.length > 0 ? message.blocks[0] || null : null
+            if (!currentBlock) {
+              currentBlock = {
+                id: `block_${Date.now()}`,
+                type: 'thinking',
+                title: '🧠 AI 思考与执行过程',
+                steps: [] as MessageBlockStep[],
+                isExpanded: true,
+              } as MessageBlock
+              message.blocks.push(currentBlock)
             }
-            message.blocks.push(currentBlock)
 
             // 添加思考开始步骤
             currentBlock.steps.push({
-              id: `step_${Date.now()}`,
+              id: `step_${Date.now()}_${Math.random()}`,
               message: event.data.message || '🤔 AI 正在思考...',
               timestamp: Date.now(),
+              nodeName: event.data.node_name,
+              nodeStatus: 'executing',
             })
             break
 
           case 'thinking_end':
-            // 更新当前思考块
-            if (currentBlock && currentBlock.type === 'thinking') {
-              currentBlock.steps.push({
-                id: `step_${Date.now()}`,
-                message: `✅ ${event.data.message || '思考完成'}`,
-                timestamp: Date.now(),
-              })
-            } else {
-              // 如果没有活动块，创建一个新的
-              currentBlock = {
-                id: `block_${Date.now()}`,
-                type: 'thinking',
-                title: '🤔 思考过程',
-                steps: [{
-                  id: `step_${Date.now()}`,
-                  message: `✅ ${event.data.message || '思考完成'}`,
-                  timestamp: Date.now(),
-                }],
-                isExpanded: true,
+            currentBlock = message.blocks.length > 0 ? message.blocks[0] || null : null
+            // 更新当前思考块（找到对应的 executing 节点，将其改为 completed）
+            if (currentBlock) {
+              // 优先找同名节点中 executing 状态的 step
+              const lastNodeStep = [...currentBlock.steps]
+                .reverse()
+                .find((s) => s.nodeName === event.data.node_name && s.nodeStatus === 'executing')
+              if (lastNodeStep) {
+                lastNodeStep.nodeStatus = 'completed'
+                lastNodeStep.message = event.data.message || `✅ 思考完成`
+              } else {
+                // 兜底：找同名节点的最后一个 step（不限状态）并更新它
+                // 注意：不能直接新增，否则原来的 executing step 会永远停在「正在...」
+                const anyNodeStep = [...currentBlock.steps]
+                  .reverse()
+                  .find((s) => s.nodeName === event.data.node_name)
+                if (anyNodeStep) {
+                  anyNodeStep.nodeStatus = 'completed'
+                  anyNodeStep.message = event.data.message || `✅ 思考完成`
+                } else {
+                  // 完全找不到同名 step（极少情况），才新增
+                  currentBlock.steps.push({
+                    id: `step_${Date.now()}_${Math.random()}`,
+                    message: event.data.message || `✅ 思考完成`,
+                    timestamp: Date.now(),
+                    nodeName: event.data.node_name,
+                    nodeStatus: 'completed',
+                  })
+                }
               }
-              message.blocks.push(currentBlock)
             }
             break
 
@@ -345,20 +363,23 @@ export const useChatStore = defineStore('chat', () => {
             break
 
           case 'tool_start':
-            // 创建新的工具块
-            currentBlock = {
-              id: `block_${Date.now()}`,
-              type: 'tool',
-              title: '🛠️ 工具执行',
-              steps: [],
-              isExpanded: true,
+            // 获取或创建全局唯一的执行块
+            currentBlock = message.blocks.length > 0 ? message.blocks[0] || null : null
+            if (!currentBlock) {
+              currentBlock = {
+                id: `block_${Date.now()}`,
+                type: 'thinking',
+                title: '🧠 AI 思考与执行过程',
+                steps: [] as MessageBlockStep[],
+                isExpanded: true,
+              } as MessageBlock
+              message.blocks.push(currentBlock)
             }
-            message.blocks.push(currentBlock)
 
             // 添加工具开始步骤
             currentBlock.steps.push({
-              id: `step_${Date.now()}`,
-              message: `🔄 正在执行工具: ${event.data.tool_name}`,
+              id: `step_${Date.now()}_${Math.random()}`,
+              message: event.data.message || `🔄 正在执行工具: ${event.data.tool_name}`,
               timestamp: Date.now(),
               toolName: event.data.tool_name,
               toolArgs: event.data.tool_args || {},
@@ -367,10 +388,11 @@ export const useChatStore = defineStore('chat', () => {
             break
 
           case 'tool_progress':
+            currentBlock = message.blocks.length > 0 ? message.blocks[0] || null : null
             // 工具执行进度
-            if (currentBlock && currentBlock.type === 'tool') {
+            if (currentBlock) {
               currentBlock.steps.push({
-                id: `step_${Date.now()}`,
+                id: `step_${Date.now()}_${Math.random()}`,
                 message: `⏳ ${event.data.message}`,
                 timestamp: Date.now(),
               })
@@ -378,22 +400,28 @@ export const useChatStore = defineStore('chat', () => {
             break
 
           case 'tool_complete':
-            // 工具执行完成，更新工具块的最后步骤
-            if (currentBlock && currentBlock.type === 'tool') {
-              const lastStep = currentBlock.steps[currentBlock.steps.length - 1]
-              if (lastStep && lastStep.toolName) {
+            currentBlock = message.blocks.length > 0 ? message.blocks[0] || null : null
+            // 工具执行完成，找到最后一个对应的执行中任务，把它标为 complete
+            if (currentBlock) {
+              // 寻找正在执行的对应 tool 步骤
+              const lastStep = [...currentBlock.steps]
+                .reverse()
+                .find((s) => s.toolName === event.data.tool_name && s.toolStatus === 'executing')
+              if (lastStep) {
                 lastStep.toolStatus = 'completed'
                 lastStep.toolResult = event.data.result
+                lastStep.message = event.data.message || `✅ ${event.data.tool_name} 执行完成`
+              } else {
+                // 兜底：如果没有找到 executing 状态的该工具（可能被中途打断），直接新增一个 complete 步骤
+                currentBlock.steps.push({
+                  id: `step_${Date.now()}_${Math.random()}`,
+                  message: event.data.message || `✅ ${event.data.tool_name} 执行完成`,
+                  timestamp: Date.now(),
+                  toolName: event.data.tool_name,
+                  toolStatus: 'completed',
+                  toolResult: event.data.result,
+                })
               }
-              // 添加完成步骤
-              currentBlock.steps.push({
-                id: `step_${Date.now()}`,
-                message: `✅ 工具执行完成: ${event.data.tool_name}`,
-                timestamp: Date.now(),
-                toolName: event.data.tool_name,
-                toolStatus: 'completed',
-                toolResult: event.data.result,
-              })
             }
             break
 
@@ -401,11 +429,16 @@ export const useChatStore = defineStore('chat', () => {
             // AI 回复的流式文本
             const content = event.data.content
             if (content) {
-              // 首次接收到有效内容时，去掉前导空白
+              // 首次接收到有效内容时
               if (!message.content) {
                 const trimmedContent = content.trimStart()
                 if (trimmedContent) {
                   message.content = trimmedContent
+                  // 首字出现，这意味着思考和执行阶段结束，准备开始流式回答
+                  // 我们在这里自动把思考面板折叠起来！
+                  if (message.blocks && message.blocks.length > 0 && message.blocks[0]) {
+                    message.blocks[0].isExpanded = false
+                  }
                 }
               } else {
                 message.content += content
@@ -426,7 +459,7 @@ export const useChatStore = defineStore('chat', () => {
       })
 
       // 7. 清理尾部空白
-      const finalMessage = messages.value.find(m => m.id === assistantMessage.id)
+      const finalMessage = messages.value.find((m) => m.id === assistantMessage.id)
       if (finalMessage) {
         finalMessage.content = finalMessage.content.trim()
         // 清理 currentToolCall 和 hasPendingTools

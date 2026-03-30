@@ -628,6 +628,9 @@ export interface MessageBlockStep {
   toolResult?: string
   toolStatus?: 'pending' | 'executing' | 'completed' | 'error'
   toolProgress?: string[]
+  // 节点（思考过程）相关字段
+  nodeName?: string
+  nodeStatus?: 'pending' | 'executing' | 'completed' | 'error'
 }
 
 /**

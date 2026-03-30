@@ -81,48 +81,28 @@
             <el-avatar v-else :icon="Service" style="background: var(--primary-gradient)" />
           </div>
           <div class="message-content">
-            <!-- AI 消息块（动态创建：思考块、工具块） -->
+            <!-- AI 消息块（统一的执行过程） -->
             <template v-if="message.role === 'assistant' && message.blocks && message.blocks.length > 0">
               <div
                 v-for="block in message.blocks"
                 :key="block.id"
-                :class="['message-block', block.type === 'thinking' ? 'thinking-section' : 'tool-section']"
+                class="message-block process-section"
               >
-                <div class="section-header" @click="toggleBlock(message.id, block.id)">
-                  <el-icon v-if="isBlockExpanded(message.id, block.id)"><ArrowDown /></el-icon>
+                <div class="section-header" @click="block.isExpanded = !block.isExpanded">
+                  <el-icon v-if="block.isExpanded"><ArrowDown /></el-icon>
                   <el-icon v-else><ArrowRight /></el-icon>
                   <span>{{ block.title }}</span>
-                  <el-tag size="small" :type="block.type === 'thinking' ? 'info' : 'warning'">
-                    {{ block.steps.length }} 步
-                  </el-tag>
                 </div>
-                <div v-show="isBlockExpanded(message.id, block.id)" class="block-steps">
+                <!-- 展开的步骤列表 -->
+                <div v-show="block.isExpanded" class="block-steps">
                   <div
                     v-for="step in block.steps"
                     :key="step.id"
-                    :class="['block-step', block.type === 'tool' && step.toolStatus ? `tool-${step.toolStatus}` : '']"
+                    :class="['block-step', (!step.toolStatus && !step.nodeStatus && !step.message.startsWith('✅')) || step.toolStatus === 'executing' || step.nodeStatus === 'executing' ? 'step-executing' : 'step-completed']"
                   >
-                    <template v-if="block.type === 'thinking'">
+                    <div class="step-message">
                       {{ step.message }}
-                    </template>
-                    <template v-else-if="block.type === 'tool'">
-                      <div class="tool-step-header">
-                        <span class="tool-status-icon">
-                          {{ step.toolStatus === 'completed' ? '✅' : step.toolStatus === 'executing' ? '🔄' : '⏳' }}
-                        </span>
-                        <span class="tool-step-message">{{ step.message }}</span>
-                      </div>
-                      <!-- 工具参数 -->
-                      <div v-if="step.toolArgs && Object.keys(step.toolArgs).length > 0" class="tool-step-args">
-                        <span class="label">参数:</span>
-                        <span class="value">{{ formatToolArgs(step.toolArgs) }}</span>
-                      </div>
-                      <!-- 工具结果 -->
-                      <div v-if="step.toolResult" class="tool-step-result">
-                        <span class="label">结果:</span>
-                        <span class="value">{{ truncateResult(step.toolResult) }}</span>
-                      </div>
-                    </template>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -339,38 +319,7 @@ const handleLinkClick = (event: Event) => {
   }
 }
 
-// 消息块的折叠状态（messageId-blockId => isExpanded）
-const expandedBlocks = ref<Map<string, boolean>>(new Map())
-
-// 切换消息块展开/折叠
-const toggleBlock = (messageId: string, blockId: string) => {
-  const key = `${messageId}-${blockId}`
-  const currentValue = expandedBlocks.value.get(key)
-  // 切换状态：未设置时默认为 true（展开），点击后设为 false（折叠）
-  expandedBlocks.value.set(key, currentValue === false)
-  // 触发响应式更新
-  expandedBlocks.value = new Map(expandedBlocks.value)
-}
-
-// 判断消息块是否展开
-const isBlockExpanded = (messageId: string, blockId: string): boolean => {
-  const key = `${messageId}-${blockId}`
-  // 未设置时默认为 true（展开）
-  return expandedBlocks.value.get(key) !== false
-}
-
-// 格式化工具参数
-const formatToolArgs = (args: Record<string, unknown>): string => {
-  return Object.entries(args)
-    .map(([key, value]) => `${key}=${JSON.stringify(value)}`)
-    .join(', ')
-}
-
-// 截断工具结果（太长时显示部分）
-const truncateResult = (result: string, maxLength: number = 200): string => {
-  if (result.length <= maxLength) return result
-  return result.substring(0, maxLength) + '...'
-}
+// 删除了未使用的 isBlockExpanded 相关折叠状态逻辑和 tool 参数展示逻辑
 </script>
 
 <style scoped>
@@ -797,154 +746,94 @@ const truncateResult = (result: string, maxLength: number = 200): string => {
 }
 
 /* AI 思考过程和工具调用区域样式 */
-.thinking-section,
-.tool-section {
+.process-section {
   margin-bottom: 16px;
   border-radius: 16px;
   overflow: hidden;
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.03);
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(0,0,0,0.05);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
 }
 
-.thinking-section {
-  background: rgba(255, 255, 255, 0.8);
-  border: 1px solid var(--border-light);
-}
-
-.tool-section {
-  background: var(--primary-lighter);
-  border: 1px solid var(--primary-light);
+.process-section:hover {
+  box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+  transform: translateY(-1px);
 }
 
 .section-header {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 12px 16px;
+  gap: 12px;
+  padding: 14px 18px;
   cursor: pointer;
   font-size: 14px;
   font-weight: 600;
-  transition: background-color 0.2s;
-}
-
-.thinking-section .section-header {
   color: var(--text-secondary);
-}
-
-.tool-section .section-header {
-  color: var(--primary-color);
+  transition: background-color 0.2s;
+  user-select: none;
 }
 
 .section-header:hover {
-  background-color: rgba(0, 0, 0, 0.05);
+  background-color: rgba(255, 255, 255, 0.9);
+  color: var(--primary-color);
 }
 
 .section-header .el-icon {
   font-size: 16px;
+  color: var(--text-tertiary);
+  transition: transform 0.3s ease;
 }
 
-.section-header .el-tag {
-  margin-left: auto;
-  border-radius: 12px;
-}
-
-/* Thinking 步骤样式 */
-.thinking-steps {
+/* 执行步骤样式 */
+.block-steps {
   padding: 0 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
-.thinking-step {
-  padding: 8px 12px;
-  margin-top: 8px;
-  background: var(--bg-white);
-  border-radius: 8px;
+.block-step {
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 10px;
   font-size: 13px;
   color: var(--text-secondary);
-  line-height: 1.6;
+  line-height: 1.5;
+  border-left: 3px solid transparent;
+  transition: all 0.3s ease;
 }
 
-/* 工具调用样式 */
-.tool-items {
-  padding: 0 16px 16px;
+.block-step.step-completed {
+  border-left-color: #67c23a;
+  color: var(--text-regular);
 }
 
-.tool-item {
-  padding: 12px;
-  margin-top: 8px;
-  background: var(--bg-white);
-  border-radius: 12px;
-  border-left: 4px solid var(--primary-color);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+.block-step.step-executing {
+  border-left-color: var(--primary-color);
+  color: var(--primary-color);
+  font-weight: 500;
+  animation: pulse-border 1.5s infinite ease-in-out alternate;
 }
 
-.tool-item .tool-name {
+.step-message {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-weight: 800;
-  color: var(--text-primary);
-  font-size: 14px;
-  margin-bottom: 8px;
 }
 
-.tool-item .tool-icon {
-  font-size: 16px;
+@keyframes pulse-border {
+  from {
+    border-left-color: var(--primary-color);
+    box-shadow: 0 0 0 rgba(255, 81, 47, 0);
+  }
+  to {
+    border-left-color: var(--primary-light);
+    box-shadow: -2px 0 8px rgba(255, 81, 47, 0.2);
+  }
 }
 
-.tool-item .tool-args,
-.tool-item .tool-result {
-  font-size: 13px;
-  color: var(--text-secondary);
-  margin-top: 8px;
-  padding-left: 24px;
-}
 
-.tool-item .tool-args .label,
-.tool-item .tool-result .label {
-  font-weight: 600;
-  color: var(--text-tertiary);
-}
-
-.tool-item .tool-args .value {
-  color: var(--primary-color);
-  font-family: 'Consolas', 'Monaco', monospace;
-  word-break: break-all;
-  background: rgba(221, 36, 118, 0.05);
-  padding: 2px 6px;
-  border-radius: 4px;
-}
-
-.tool-item .tool-result .value {
-  color: #10B981;
-  display: block;
-  margin-top: 6px;
-  white-space: pre-wrap;
-  word-break: break-word;
-  max-height: 120px;
-  overflow-y: auto;
-  background: rgba(16, 185, 129, 0.05);
-  padding: 8px;
-  border-radius: 8px;
-}
-
-/* 工具执行进度 */
-.tool-progress {
-  margin-top: 12px;
-  padding-left: 24px;
-}
-
-.progress-step {
-  font-size: 12px;
-  color: var(--text-tertiary);
-  padding: 4px 0;
-}
-
-/* 工具执行后的思考区域 */
-.thinking-after-tools {
-  background: rgba(16, 185, 129, 0.05);
-  border: 1px solid rgba(16, 185, 129, 0.2);
-}
-
-.thinking-after-tools .section-header {
-  color: #10B981;
-}
 </style>
