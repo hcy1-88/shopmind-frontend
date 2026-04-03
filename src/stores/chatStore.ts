@@ -349,10 +349,18 @@ export const useChatStore = defineStore('chat', () => {
               )
               if (stepIndex !== -1) {
                 // 直接修改数组中的对象，确保 Vue 能检测到变化
+                const existingStep = currentBlock.steps[stepIndex]!
                 currentBlock.steps[stepIndex] = {
-                  ...currentBlock.steps[stepIndex],
-                  nodeStatus: 'completed',
+                  id: existingStep.id,
                   message: endMessageText,
+                  timestamp: existingStep.timestamp,
+                  nodeStatus: 'completed',
+                  toolName: existingStep.toolName,
+                  toolArgs: existingStep.toolArgs,
+                  toolResult: existingStep.toolResult,
+                  toolStatus: existingStep.toolStatus,
+                  toolProgress: existingStep.toolProgress,
+                  nodeName: event.data.node_name,
                 }
               } else {
                 // 兜底：找同名节点的最后一个 step（不限状态）并更新它
@@ -360,10 +368,18 @@ export const useChatStore = defineStore('chat', () => {
                   (s) => s.nodeName === event.data.node_name
                 )
                 if (anyStepIndex !== -1) {
+                  const existingStep = currentBlock.steps[anyStepIndex]!
                   currentBlock.steps[anyStepIndex] = {
-                    ...currentBlock.steps[anyStepIndex],
-                    nodeStatus: 'completed',
+                    id: existingStep.id,
                     message: endMessageText,
+                    timestamp: existingStep.timestamp,
+                    nodeStatus: 'completed',
+                    toolName: existingStep.toolName,
+                    toolArgs: existingStep.toolArgs,
+                    toolResult: existingStep.toolResult,
+                    toolStatus: existingStep.toolStatus,
+                    toolProgress: existingStep.toolProgress,
+                    nodeName: event.data.node_name,
                   }
                 } else {
                   // 完全找不到同名 step（极少情况），才新增
@@ -442,11 +458,18 @@ export const useChatStore = defineStore('chat', () => {
               )
               if (stepIndex !== -1) {
                 // 直接修改数组中的对象，确保 Vue 能检测到变化
+                const existingStep = currentBlock.steps[stepIndex]!
                 currentBlock.steps[stepIndex] = {
-                  ...currentBlock.steps[stepIndex],
-                  toolStatus: 'completed',
-                  toolResult: event.data.result,
+                  id: existingStep.id,
                   message: completeToolMessageText,
+                  timestamp: existingStep.timestamp,
+                  nodeStatus: existingStep.nodeStatus,
+                  toolName: event.data.tool_name,
+                  toolArgs: existingStep.toolArgs,
+                  toolResult: event.data.result,
+                  toolStatus: 'completed',
+                  toolProgress: existingStep.toolProgress,
+                  nodeName: existingStep.nodeName,
                 }
               } else {
                 // 兜底：如果没有找到 executing 状态的该工具（可能被中途打断），直接新增一个 complete 步骤
