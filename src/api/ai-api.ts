@@ -95,6 +95,7 @@ export const aiApi = {
     const reader = response.body.getReader()
     const decoder = new TextDecoder('utf-8')
     let fullText = ''
+    let buffer = '' // 缓冲区，用于处理跨块的 SSE 行
 
     try {
       // 2，开始循环读取，使用 reader.read() 读取数据块，直到读取完成
@@ -109,12 +110,18 @@ export const aiApi = {
         chunkCount++
         // 解码数据块（stream: true 表示可能还有更多数据）
         const chunk = decoder.decode(value, { stream: true })
-        
+
+        // 将新数据追加到缓冲区
+        buffer += chunk
+
         // 解析 SSE 格式的事件
-        const lines = chunk.split('\n')
+        const lines = buffer.split('\n')
+        // 保留最后一个不完整的行（可能是跨块的）
+        buffer = lines.pop() || ''
+
         for (const line of lines) {
           if (!line.trim()) continue
-          
+
           if (line.startsWith('data: ')) {
             const data = line.slice(6)
             
@@ -124,12 +131,12 @@ export const aiApi = {
             
             try {
               const event = JSON.parse(data) as AIEvent
-              
+
               // 如果是 token_stream 事件，累积文本
               if (event.type === 'token_stream' && event.data.content) {
                 fullText += event.data.content
               }
-              
+
               // 回调所有事件
               onEvent(event)
             } catch (e) {
@@ -160,6 +167,40 @@ export const aiApi = {
                   })
                 }
               }
+            }
+          }
+        }
+      }
+
+      // 处理缓冲区中剩余的数据
+      if (buffer.trim()) {
+        console.log('[SSE Remaining buffer]:', buffer)
+        const lines = buffer.split('\n')
+        for (const line of lines) {
+          if (!line.trim()) continue
+
+          if (line.startsWith('data: ')) {
+            const data = line.slice(6)
+
+            if (data === '[DONE]') {
+              continue
+            }
+
+            try {
+              const event = JSON.parse(data) as AIEvent
+
+              // 添加调试日志
+              console.log('[Frontend SSE] Received event (remaining):', event.type, event.data)
+
+              // 如果是 token_stream 事件，累积文本
+              if (event.type === 'token_stream' && event.data.content) {
+                fullText += event.data.content
+              }
+
+              // 回调所有事件
+              onEvent(event)
+            } catch (e) {
+              console.warn('剩余缓冲区JSON解析失败:', data.substring(0, 100))
             }
           }
         }

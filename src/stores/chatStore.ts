@@ -11,6 +11,7 @@ import { aiApi } from '@/api/ai-api'
 import type { AIEvent } from '@/api/ai-api'
 import { useUserStore } from './userStore'
 import { generateSessionId } from '@/utils/session-utils'
+import { NODE_CONFIG, TOOL_CONFIG, getNodeStartMessage, getNodeEndMessage } from '@/config/node-config'
 
 export const useChatStore = defineStore('chat', () => {
   const messages = ref<ChatMessage[]>([])
@@ -116,6 +117,9 @@ export const useChatStore = defineStore('chat', () => {
 
   // 切换到指定对话
   const switchConversation = async (conversation: Conversation) => {
+    // 重置 loading 状态，防止之前的请求卡住
+    isLoading.value = false
+
     // 保存当前对话的 sessionId
     sessionId.value = conversation.session_id
     currentConversation.value = conversation
@@ -314,41 +318,58 @@ export const useChatStore = defineStore('chat', () => {
               message.blocks.push(currentBlock)
             }
 
+            // 使用配置中心生成消息
+            const startNodeConfig = NODE_CONFIG[event.data.node_name]
+            const startMessageText = startNodeConfig
+              ? getNodeStartMessage(event.data.node_name, startNodeConfig)
+              : '🤔 AI 正在思考...'
+
             // 添加思考开始步骤
             currentBlock.steps.push({
               id: `step_${Date.now()}_${Math.random()}`,
-              message: event.data.message || '🤔 AI 正在思考...',
+              message: startMessageText,
               timestamp: Date.now(),
               nodeName: event.data.node_name,
-              nodeStatus: 'executing',
+              nodeStatus: event.data.status === 'executing' ? 'executing' : 'completed',
             })
             break
 
           case 'thinking_end':
-            currentBlock = message.blocks.length > 0 ? message.blocks[0] || null : null
+            // 使用配置中心生成消息
+            const endNodeConfig = NODE_CONFIG[event.data.node_name]
+            const endMessageText = endNodeConfig
+              ? getNodeEndMessage(endNodeConfig)
+              : '✅ 思考完成'
+
             // 更新当前思考块（找到对应的 executing 节点，将其改为 completed）
             if (currentBlock) {
               // 优先找同名节点中 executing 状态的 step
-              const lastNodeStep = [...currentBlock.steps]
-                .reverse()
-                .find((s) => s.nodeName === event.data.node_name && s.nodeStatus === 'executing')
-              if (lastNodeStep) {
-                lastNodeStep.nodeStatus = 'completed'
-                lastNodeStep.message = event.data.message || `✅ 思考完成`
+              const stepIndex = currentBlock.steps.findIndex(
+                (s) => s.nodeName === event.data.node_name && s.nodeStatus === 'executing'
+              )
+              if (stepIndex !== -1) {
+                // 直接修改数组中的对象，确保 Vue 能检测到变化
+                currentBlock.steps[stepIndex] = {
+                  ...currentBlock.steps[stepIndex],
+                  nodeStatus: 'completed',
+                  message: endMessageText,
+                }
               } else {
                 // 兜底：找同名节点的最后一个 step（不限状态）并更新它
-                // 注意：不能直接新增，否则原来的 executing step 会永远停在「正在...」
-                const anyNodeStep = [...currentBlock.steps]
-                  .reverse()
-                  .find((s) => s.nodeName === event.data.node_name)
-                if (anyNodeStep) {
-                  anyNodeStep.nodeStatus = 'completed'
-                  anyNodeStep.message = event.data.message || `✅ 思考完成`
+                const anyStepIndex = currentBlock.steps.findIndex(
+                  (s) => s.nodeName === event.data.node_name
+                )
+                if (anyStepIndex !== -1) {
+                  currentBlock.steps[anyStepIndex] = {
+                    ...currentBlock.steps[anyStepIndex],
+                    nodeStatus: 'completed',
+                    message: endMessageText,
+                  }
                 } else {
                   // 完全找不到同名 step（极少情况），才新增
                   currentBlock.steps.push({
                     id: `step_${Date.now()}_${Math.random()}`,
-                    message: event.data.message || `✅ 思考完成`,
+                    message: endMessageText,
                     timestamp: Date.now(),
                     nodeName: event.data.node_name,
                     nodeStatus: 'completed',
@@ -364,31 +385,38 @@ export const useChatStore = defineStore('chat', () => {
 
           case 'tool_start':
             // 获取或创建全局唯一的执行块
-            currentBlock = message.blocks.length > 0 ? message.blocks[0] || null : null
             if (!currentBlock) {
-              currentBlock = {
-                id: `block_${Date.now()}`,
-                type: 'thinking',
-                title: '🧠 AI 思考与执行过程',
-                steps: [] as MessageBlockStep[],
-                isExpanded: true,
-              } as MessageBlock
-              message.blocks.push(currentBlock)
+              currentBlock = message.blocks.length > 0 ? message.blocks[0] || null : null
+              if (!currentBlock) {
+                currentBlock = {
+                  id: `block_${Date.now()}`,
+                  type: 'thinking',
+                  title: '🧠 AI 思考与执行过程',
+                  steps: [] as MessageBlockStep[],
+                  isExpanded: true,
+                } as MessageBlock
+                message.blocks.push(currentBlock)
+              }
             }
+
+            // 使用配置中心生成消息
+            const startToolConfig = TOOL_CONFIG[event.data.tool_name]
+            const startToolMessageText = startToolConfig
+              ? getNodeStartMessage(event.data.tool_name, startToolConfig, event.data.tool_args)
+              : `🔄 正在执行工具: ${event.data.tool_name}`
 
             // 添加工具开始步骤
             currentBlock.steps.push({
               id: `step_${Date.now()}_${Math.random()}`,
-              message: event.data.message || `🔄 正在执行工具: ${event.data.tool_name}`,
+              message: startToolMessageText,
               timestamp: Date.now(),
               toolName: event.data.tool_name,
               toolArgs: event.data.tool_args || {},
-              toolStatus: 'executing',
+              toolStatus: event.data.status === 'executing' ? 'executing' : 'completed',
             })
             break
 
           case 'tool_progress':
-            currentBlock = message.blocks.length > 0 ? message.blocks[0] || null : null
             // 工具执行进度
             if (currentBlock) {
               currentBlock.steps.push({
@@ -400,22 +428,31 @@ export const useChatStore = defineStore('chat', () => {
             break
 
           case 'tool_complete':
-            currentBlock = message.blocks.length > 0 ? message.blocks[0] || null : null
+            // 使用配置中心生成消息
+            const completeToolConfig = TOOL_CONFIG[event.data.tool_name]
+            const completeToolMessageText = completeToolConfig
+              ? getNodeEndMessage(completeToolConfig)
+              : `✅ ${event.data.tool_name} 执行完成`
+
             // 工具执行完成，找到最后一个对应的执行中任务，把它标为 complete
             if (currentBlock) {
               // 寻找正在执行的对应 tool 步骤
-              const lastStep = [...currentBlock.steps]
-                .reverse()
-                .find((s) => s.toolName === event.data.tool_name && s.toolStatus === 'executing')
-              if (lastStep) {
-                lastStep.toolStatus = 'completed'
-                lastStep.toolResult = event.data.result
-                lastStep.message = event.data.message || `✅ ${event.data.tool_name} 执行完成`
+              const stepIndex = currentBlock.steps.findIndex(
+                (s) => s.toolName === event.data.tool_name && s.toolStatus === 'executing'
+              )
+              if (stepIndex !== -1) {
+                // 直接修改数组中的对象，确保 Vue 能检测到变化
+                currentBlock.steps[stepIndex] = {
+                  ...currentBlock.steps[stepIndex],
+                  toolStatus: 'completed',
+                  toolResult: event.data.result,
+                  message: completeToolMessageText,
+                }
               } else {
                 // 兜底：如果没有找到 executing 状态的该工具（可能被中途打断），直接新增一个 complete 步骤
                 currentBlock.steps.push({
                   id: `step_${Date.now()}_${Math.random()}`,
-                  message: event.data.message || `✅ ${event.data.tool_name} 执行完成`,
+                  message: completeToolMessageText,
                   timestamp: Date.now(),
                   toolName: event.data.tool_name,
                   toolStatus: 'completed',
@@ -452,8 +489,16 @@ export const useChatStore = defineStore('chat', () => {
             break
 
           case 'error':
-            // 发生错误
-            console.error('❌ AI 回复错误:', event.data.message)
+            // 发生错误，将错误信息显示给用户
+            // 注意：error 事件直接使用后端传来的 message，不使用前端默认文案
+            const errorMessage = event.data.message || '抱歉，我遇到了一些问题，请稍后再试。'
+            console.error('❌ AI 回复错误:', errorMessage)
+            // 将错误信息显示在消息内容中
+            if (!message.content) {
+              message.content = errorMessage
+            } else {
+              message.content += `\n\n❌ ${errorMessage}`
+            }
             break
         }
       })

@@ -11,7 +11,10 @@
         <div
           v-for="conv in chatStore.conversations"
           :key="conv.session_id"
-          :class="['conversation-item', { active: chatStore.currentConversation?.session_id === conv.session_id }]"
+          :class="[
+            'conversation-item',
+            { active: chatStore.currentConversation?.session_id === conv.session_id },
+          ]"
           @click="handleSelectConversation(conv)"
         >
           <div class="conversation-info">
@@ -50,6 +53,23 @@
     <main class="chat-main">
       <div class="chat-header">
         <h3>{{ chatStore.currentConversation?.name || '新对话' }}</h3>
+        <div class="header-actions">
+          <el-dropdown v-if="userStore.isLoggedIn" @command="handleCommand">
+            <span class="user-info">
+              <el-avatar :src="userStore.user?.avatar" :icon="User" />
+              <span class="user-nickname">{{ userStore.user?.nickname || '用户' }}</span>
+            </span>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item command="profile">个人中心</el-dropdown-item>
+                <el-dropdown-item command="logout" divided>退出登录</el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
+          <el-link v-else type="primary" @click="loginVisible = true">
+            登录
+          </el-link>
+        </div>
       </div>
 
       <div class="chat-messages" ref="messagesContainer">
@@ -73,16 +93,14 @@
           :class="['message-item', message.role]"
         >
           <div class="message-avatar">
-            <el-avatar
-              v-if="message.role === 'user'"
-              :src="userStore.user?.avatar"
-              :icon="User"
-            />
+            <el-avatar v-if="message.role === 'user'" :src="userStore.user?.avatar" :icon="User" />
             <el-avatar v-else :icon="Service" style="background: var(--primary-gradient)" />
           </div>
           <div class="message-content">
             <!-- AI 消息块（统一的执行过程） -->
-            <template v-if="message.role === 'assistant' && message.blocks && message.blocks.length > 0">
+            <template
+              v-if="message.role === 'assistant' && message.blocks && message.blocks.length > 0"
+            >
               <div
                 v-for="block in message.blocks"
                 :key="block.id"
@@ -98,7 +116,14 @@
                   <div
                     v-for="step in block.steps"
                     :key="step.id"
-                    :class="['block-step', (!step.toolStatus && !step.nodeStatus && !step.message.startsWith('✅')) || step.toolStatus === 'executing' || step.nodeStatus === 'executing' ? 'step-executing' : 'step-completed']"
+                    :class="[
+                      'block-step',
+                      (!step.toolStatus && !step.nodeStatus && !step.message.startsWith('✅')) ||
+                      step.toolStatus === 'executing' ||
+                      step.nodeStatus === 'executing'
+                        ? 'step-executing'
+                        : 'step-completed',
+                    ]"
                   >
                     <div class="step-message">
                       {{ step.message }}
@@ -115,7 +140,10 @@
               v-html="parseProductLinks(message.content)"
               @click="handleLinkClick"
             ></div>
-            <div v-else-if="message.role === 'assistant' && chatStore.isLoading" class="message-text loading">
+            <div
+              v-else-if="message.role === 'assistant' && chatStore.isLoading"
+              class="message-text loading"
+            >
               正在输入...
             </div>
             <div class="message-time">{{ formatTime(message.timestamp) }}</div>
@@ -141,6 +169,9 @@
         </el-input>
       </div>
     </main>
+
+    <!-- 登录对话框 -->
+    <LoginDialog v-model:visible="loginVisible" />
   </div>
 </template>
 
@@ -148,11 +179,23 @@
 import { ref, onMounted, nextTick, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus, Edit, Delete, User, Service, Promotion, ChatDotRound, Loading, ArrowRight, ArrowDown } from '@element-plus/icons-vue'
+import {
+  Plus,
+  Edit,
+  Delete,
+  User,
+  Service,
+  Promotion,
+  ChatDotRound,
+  Loading,
+  ArrowRight,
+  ArrowDown,
+} from '@element-plus/icons-vue'
 import { useChatStore } from '@/stores/chatStore'
 import { useUserStore } from '@/stores/userStore'
 import { parseProductLinks } from '@/utils/chat-utils'
 import type { Conversation } from '@/types'
+import LoginDialog from '@/components/LoginDialog.vue'
 
 const router = useRouter()
 const chatStore = useChatStore()
@@ -160,6 +203,7 @@ const userStore = useUserStore()
 
 const inputMessage = ref('')
 const messagesContainer = ref<HTMLElement>()
+const loginVisible = ref(false)
 
 // 编辑状态
 const editingSessionId = ref<string>('')
@@ -238,7 +282,9 @@ const handleEditName = (conversation: Conversation) => {
   editingName.value = conversation.name
   nextTick(() => {
     // 自动聚焦输入框
-    const input = document.querySelector('.conversation-item.active .el-input input') as HTMLInputElement
+    const input = document.querySelector(
+      '.conversation-item.active .el-input input',
+    ) as HTMLInputElement
     if (input) {
       input.focus()
     }
@@ -286,7 +332,8 @@ const sendMessage = async () => {
   if (!chatStore.currentConversation && chatStore.messages.length === 0) {
     // 使用第一条消息作为对话名称
     const firstMessage = inputMessage.value.trim()
-    const conversationName = firstMessage.length > 20 ? firstMessage.substring(0, 20) + '...' : firstMessage
+    const conversationName =
+      firstMessage.length > 20 ? firstMessage.substring(0, 20) + '...' : firstMessage
 
     // 创建对话（在本地和后端都创建）
     await chatStore.createConversation(conversationName, true)
@@ -319,6 +366,16 @@ const handleLinkClick = (event: Event) => {
   }
 }
 
+// 处理用户下拉菜单命令
+const handleCommand = (command: string) => {
+  if (command === 'profile') {
+    router.push({ name: 'profile' })
+  } else if (command === 'logout') {
+    userStore.logout()
+    ElMessage.success('已退出登录')
+  }
+}
+
 // 删除了未使用的 isBlockExpanded 相关折叠状态逻辑和 tool 参数展示逻辑
 </script>
 
@@ -333,10 +390,10 @@ const handleLinkClick = (event: Event) => {
 /* 左侧边栏 */
 .chat-sidebar {
   width: 280px;
-  background: rgba(255, 255, 255, 0.6);
+  background: linear-gradient(180deg, #FFF5F7 0%, #FFE5E8 100%);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border-right: 1px solid rgba(255, 255, 255, 0.4);
+  border-right: 1px solid rgba(255, 200, 210, 0.3);
   display: flex;
   flex-direction: column;
   z-index: 10;
@@ -346,8 +403,10 @@ const handleLinkClick = (event: Event) => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 24px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.4);
+  padding: 22px 24px;
+  background: linear-gradient(135deg, #FFD4DE 0%, #FFC8D0 100%);
+  border-bottom: 1px solid rgba(255, 180, 195, 0.4);
+  box-shadow: 0 2px 12px rgba(255, 140, 140, 0.08);
 }
 
 .sidebar-header h2 {
@@ -368,6 +427,9 @@ const handleLinkClick = (event: Event) => {
   flex: 1;
   overflow-y: auto;
   padding: 16px;
+  background: linear-gradient(180deg, #FFE5E8 0%, #FFF5F7 100%);
+  border-radius: 16px;
+  margin: 12px;
 }
 
 .conversation-item {
@@ -376,13 +438,14 @@ const handleLinkClick = (event: Event) => {
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   margin-bottom: 12px;
-  background: rgba(255, 255, 255, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.5);
+  background: linear-gradient(135deg, #FFB8C8 0%, #FFA8B8 100%);
+  border: 1px solid rgba(255, 160, 122, 0.5);
+  box-shadow: 0 2px 8px rgba(255, 140, 140, 0.15);
 }
 
 .conversation-item:hover {
-  background: rgba(255, 255, 255, 0.8);
-  box-shadow: var(--shadow-sm);
+  background: linear-gradient(135deg, #FFA8B8 0%, #FF98A8 100%);
+  box-shadow: 0 4px 16px rgba(255, 140, 140, 0.25);
   transform: translateY(-2px);
 }
 
@@ -415,8 +478,12 @@ const handleLinkClick = (event: Event) => {
 .conversation-actions {
   display: flex;
   gap: 8px;
-  opacity: 0;
+  opacity: 1;
   transition: opacity 0.3s;
+}
+
+.conversation-item:hover .conversation-actions {
+  opacity: 1;
 }
 
 .conversation-actions .el-icon {
@@ -425,14 +492,25 @@ const handleLinkClick = (event: Event) => {
   border-radius: 8px;
   transition: all 0.2s;
   box-sizing: content-box;
+  color: #333;
+  background-color: rgba(255, 255, 255, 0.85);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .conversation-actions .el-icon:hover {
-  background-color: rgba(0, 0, 0, 0.1);
+  background-color: rgba(255, 255, 255, 1);
+  color: #000;
+  transform: scale(1.1);
+}
+
+.conversation-item.active .conversation-actions .el-icon {
+  color: rgba(255, 255, 255, 0.9);
+  background-color: rgba(255, 255, 255, 0.2);
 }
 
 .conversation-item.active .conversation-actions .el-icon:hover {
-  background-color: rgba(255, 255, 255, 0.3);
+  background-color: rgba(255, 255, 255, 0.4);
+  color: white;
 }
 
 .empty-conversations {
@@ -454,13 +532,16 @@ const handleLinkClick = (event: Event) => {
 }
 
 .chat-header {
-  padding: 20px 32px;
-  background: rgba(255, 255, 255, 0.8);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 22px 32px;
+  background: linear-gradient(135deg, #FFE5E8 0%, #FFD4DE 100%);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+  border-bottom: 1px solid rgba(255, 180, 195, 0.5);
   z-index: 10;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 4px 24px rgba(255, 140, 140, 0.12);
 }
 
 .chat-header h3 {
@@ -470,11 +551,43 @@ const handleLinkClick = (event: Event) => {
   font-weight: 800;
 }
 
+.chat-header .header-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.chat-header .user-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 20px;
+  transition: background-color 0.2s;
+}
+
+.chat-header .user-info:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.chat-header .user-nickname {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.chat-header .el-link {
+  font-size: 14px;
+  font-weight: 600;
+}
+
 .chat-messages {
   flex: 1;
   overflow-y: auto;
   padding: 32px 40px;
   scroll-behavior: smooth;
+  background: linear-gradient(180deg, #FFF0F2 0%, #FFE5E8 100%);
 }
 
 .welcome-tip {
@@ -531,7 +644,7 @@ const handleLinkClick = (event: Event) => {
   flex-shrink: 0;
 }
 .message-avatar :deep(.el-avatar) {
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   border: 2px solid white;
 }
 
@@ -548,13 +661,13 @@ const handleLinkClick = (event: Event) => {
 .message-text {
   padding: 16px 20px;
   border-radius: 20px;
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 245, 247, 0.95);
   backdrop-filter: blur(10px);
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 4px 12px rgba(255, 140, 140, 0.1);
   word-wrap: break-word;
   line-height: 1.6;
   font-size: 15px;
-  border: 1px solid var(--border-light);
+  border: 1px solid rgba(255, 200, 210, 0.4);
   color: var(--text-primary);
 }
 
@@ -614,7 +727,7 @@ const handleLinkClick = (event: Event) => {
   color: var(--primary-color);
 }
 .message-item.user .message-text :deep(code) {
-  background: rgba(255,255,255,0.2);
+  background: rgba(255, 255, 255, 0.2);
   color: white;
 }
 
@@ -627,7 +740,7 @@ const handleLinkClick = (event: Event) => {
   border: 1px solid var(--border-light);
 }
 .message-item.user .message-text :deep(pre) {
-  background: rgba(0,0,0,0.15);
+  background: rgba(0, 0, 0, 0.15);
   border: none;
 }
 
@@ -679,7 +792,7 @@ const handleLinkClick = (event: Event) => {
   gap: 8px;
 }
 .message-text.loading::after {
-  content: " ";
+  content: ' ';
   display: inline-block;
   width: 12px;
   height: 12px;
@@ -690,7 +803,9 @@ const handleLinkClick = (event: Event) => {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .message-time {
@@ -702,17 +817,17 @@ const handleLinkClick = (event: Event) => {
 
 .chat-input {
   padding: 24px 40px;
-  background: rgba(255, 255, 255, 0.8);
+  background: linear-gradient(135deg, #FFD4DE 0%, #FFC8D0 100%);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border-top: 1px solid rgba(255, 255, 255, 0.5);
-  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.02);
+  border-top: 1px solid rgba(255, 180, 195, 0.5);
+  box-shadow: 0 -4px 24px rgba(255, 140, 140, 0.12);
   z-index: 10;
 }
 
 .chat-input :deep(.el-input__wrapper) {
   border-radius: 24px 0 0 24px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
   padding: 8px 20px;
   border: 2px solid transparent;
   transition: all 0.3s;
@@ -725,7 +840,7 @@ const handleLinkClick = (event: Event) => {
 .chat-input :deep(.el-input-group__append) {
   padding: 0;
   border-radius: 0 24px 24px 0;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
   background: var(--primary-gradient);
   border: none;
   overflow: hidden;
@@ -742,7 +857,7 @@ const handleLinkClick = (event: Event) => {
   transition: background 0.3s;
 }
 .chat-input :deep(.el-input-group__append .el-button:hover) {
-  background: rgba(255,255,255,0.2);
+  background: rgba(255, 255, 255, 0.2);
 }
 
 /* AI 思考过程和工具调用区域样式 */
@@ -750,16 +865,16 @@ const handleLinkClick = (event: Event) => {
   margin-bottom: 16px;
   border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.03);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
   background: rgba(255, 255, 255, 0.7);
-  border: 1px solid rgba(0,0,0,0.05);
+  border: 1px solid rgba(0, 0, 0, 0.05);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
 }
 
 .process-section:hover {
-  box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
   transform: translateY(-1px);
 }
 
@@ -834,6 +949,4 @@ const handleLinkClick = (event: Event) => {
     box-shadow: -2px 0 8px rgba(255, 81, 47, 0.2);
   }
 }
-
-
 </style>
